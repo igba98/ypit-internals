@@ -1,0 +1,1494 @@
+{
+  "_meta": {
+    "document_title": "YPIT Consultancies — Internal Operations System: Master Frontend Specification",
+    "version": "2.0.0",
+    "last_updated": "2026-03-22",
+    "usage": "This is a complete AI-code-assistant prompt specification. Feed sections phase by phase into Cursor, Claude, or Copilot. Each section is self-contained and references shared design system tokens. Always read the tech_stack and design_system sections before starting any component.",
+    "author_note": "Built for YPIT Consultancies, Dar es Salaam, Tanzania. All data is mocked — no real backend exists during frontend development. The system must behave as if fully connected."
+  },
+
+  "project": {
+    "name": "YPIT Consultancies Internal Operations System",
+    "codename": "YPIT-OPS",
+    "version": "1.0.0",
+    "description": "A comprehensive, role-based internal office management system for YPIT Consultancies, a study abroad consultancy headquartered in Dar es Salaam, Tanzania. The system manages the full student lifecycle — from initial lead generation through counseling, payment, university application, visa processing, travel, and post-arrival monitoring — with strict department-level access control, daily task management, and a hierarchical reporting workflow.",
+    "company": {
+      "name": "YPIT Consultancies",
+      "tagline": "Fulfill Your Joy",
+      "website": "www.ypitconsultancies.com",
+      "contact": "+255 (0) 769 227 898",
+      "address": "NIC Investment House, 4th Floor, Dar es Salaam, Tanzania",
+      "email": "marketing@ypitconsultancies.com",
+      "brand_colors": {
+        "primary": "#9c003d",
+        "secondary": "#ffffff",
+        "text": "#0a0a0a"
+      }
+    }
+  },
+
+  "tech_stack": {
+    "framework": {
+      "name": "Next.js 15",
+      "version": "15.x (latest stable)",
+      "router": "App Router (app/ directory only — no pages/ directory)",
+      "rendering": {
+        "default": "Server Components (RSC) by default for all page-level components",
+        "client_components": "Mark with 'use client' directive ONLY when component uses: useState, useEffect, useContext, event handlers, browser APIs, framer-motion animations, recharts, or any interactivity",
+        "server_actions": "Use Next.js Server Actions (app/actions/) for all form submissions and data mutations — even though data is mocked, structure actions as if they call a real API",
+        "streaming": "Use React Suspense + loading.tsx for all data-fetching components to enable streaming SSR",
+        "error_handling": "Use error.tsx at route segment level for error boundaries"
+      },
+      "special_files": {
+        "layout.tsx": "Root layout and group layouts only — never put page logic here",
+        "loading.tsx": "Skeleton loading UI per route segment — always implement these",
+        "error.tsx": "Must be a Client Component ('use client') — handles runtime errors per segment",
+        "not-found.tsx": "Custom 404 page per route group",
+        "page.tsx": "Default export — Server Component unless interactivity needed",
+        "route.ts": "API Route Handlers in app/api/ — used for mock API endpoints"
+      },
+      "caching": {
+        "note": "Even with mock data, structure fetch calls using Next.js fetch with cache options to prepare for real backend",
+        "pattern": "fetch(url, { cache: 'no-store' }) for dynamic data, fetch(url, { next: { revalidate: 60 } }) for semi-static data"
+      }
+    },
+    "react": {
+      "version": "React 19 (latest stable)",
+      "key_features_to_use": {
+        "use_hook": "Use the new React 19 'use()' hook to read promises and context in Server Components where applicable",
+        "use_form_status": "Import { useFormStatus } from 'react-dom' for form submit states instead of manual isLoading state",
+        "use_action_state": "Import { useActionState } from 'react' for form action state management (replaces useFormState from react-dom)",
+        "use_optimistic": "Import { useOptimistic } from 'react' for optimistic UI updates on task status changes, student pipeline stage changes",
+        "ref_as_prop": "In React 19, refs can be passed as regular props — no need for forwardRef wrapper",
+        "server_components": "Async Server Components: export default async function Page() — await data directly at component level",
+        "transitions": "Use useTransition() for non-urgent state updates like filter changes and search to keep UI responsive",
+        "deferred_value": "Use useDeferredValue() for search input filtering to avoid blocking renders"
+      },
+      "patterns": {
+        "data_fetching": "Fetch mock data in Server Components using async/await directly. Pass data as props to Client Components.",
+        "client_state": "Use useState + useReducer for complex local state in Client Components",
+        "global_state": "Use React Context + useContext for auth session, notifications count, sidebar state",
+        "forms": "Use Server Actions with useActionState for all form submissions",
+        "optimistic_updates": "Use useOptimistic for task status drag-and-drop and pipeline stage updates"
+      }
+    },
+    "styling": {
+      "tailwind": {
+        "version": "Tailwind CSS v4 (latest)",
+        "config": "tailwind.config.ts — extend theme with custom colors, fonts, shadows, border-radius matching design system tokens",
+        "css_variables": "Define all design tokens as CSS custom properties in globals.css under :root — use var(--color-primary) etc.",
+        "dark_mode": "Not required in v1 — light mode only",
+        "important_classes": "Use cn() utility from clsx + tailwind-merge for conditional class merging — install clsx and tailwind-merge",
+        "responsive": "Mobile-first: sm:, md:, lg:, xl: breakpoints. Sidebar collapses below lg:."
+      }
+    },
+    "components": {
+      "shadcn_ui": {
+        "version": "shadcn/ui (latest — uses Radix UI primitives under the hood)",
+        "installation": "npx shadcn@latest init — choose style: Default, base color: Neutral",
+        "components_to_install": [
+          "npx shadcn@latest add button",
+          "npx shadcn@latest add input",
+          "npx shadcn@latest add label",
+          "npx shadcn@latest add select",
+          "npx shadcn@latest add checkbox",
+          "npx shadcn@latest add dialog",
+          "npx shadcn@latest add alert-dialog",
+          "npx shadcn@latest add sheet",
+          "npx shadcn@latest add tabs",
+          "npx shadcn@latest add table",
+          "npx shadcn@latest add badge",
+          "npx shadcn@latest add avatar",
+          "npx shadcn@latest add dropdown-menu",
+          "npx shadcn@latest add popover",
+          "npx shadcn@latest add calendar",
+          "npx shadcn@latest add card",
+          "npx shadcn@latest add separator",
+          "npx shadcn@latest add skeleton",
+          "npx shadcn@latest add toast",
+          "npx shadcn@latest add textarea",
+          "npx shadcn@latest add switch",
+          "npx shadcn@latest add progress",
+          "npx shadcn@latest add scroll-area",
+          "npx shadcn@latest add command",
+          "npx shadcn@latest add tooltip",
+          "npx shadcn@latest add alert",
+          "npx shadcn@latest add breadcrumb",
+          "npx shadcn@latest add collapsible"
+        ],
+        "theming": "Override shadcn CSS variables in globals.css to match YPIT brand: --primary: 9c003d values in HSL format"
+      }
+    },
+    "icons": {
+      "lucide_react": {
+        "version": "lucide-react latest",
+        "usage": "import { IconName } from 'lucide-react' — tree-shakeable, use for all UI icons",
+        "size_convention": "Default size={18} for nav icons, size={16} for inline text icons, size={20} for action buttons, size={24} for KPI cards"
+      },
+      "react_icons": {
+        "version": "react-icons latest",
+        "usage": "Use for brand/social icons not in lucide — e.g. FiGlobe from feather, RiWhatsappLine for WhatsApp contact links",
+        "import_pattern": "import { RiWhatsappLine } from 'react-icons/ri' — always import from specific subpackage for tree-shaking"
+      }
+    },
+    "animation": {
+      "framer_motion": {
+        "version": "framer-motion latest (motion/react in React 19)",
+        "import": "import { motion, AnimatePresence } from 'motion/react' — use the new motion/react package for React 19 compatibility",
+        "usage_rules": [
+          "Only in Client Components ('use client')",
+          "Use motion.div for slide-in panels, modal overlays, page transitions",
+          "Use AnimatePresence for mount/unmount animations on panels and toasts",
+          "Use layout prop on motion.div for smooth list reorders (task kanban drag)",
+          "Keep animations subtle — max 300ms duration for micro-interactions, 400ms for panels",
+          "Use spring physics for drag-and-drop: type: 'spring', stiffness: 300, damping: 30"
+        ],
+        "animation_presets": {
+          "slide_in_right": "{ initial: { x: '100%', opacity: 0 }, animate: { x: 0, opacity: 1 }, exit: { x: '100%', opacity: 0 }, transition: { type: 'spring', stiffness: 300, damping: 30 } }",
+          "fade_up": "{ initial: { y: 20, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { duration: 0.3 } }",
+          "stagger_children": "{ animate: { transition: { staggerChildren: 0.06 } } }",
+          "scale_in": "{ initial: { scale: 0.95, opacity: 0 }, animate: { scale: 1, opacity: 1 }, transition: { duration: 0.2 } }"
+        }
+      }
+    },
+    "charts": {
+      "recharts": {
+        "version": "recharts latest",
+        "usage": "All charts are Client Components ('use client'). Wrap in ResponsiveContainer for responsive sizing.",
+        "primary_color": "#9c003d",
+        "secondary_colors": ["#c4004d", "#6e002b", "#e8b4c4", "#f0dce6"],
+        "chart_types": {
+          "BarChart": "Monthly intake, revenue, lead sources, login activity",
+          "AreaChart": "Revenue trend over time with gradient fill",
+          "PieChart": "Pipeline stage breakdown, visa status, staff by dept",
+          "LineChart": "Conversion rate trend, check-in frequency",
+          "RadialBarChart": "KPI target completion (like Image 4 gauge)"
+        },
+        "tooltip_style": "Custom tooltip: white bg, #0a0a0a text, subtle shadow, rounded-md, DM Sans font",
+        "grid_style": "Cartesian grid: strokeDasharray='3 3', stroke='#f3f4f6'",
+        "axis_style": "tick fill='#9ca3af', fontSize=12, fontFamily='DM Sans'"
+      }
+    },
+    "utilities": {
+      "date_handling": "date-fns latest — formatDistanceToNow, format, isToday, isPast, isFuture for all date display",
+      "class_merging": "clsx + tailwind-merge combined in lib/utils.ts as cn() function",
+      "form_validation": "zod latest for all form schema validation — define schemas in lib/validations/",
+      "react_hook_form": "react-hook-form v7 with @hookform/resolvers/zod — use for all complex forms with validation",
+      "drag_and_drop": "@dnd-kit/core + @dnd-kit/sortable for task kanban board drag and drop",
+      "notifications": "Use shadcn Toaster (sonner) for success/error toast notifications after every action",
+      "cn_utility": "export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)) } — place in lib/utils.ts"
+    },
+    "typescript": {
+      "version": "TypeScript 5.x strict mode",
+      "rules": [
+        "strict: true in tsconfig.json",
+        "No 'any' types — use unknown and narrow properly",
+        "All component props must have explicit interface definitions",
+        "All mock data arrays must be typed with their corresponding interface",
+        "Use discriminated unions for role types and pipeline stage types",
+        "Use const enums or as const objects for Role and PipelineStage",
+        "All Server Actions must return typed ActionResult objects"
+      ],
+      "path_aliases": {
+        "@/": "root directory alias configured in tsconfig.json paths",
+        "@/components": "components/",
+        "@/lib": "lib/",
+        "@/types": "types/",
+        "@/hooks": "hooks/",
+        "@/actions": "app/actions/",
+        "@/mock": "lib/mock/"
+      }
+    },
+    "fonts": {
+      "provider": "next/font/google — use Next.js built-in font optimization",
+      "heading": {
+        "family": "Syne",
+        "weights": [400, 500, 600, 700, 800],
+        "subsets": ["latin"],
+        "variable": "--font-syne",
+        "usage": "All headings h1-h4, KPI numbers, navigation labels, page titles, card titles"
+      },
+      "body": {
+        "family": "DM Sans",
+        "weights": [300, 400, 500, 600],
+        "subsets": ["latin"],
+        "variable": "--font-dm-sans",
+        "usage": "All body text, descriptions, table cells, form labels, button text"
+      },
+      "implementation": "Import both fonts in app/layout.tsx using next/font/google, apply CSS variables to <html> element, configure in tailwind.config.ts under theme.extend.fontFamily"
+    },
+    "package_json_dependencies": {
+      "core": [
+        "next@15 (latest)",
+        "react@19 (latest)",
+        "react-dom@19 (latest)"
+      ],
+      "ui": [
+        "tailwindcss@4 (latest)",
+        "@tailwindcss/postcss",
+        "shadcn/ui (via npx shadcn@latest init)",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge",
+        "lucide-react",
+        "react-icons"
+      ],
+      "animation": ["motion (framer-motion v12+ for React 19)"],
+      "charts": ["recharts"],
+      "forms": ["react-hook-form", "@hookform/resolvers", "zod"],
+      "dnd": ["@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
+      "dates": ["date-fns"],
+      "notifications": ["sonner"],
+      "dev": ["typescript@5", "@types/node", "@types/react", "@types/react-dom", "eslint", "eslint-config-next"]
+    }
+  },
+
+  "design_system": {
+    "description": "All design tokens. Define as CSS variables in globals.css and mirror in tailwind.config.ts. Every component must reference these tokens — never hardcode hex values in component files.",
+    "colors": {
+      "brand": {
+        "primary": { "value": "#9c003d", "css_var": "--color-primary", "tailwind": "primary", "usage": "Primary buttons, active nav, badges, chart fill, links" },
+        "primary_light": { "value": "#c4004d", "css_var": "--color-primary-light", "tailwind": "primary-light", "usage": "Hover states on primary elements" },
+        "primary_dark": { "value": "#6e002b", "css_var": "--color-primary-dark", "tailwind": "primary-dark", "usage": "Active/pressed states, dark accents" },
+        "primary_muted": { "value": "rgba(156,0,61,0.08)", "css_var": "--color-primary-muted", "tailwind": "primary-muted", "usage": "Icon backgrounds in KPI cards, hover states, selected rows" },
+        "primary_muted_strong": { "value": "rgba(156,0,61,0.15)", "css_var": "--color-primary-muted-strong", "tailwind": "primary-muted-strong", "usage": "Focused input rings, selected item backgrounds" }
+      },
+      "neutral": {
+        "white": { "value": "#ffffff", "usage": "Card backgrounds, sidebar contrast, form backgrounds" },
+        "black": { "value": "#0a0a0a", "css_var": "--color-black", "tailwind": "brand-black", "usage": "Sidebar background, primary text" },
+        "gray_50": { "value": "#f9fafb", "usage": "Page background, table row hover, input backgrounds" },
+        "gray_100": { "value": "#f3f4f6", "usage": "Dividers, skeleton loaders, subtle borders" },
+        "gray_200": { "value": "#e5e7eb", "usage": "Card borders, table borders, input borders" },
+        "gray_400": { "value": "#9ca3af", "usage": "Placeholder text, muted icons, chart axes" },
+        "gray_500": { "value": "#6b7280", "usage": "Secondary text, description text, labels" },
+        "gray_700": { "value": "#374151", "usage": "Body text on light backgrounds" },
+        "gray_900": { "value": "#111827", "usage": "Heading text, strong labels" }
+      },
+      "semantic": {
+        "success": { "text": "#15803d", "bg": "#dcfce7", "border": "#86efac", "usage": "Payment confirmed, accepted, active, good wellbeing" },
+        "warning": { "text": "#b45309", "bg": "#fef3c7", "border": "#fcd34d", "usage": "Pending, partial payment, needs attention" },
+        "danger": { "text": "#b91c1c", "bg": "#fee2e2", "border": "#fca5a5", "usage": "Rejected, overdue, escalated, blocked" },
+        "info": { "text": "#1d4ed8", "bg": "#dbeafe", "border": "#93c5fd", "usage": "Submitted, in progress, informational" },
+        "purple": { "text": "#7c3aed", "bg": "#ede9fe", "border": "#c4b5fd", "usage": "Travel planning, draft status, special stages" },
+        "cyan": { "text": "#0e7490", "bg": "#cffafe", "border": "#67e8f9", "usage": "Travel department badges, visa approved" },
+        "orange": { "text": "#c2410c", "bg": "#ffedd5", "border": "#fdba74", "usage": "Operations department, on-hold status" }
+      },
+      "pipeline_stage_colors": {
+        "LEAD": { "text": "#374151", "bg": "#f3f4f6" },
+        "COUNSELING": { "text": "#1d4ed8", "bg": "#dbeafe" },
+        "PAYMENT_PENDING": { "text": "#b45309", "bg": "#fef3c7" },
+        "PAYMENT_CONFIRMED": { "text": "#15803d", "bg": "#dcfce7" },
+        "APPLICATION_SUBMITTED": { "text": "#1d4ed8", "bg": "#dbeafe" },
+        "UNIVERSITY_ACCEPTED": { "text": "#15803d", "bg": "#dcfce7", "font_weight": "600" },
+        "TRAVEL_PLANNING": { "text": "#7c3aed", "bg": "#ede9fe" },
+        "TRAVELLED": { "text": "#ffffff", "bg": "#9c003d" },
+        "MONITORING": { "text": "#ffffff", "bg": "#0a0a0a" }
+      },
+      "role_badge_colors": {
+        "MANAGING_DIRECTOR": { "text": "#ffffff", "bg": "#0a0a0a" },
+        "MARKETING_MANAGER": { "text": "#ffffff", "bg": "#9c003d" },
+        "IT_ADMIN": { "text": "#1d4ed8", "bg": "#dbeafe" },
+        "FINANCE": { "text": "#15803d", "bg": "#dcfce7" },
+        "ADMISSIONS": { "text": "#7c3aed", "bg": "#ede9fe" },
+        "TRAVEL": { "text": "#0e7490", "bg": "#cffafe" },
+        "OPERATIONS": { "text": "#c2410c", "bg": "#ffedd5" },
+        "MARKETING_STAFF": { "text": "#b45309", "bg": "#fef3c7" },
+        "SUB_AGENT": { "text": "#374151", "bg": "#f3f4f6" }
+      }
+    },
+    "typography": {
+      "heading_font": "var(--font-syne)",
+      "body_font": "var(--font-dm-sans)",
+      "scale": {
+        "display": { "size": "2.25rem", "weight": 800, "lineHeight": "1.2", "font": "Syne", "usage": "Page hero titles" },
+        "h1": { "size": "1.875rem", "weight": 700, "lineHeight": "1.25", "font": "Syne", "usage": "Page titles" },
+        "h2": { "size": "1.5rem", "weight": 700, "lineHeight": "1.3", "font": "Syne", "usage": "Section headings, card titles" },
+        "h3": { "size": "1.25rem", "weight": 600, "lineHeight": "1.35", "font": "Syne", "usage": "Sub-section titles, panel headers" },
+        "h4": { "size": "1.125rem", "weight": 600, "lineHeight": "1.4", "font": "Syne", "usage": "Table section labels, widget titles" },
+        "body_lg": { "size": "1rem", "weight": 400, "lineHeight": "1.6", "font": "DM Sans", "usage": "Body text" },
+        "body_sm": { "size": "0.875rem", "weight": 400, "lineHeight": "1.5", "font": "DM Sans", "usage": "Secondary body, descriptions" },
+        "label": { "size": "0.875rem", "weight": 500, "lineHeight": "1", "font": "DM Sans", "usage": "Form labels, table headers" },
+        "caption": { "size": "0.75rem", "weight": 400, "lineHeight": "1.4", "font": "DM Sans", "usage": "Timestamps, helper text, small badges" },
+        "kpi_number": { "size": "2rem", "weight": 800, "lineHeight": "1", "font": "Syne", "usage": "KPI card main value" }
+      }
+    },
+    "spacing": {
+      "layout": {
+        "sidebar_width": "260px",
+        "sidebar_collapsed_width": "72px",
+        "topbar_height": "64px",
+        "page_padding": "24px",
+        "page_padding_mobile": "16px",
+        "card_padding": "20px",
+        "section_gap": "24px",
+        "card_gap": "16px"
+      }
+    },
+    "border_radius": {
+      "xs": "4px",
+      "sm": "6px",
+      "md": "10px",
+      "lg": "14px",
+      "xl": "20px",
+      "2xl": "24px",
+      "full": "9999px"
+    },
+    "shadows": {
+      "card": "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+      "card_hover": "0 4px 12px rgba(0,0,0,0.08)",
+      "elevated": "0 4px 16px rgba(0,0,0,0.08)",
+      "panel": "0 8px 30px rgba(0,0,0,0.10)",
+      "modal": "0 20px 60px rgba(0,0,0,0.15)",
+      "primary_glow": "0 4px 16px rgba(156,0,61,0.25)"
+    },
+    "globals_css_template": "In app/globals.css: @import url fonts, define :root { --font-syne, --font-dm-sans, --color-primary: 9c003d (HSL for shadcn), all semantic colors }. Override shadcn --primary, --primary-foreground, --ring to match #9c003d brand. Set body { font-family: var(--font-dm-sans); background: #f9fafb; color: #0a0a0a; }. Set h1-h6 { font-family: var(--font-syne); }."
+  },
+
+  "typescript_types": {
+    "file": "types/index.ts",
+    "description": "Single source of truth for all TypeScript interfaces and enums used across the project",
+    "content": {
+      "enums_and_const_objects": {
+        "Role": "export const ROLES = { MANAGING_DIRECTOR: 'MANAGING_DIRECTOR', MARKETING_MANAGER: 'MARKETING_MANAGER', IT_ADMIN: 'IT_ADMIN', FINANCE: 'FINANCE', ADMISSIONS: 'ADMISSIONS', TRAVEL: 'TRAVEL', OPERATIONS: 'OPERATIONS', MARKETING_STAFF: 'MARKETING_STAFF', SUB_AGENT: 'SUB_AGENT' } as const; export type Role = typeof ROLES[keyof typeof ROLES];",
+        "PipelineStage": "export const PIPELINE_STAGES = { LEAD: 'LEAD', COUNSELING: 'COUNSELING', PAYMENT_PENDING: 'PAYMENT_PENDING', PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED', APPLICATION_SUBMITTED: 'APPLICATION_SUBMITTED', UNIVERSITY_ACCEPTED: 'UNIVERSITY_ACCEPTED', TRAVEL_PLANNING: 'TRAVEL_PLANNING', TRAVELLED: 'TRAVELLED', MONITORING: 'MONITORING' } as const; export type PipelineStage = typeof PIPELINE_STAGES[keyof typeof PIPELINE_STAGES];",
+        "TaskStatus": "export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'REPORTED';",
+        "TaskPriority": "export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';",
+        "LeadSource": "export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE';",
+        "ApplicationStatus": "export type ApplicationStatus = 'PREPARING' | 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED' | 'WAITLISTED' | 'DEFERRED';",
+        "VisaStatus": "export type VisaStatus = 'NOT_STARTED' | 'DOCUMENTS_GATHERING' | 'APPLIED' | 'APPOINTMENT_BOOKED' | 'APPROVED' | 'REJECTED' | 'APPEALING';",
+        "PassportStatus": "export type PassportStatus = 'HAS_PASSPORT' | 'APPLYING' | 'READY';",
+        "TravelStatus": "export type TravelStatus = 'PLANNING' | 'VISA_PENDING' | 'READY' | 'TRAVELLED';",
+        "WellbeingStatus": "export type WellbeingStatus = 'GOOD' | 'NEEDS_ATTENTION' | 'ESCALATED';",
+        "PaymentStatus": "export type PaymentStatus = 'PENDING' | 'PARTIAL' | 'CLEARED' | 'OVERDUE';",
+        "ReportPeriod": "export type ReportPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';",
+        "NotificationType": "export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';"
+      },
+      "interfaces": {
+        "User": "{ id: string; fullName: string; email: string; role: Role; department: string; avatar?: string; phone?: string; status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'; lastLogin?: string; createdAt: string; createdBy?: string; }",
+        "Session": "{ userId: string; fullName: string; email: string; role: Role; department: string; avatar?: string; }",
+        "Student": "{ id: string; fullName: string; avatar?: string; registrationNumber: string; nationality: string; passportNumber?: string; gender: 'MALE' | 'FEMALE' | 'OTHER'; dateOfBirth: string; age: number; email: string; phone: string; whatsapp?: string; targetUniversity: string; targetCountry: string; targetProgram: string; targetIntake: string; pipelineStage: PipelineStage; leadSource: LeadSource; assignedAgentId?: string; assignedAgentName?: string; marketingStaffId?: string; createdAt: string; updatedAt: string; notes?: string; }",
+        "Lead": "{ id: string; fullName: string; phone: string; email?: string; source: LeadSource; interestedIn: string; interestedCountry?: string; status: 'NEW' | 'CONTACTED' | 'COUNSELED' | 'CONVERTED' | 'LOST'; assignedToId?: string; assignedToName?: string; createdAt: string; updatedAt: string; notes?: string; followUpDate?: string; convertedStudentId?: string; }",
+        "PaymentRecord": "{ id: string; studentId: string; studentName: string; agencyFee: number; agencyFeePaid: number; agencyFeeDate?: string; applicationFee: number; applicationFeePaid: number; applicationFeeDate?: string; tuitionFee: number; tuitionFeePaid: number; tuitionFeeDate?: string; hostelFee: number; hostelFeePaid: number; hostelFeeDate?: string; totalDue: number; totalPaid: number; balance: number; status: PaymentStatus; currency: string; receiptNumbers: string[]; lastPaymentDate?: string; recordedBy?: string; notes?: string; }",
+        "Application": "{ id: string; studentId: string; studentName: string; university: string; country: string; program: string; level: 'UNDERGRADUATE' | 'POSTGRADUATE' | 'PHD' | 'DIPLOMA' | 'CERTIFICATE'; intake: string; submissionDate?: string; status: ApplicationStatus; offerLetterUrl?: string; conditionsUrl?: string; decisionDate?: string; decisionNotes?: string; submittedBy?: string; updatedAt: string; }",
+        "Document": "{ id: string; studentId: string; type: 'PASSPORT' | 'TRANSCRIPT' | 'CERTIFICATE' | 'OFFER_LETTER' | 'VISA' | 'BANK_STATEMENT' | 'PHOTO' | 'REFERENCE_LETTER' | 'OTHER'; name: string; url: string; uploadedAt: string; uploadedBy: string; verified: boolean; notes?: string; }",
+        "TravelRecord": "{ id: string; studentId: string; studentName: string; passportStatus: PassportStatus; passportNumber?: string; passportExpiry?: string; visaStatus: VisaStatus; visaType?: string; visaApplicationDate?: string; visaAppointmentDate?: string; visaApprovalDate?: string; visaExpiryDate?: string; flightDate?: string; flightNumber?: string; airline?: string; departureCity: string; destinationCity: string; destinationAirport?: string; airportPickupArranged: boolean; pickupContactName?: string; pickupContactPhone?: string; accommodationAddress?: string; travelStatus: TravelStatus; updatedAt: string; }",
+        "OperationsRecord": "{ id: string; studentId: string; studentName: string; university: string; country: string; arrivalDate?: string; enrollmentConfirmed: boolean; enrollmentDate?: string; studentIdNumber?: string; accommodationAddress?: string; localContactName?: string; localContactPhone?: string; wellbeingStatus: WellbeingStatus; lastCheckIn?: string; checkInCount: number; escalationFlag: boolean; escalationReason?: string; notes?: string; }",
+        "CheckIn": "{ id: string; studentId: string; studentName: string; wellbeingStatus: WellbeingStatus; notes: string; submittedById: string; submittedByName: string; createdAt: string; }",
+        "Task": "{ id: string; title: string; description: string; assignedToIds: string[]; assignedToNames: string[]; assignedById: string; assignedByName: string; department: string; priority: TaskPriority; status: TaskStatus; dueDate: string; createdAt: string; updatedAt: string; tags: string[]; endOfDayReport?: EndOfDayReport; attachmentUrls?: string[]; }",
+        "EndOfDayReport": "{ taskSummary: string; progressMade: string; blockers?: string; tomorrowPlan: string; percentageComplete: number; submittedAt: string; submittedById: string; submittedByName: string; acknowledgedAt?: string; acknowledgedById?: string; }",
+        "Report": "{ id: string; title: string; period: ReportPeriod; periodStart?: string; periodEnd?: string; submittedById: string; submittedByName: string; department: string; submittedToId?: string; submittedToName: string; submittedToRole: Role; summary: string; keyMetrics?: Record<string, string | number>; status: 'DRAFT' | 'SUBMITTED' | 'ACKNOWLEDGED' | 'ARCHIVED'; createdAt: string; acknowledgedAt?: string; }",
+        "AuditLog": "{ id: string; userId: string; userName: string; userRole: Role; action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'PASSWORD_RESET' | 'ROLE_CHANGE' | 'STAGE_CHANGE' | 'PAYMENT_RECORDED' | 'REPORT_SUBMITTED' | 'TASK_ASSIGNED'; module: string; detail: string; entityId?: string; entityType?: string; previousValue?: string; newValue?: string; ipAddress?: string; userAgent?: string; timestamp: string; }",
+        "Notification": "{ id: string; userId: string; title: string; message: string; type: NotificationType; read: boolean; link?: string; entityId?: string; createdAt: string; }",
+        "KPIMetric": "{ label: string; value: string | number; icon: string; trend?: string; trendDirection?: 'up' | 'down' | 'neutral'; trendColor?: string; }",
+        "ActionResult": "{ success: boolean; message: string; data?: unknown; errors?: Record<string, string[]>; }"
+      }
+    }
+  },
+
+  "mock_data_layer": {
+    "directory": "lib/mock/",
+    "description": "All mock data files. Import these in Server Component pages to simulate database queries. Each file exports a typed array and optionally helper functions (findById, filterBy, etc.).",
+    "files": {
+      "mockUsers.ts": {
+        "description": "9 mock users — one per role. Used for authentication simulation.",
+        "exports": ["mockUsers: User[]", "findUserByEmail(email: string): User | undefined", "findUserById(id: string): User | undefined"],
+        "seed_data": [
+          { "id": "usr_001", "fullName": "David Mwangi", "email": "md@ypit.com", "password": "ypit2026", "role": "MANAGING_DIRECTOR", "department": "Executive", "phone": "+255712000001", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_001" },
+          { "id": "usr_002", "fullName": "Sarah Kimani", "email": "mm@ypit.com", "password": "ypit2026", "role": "MARKETING_MANAGER", "department": "Marketing", "phone": "+255712000002", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_002" },
+          { "id": "usr_003", "fullName": "James Osei", "email": "it@ypit.com", "password": "ypit2026", "role": "IT_ADMIN", "department": "IT", "phone": "+255712000003", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_003" },
+          { "id": "usr_004", "fullName": "Amina Saleh", "email": "finance@ypit.com", "password": "ypit2026", "role": "FINANCE", "department": "Finance", "phone": "+255712000004", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_004" },
+          { "id": "usr_005", "fullName": "Peter Njoroge", "email": "admissions@ypit.com", "password": "ypit2026", "role": "ADMISSIONS", "department": "Admissions", "phone": "+255712000005", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_005" },
+          { "id": "usr_006", "fullName": "Grace Auma", "email": "travel@ypit.com", "password": "ypit2026", "role": "TRAVEL", "department": "Travel", "phone": "+255712000006", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_006" },
+          { "id": "usr_007", "fullName": "Ibrahim Hassan", "email": "ops@ypit.com", "password": "ypit2026", "role": "OPERATIONS", "department": "Operations", "phone": "+255712000007", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_007" },
+          { "id": "usr_008", "fullName": "Linda Owusu", "email": "marketing@ypit.com", "password": "ypit2026", "role": "MARKETING_STAFF", "department": "Marketing", "phone": "+255712000008", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_008" },
+          { "id": "usr_009", "fullName": "Kevin Dube", "email": "agent@ypit.com", "password": "ypit2026", "role": "SUB_AGENT", "department": "Marketing", "phone": "+255712000009", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_009" }
+        ]
+      },
+      "mockStudents.ts": {
+        "description": "25 students spread across all 9 pipeline stages for rich testing of all views",
+        "exports": ["mockStudents: Student[]", "getStudentById(id: string): Student | undefined", "getStudentsByStage(stage: PipelineStage): Student[]", "getStudentsByAgent(agentId: string): Student[]"],
+        "fields_to_populate": "All fields in Student interface. Use pravatar.cc for avatars. Registration numbers: YP-2026-001 through YP-2026-025. Mix nationalities: Tanzanian, Kenyan, Ugandan, Rwandan, Ethiopian. Target universities: mix of UK, Malaysia, China, Australia, India institutions."
+      },
+      "mockLeads.ts": {
+        "description": "20 leads in various statuses",
+        "exports": ["mockLeads: Lead[]", "getLeadById(id: string): Lead | undefined", "getLeadsByAssignee(userId: string): Lead[]", "getLeadsBySource(source: LeadSource): Lead[]"]
+      },
+      "mockPayments.ts": {
+        "description": "Payment records for all students in PAYMENT_PENDING stage and beyond",
+        "exports": ["mockPayments: PaymentRecord[]", "getPaymentByStudentId(studentId: string): PaymentRecord | undefined", "getOverduePayments(): PaymentRecord[]"],
+        "currency_note": "Use TZS (Tanzanian Shilling) as currency. Agency fee: 500,000–1,500,000 TZS. Application fee: 200,000–800,000 TZS. Tuition: 5,000,000–25,000,000 TZS. Hostel: 2,000,000–8,000,000 TZS."
+      },
+      "mockApplications.ts": {
+        "description": "University application records for students in APPLICATION_SUBMITTED stage and beyond",
+        "exports": ["mockApplications: Application[]", "getApplicationByStudentId(studentId: string): Application | undefined", "getApplicationsByStatus(status: ApplicationStatus): Application[]"]
+      },
+      "mockDocuments.ts": {
+        "description": "Document records per student. Use placeholder URLs.",
+        "exports": ["mockDocuments: Document[]", "getDocumentsByStudentId(studentId: string): Document[]"]
+      },
+      "mockTravel.ts": {
+        "description": "Travel records for students in TRAVEL_PLANNING and TRAVELLED stages",
+        "exports": ["mockTravelRecords: TravelRecord[]", "getTravelByStudentId(studentId: string): TravelRecord | undefined", "getUpcomingDepartures(days: number): TravelRecord[]"]
+      },
+      "mockOperations.ts": {
+        "description": "Operations monitoring records for TRAVELLED and MONITORING students",
+        "exports": ["mockOperationsRecords: OperationsRecord[]", "getOperationsByStudentId(studentId: string): OperationsRecord | undefined", "getEscalatedStudents(): OperationsRecord[]"]
+      },
+      "mockCheckIns.ts": {
+        "description": "Check-in log entries",
+        "exports": ["mockCheckIns: CheckIn[]", "getCheckInsByStudentId(studentId: string): CheckIn[]"]
+      },
+      "mockTasks.ts": {
+        "description": "40 tasks spread across all departments, priorities, statuses. Some have end-of-day reports already submitted.",
+        "exports": ["mockTasks: Task[]", "getTasksByAssignee(userId: string): Task[]", "getTasksByDepartment(dept: string): Task[]", "getTasksByAssigner(userId: string): Task[]", "getPendingReportTasks(userId: string): Task[]"]
+      },
+      "mockReports.ts": {
+        "description": "Department reports in various statuses",
+        "exports": ["mockReports: Report[]", "getReportsByDepartment(dept: string): Report[]", "getReportsBySubmittedTo(userId: string): Report[]"]
+      },
+      "mockAuditLogs.ts": {
+        "description": "100 audit log entries of various types",
+        "exports": ["mockAuditLogs: AuditLog[]", "getAuditLogsByUser(userId: string): AuditLog[]", "getAuditLogsByModule(module: string): AuditLog[]"]
+      },
+      "mockNotifications.ts": {
+        "description": "Notifications per user — mix of read/unread",
+        "exports": ["mockNotifications: Notification[]", "getNotificationsByUser(userId: string): Notification[]", "getUnreadCount(userId: string): number"]
+      }
+    },
+    "helper_pattern": "Each mock file should also export a getMock[Entity]Stats() function that returns aggregated numbers for KPI cards — e.g. getMockStudentStats() returns { total, byStage, thisMonth, lastMonth, trend }",
+    "delay_simulation": "Export a simulateDelay(ms = 300) async utility in lib/mock/utils.ts — call await simulateDelay() in Server Components to simulate network latency during development"
+  },
+
+  "auth_system": {
+    "module": "Authentication & Session",
+    "description": "Mock auth using sessionStorage (not localStorage — sessionStorage clears on tab close, more secure). Wrap with a React Context for session access across Client Components. Server Components read a mock cookie.",
+    "files": {
+      "lib/auth.ts": {
+        "exports": [
+          "getSession(): Session | null — reads from sessionStorage on client, mock cookie on server",
+          "setSession(user: User): void — writes to sessionStorage + sets document.cookie mock",
+          "clearSession(): void — clears sessionStorage + cookie, redirects to /login",
+          "hasRole(session: Session, roles: Role[]): boolean — checks if session role is in allowed roles",
+          "hasAnyRole(session: Session, ...roles: Role[]): boolean",
+          "getRedirectPath(role: Role): string — returns default route per role"
+        ]
+      },
+      "hooks/useSession.ts": {
+        "description": "Client hook to access session from Context",
+        "signature": "export function useSession(): { session: Session | null; isLoading: boolean }"
+      },
+      "contexts/SessionContext.tsx": {
+        "description": "'use client' context provider — wraps the dashboard layout, reads sessionStorage, provides session to all client components",
+        "pattern": "const SessionContext = createContext<SessionContextValue>(null); export function SessionProvider({ children }) { const [session, setSession] = useState<Session | null>(null); useEffect(() => { const s = sessionStorage.getItem('ypit_session'); if (s) setSession(JSON.parse(s)); }, []); return <SessionContext.Provider value={{ session }}>{children}</SessionContext.Provider> }"
+      },
+      "middleware.ts": {
+        "description": "Next.js middleware for route protection — checks for mock session cookie",
+        "pattern": "export function middleware(request: NextRequest) { const session = request.cookies.get('ypit_session'); if (!session && !request.nextUrl.pathname.startsWith('/login')) { return NextResponse.redirect(new URL('/login', request.url)); } return NextResponse.next(); } export const config = { matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'] };"
+      }
+    },
+    "login_flow": [
+      "1. User submits email + password on /login page",
+      "2. Server Action validateLogin(formData) is called",
+      "3. Server Action matches against mockUsers, returns ActionResult",
+      "4. On success: client stores session in sessionStorage + mock cookie, redirects to getRedirectPath(role)",
+      "5. On failure: useActionState displays error message inline"
+    ]
+  },
+
+  "pages": {
+    "login": {
+      "route": "/login",
+      "type": "Client Component ('use client')",
+      "layout": "Full-screen split — 45% left brand panel, 55% right form panel. No sidebar. No topbar.",
+      "left_panel": {
+        "background": "#9c003d",
+        "content": [
+          "YPIT logo SVG white at top-left with padding",
+          "Large decorative geometric pattern: overlapping circles/rings in white at 8% opacity as background texture",
+          "Center content: large white Syne heading 'Empowering Students, Fulfilling Dreams' in 3xl bold",
+          "Subtitle: 'Your complete study abroad management platform' in white/80% DM Sans",
+          "Bottom: three small stat pills in white/10% bg — '500+ Students Placed', '15+ Countries', '98% Visa Success Rate'",
+          "YPIT tagline 'Fulfill Your Joy' at very bottom in white/60%"
+        ]
+      },
+      "right_panel": {
+        "background": "#ffffff",
+        "content": [
+          "Top-right: 'YPIT OPS v1.0' text in xs muted",
+          "Center vertically: heading 'Welcome Back' in Syne 2xl bold text-gray-900",
+          "Subheading: 'Sign in to your YPIT workspace' in sm text-gray-500",
+          "Form with react-hook-form + zod validation:",
+          "  Email field: label 'Email Address', Input with Mail lucide icon prefix, placeholder 'you@ypit.com'",
+          "  Password field: label 'Password', Input with Lock icon prefix, Eye/EyeOff toggle suffix",
+          "  Checkbox row: 'Remember me' left, 'Forgot password?' link right",
+          "  Submit button: full width, bg #9c003d, white text 'Sign In', loading spinner via useFormStatus",
+          "  Error alert: shadcn Alert with AlertCircle icon, red border, appears on invalid credentials",
+          "Demo credentials helper: small collapsible section 'Demo Accounts' showing all 9 role credentials in a clean table — helps development testing",
+          "Bottom: 'Need help? Contact IT: it@ypit.com'"
+        ]
+      },
+      "animations": "Right panel form fades up on mount with motion/react fade_up preset. Error alert uses AnimatePresence scale_in."
+    },
+
+    "shell_layout": {
+      "file": "app/(dashboard)/layout.tsx",
+      "type": "Server Component (reads session from cookie for initial render) + Client Components for interactive sidebar parts",
+      "structure": "flex h-screen overflow-hidden",
+      "sidebar": {
+        "file": "components/layout/Sidebar.tsx",
+        "type": "'use client' — uses useSession, usePathname for active state",
+        "width": "260px fixed left panel, full height, overflow-y-auto with custom scrollbar",
+        "background": "#0a0a0a",
+        "structure": [
+          "Header section: YPIT logo + wordmark (white) + tagline in xs muted",
+          "User card: avatar (shadcn Avatar), full name in sm white font-medium, role badge (RoleBadge component) — separated by subtle gray-800 border",
+          "Nav section label: 'MAIN MENU' in 10px uppercase tracking-widest text-gray-500 mt-6 mb-2",
+          "Nav items: map over role-specific nav array. Each item: <Link href> with flex items-center gap-3 px-3 py-2 rounded-md. Active: bg #9c003d text white. Hover: bg #1a1a1a. Icon left in size 18. Label in sm DM Sans. Optional unread badge right (red dot with count).",
+          "Divider: border-gray-800 my-4",
+          "Tools section label: 'SETTINGS' in same style as MAIN MENU",
+          "Settings items: Profile Settings, System (IT only)",
+          "Bottom pinned: logout button — flex items-center gap-2 text-gray-400 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-md. LogOut icon + 'Logout' label. Calls clearSession() on click."
+        ],
+        "mobile_behavior": "Below lg breakpoint: sidebar hidden, hamburger menu in topbar opens mobile drawer using shadcn Sheet from left",
+        "collapse_behavior": "Desktop: sidebar can be collapsed to 72px icon-only mode via toggle button. Store collapsed state in localStorage. When collapsed: hide labels, show only icons with shadcn Tooltip on hover."
+      },
+      "topbar": {
+        "file": "components/layout/Topbar.tsx",
+        "type": "'use client'",
+        "height": "64px",
+        "background": "#ffffff",
+        "border": "border-b border-gray-200",
+        "structure": [
+          "Left: hamburger MenuIcon button (mobile only, lg:hidden) + page breadcrumb using shadcn Breadcrumb component — shows current page path",
+          "Center: global search bar — shadcn Command dialog triggered by clicking a fake input showing 'Search students, leads...' with Cmd+K shortcut hint. Command dialog searches across students, leads, staff.",
+          "Right cluster: notification bell (BellIcon) with unread count badge in #9c003d — opens NotificationPanel Sheet. Separator. User avatar dropdown (shadcn DropdownMenu): shows name, role, links to Profile, Settings, and Logout."
+        ]
+      },
+      "main_content": "flex-1 overflow-y-auto bg-gray-50 p-6 (p-4 on mobile)",
+      "notification_panel": {
+        "file": "components/layout/NotificationPanel.tsx",
+        "type": "'use client'",
+        "trigger": "Bell icon in topbar",
+        "implementation": "shadcn Sheet from right, width 380px",
+        "content": [
+          "Header: 'Notifications' h3 + 'Mark all as read' button in text-primary",
+          "Filter tabs: All | Unread — using simple state toggle",
+          "Notification list: map over user notifications sorted by createdAt desc",
+          "Each notification: flex row — icon left (type-based, in colored circle), middle (title font-medium, message text-sm text-gray-500, time-ago text-xs text-gray-400), unread indicator (3px left border in #9c003d on unread items)",
+          "On click: mark as read, navigate to link if provided",
+          "Empty state: Bell icon, 'No notifications yet'"
+        ]
+      }
+    },
+
+    "dashboard": {
+      "route": "/dashboard",
+      "file": "app/(dashboard)/dashboard/page.tsx",
+      "type": "Server Component — fetch mock data, pass to Client Component children",
+      "description": "Role-aware dashboard. Server Component detects role from session cookie, fetches appropriate mock stats, renders role-specific layout. All chart sub-components are Client Components.",
+      "shared_components": {
+        "KPICard": {
+          "file": "components/shared/KPICard.tsx",
+          "type": "Server Component (no interactivity needed)",
+          "props": "{ label: string; value: string | number; icon: LucideIcon; trend?: string; trendDirection?: 'up' | 'down' | 'neutral'; description?: string; }",
+          "design": "White card bg-white rounded-xl shadow-card p-5. Top row: label text-sm text-gray-500 DM Sans + icon in 40px rounded-lg bg-primary-muted flex items-center justify-center. Value: text-4xl font-bold Syne text-gray-900 mt-3. Trend row: ArrowUp/ArrowDown icon (green/red) + trend text text-sm. Optional description text-xs text-gray-400. On hover: shadow-card-hover transition-shadow 200ms."
+        }
+      },
+      "role_variants": {
+        "MANAGING_DIRECTOR": {
+          "greeting": "'Welcome back, {name}' in Syne h1 + date string",
+          "kpi_row": "4 KPI cards: Total Students (Users icon), Active Leads (Target icon), Revenue Collected TZS (DollarSign icon), Students Travelled (Plane icon)",
+          "row_2": "Left 2/3: Monthly intake bar chart (BarChart — Jan-Dec, color #9c003d). Right 1/3: Pipeline stage donut chart (PieChart with legend below).",
+          "row_3": "Left 1/2: Recent activity feed (last 10 events across all departments — ActivityFeed component). Right 1/2: Department report status table (each dept, last report date, status badge, View link).",
+          "row_4": "Revenue area chart spanning full width — monthly TZS collected with gradient fill #9c003d → transparent."
+        },
+        "MARKETING_MANAGER": {
+          "kpi_row": "New Leads This Month, Conversion Rate %, Students in Pipeline, Pending Dept Reports",
+          "row_2": "Lead source bar chart + Lead status Kanban summary (count per status column)",
+          "row_3": "Team tasks completion today (progress bars per staff member) + Recent dept reports received"
+        },
+        "IT_ADMIN": {
+          "kpi_row": "Total Staff Accounts, Active Today, Audit Events Today, Inactive Accounts",
+          "row_2": "Login activity bar chart (last 7 days) + Staff by department donut chart",
+          "row_3": "Recent audit log table (last 10 entries) — same style as Image 2 table"
+        },
+        "FINANCE": {
+          "kpi_row": "Total Collected TZS, Pending Payments count, Overdue count, Students Fully Cleared",
+          "row_2": "Monthly collections bar chart + Fee type stacked bar (agency/application/tuition/hostel)",
+          "row_3": "Recent payments table + Outstanding balances list"
+        },
+        "ADMISSIONS": {
+          "kpi_row": "Applications Submitted, Pending Decisions, Accepted, Rejected",
+          "row_2": "Application status donut + Applications by country bar chart",
+          "row_3": "Recent applications table + Documents completion checklist summary"
+        },
+        "TRAVEL": {
+          "kpi_row": "Awaiting Travel, Visas Approved, Travelled This Month, Pickups Arranged",
+          "row_2": "Upcoming departures timeline list (next 14 days, card per student with days countdown badge) + Visa status donut",
+          "row_3": "Travel tracking list inspired by Image 6 — each student card with step progress (Passport → Visa → Booked → Travelled)"
+        },
+        "OPERATIONS": {
+          "kpi_row": "Students Abroad, Check-ins This Week, Escalations, Enrolled & Settled",
+          "row_2": "Wellbeing status donut + Check-in frequency bar chart (last 30 days)",
+          "row_3": "Student monitoring list with wellbeing badges"
+        },
+        "MARKETING_STAFF": {
+          "kpi_row": "My Leads, Converted, My Tasks Today, Reports Pending",
+          "row_2": "My leads pipeline status list + My tasks card grid (compact, last 4)"
+        },
+        "SUB_AGENT": {
+          "kpi_row": "My Referrals, Converted, Commission Earned TZS, Pending Commission TZS",
+          "row_2": "My referrals table with status + Commission breakdown card"
+        }
+      }
+    },
+
+    "students": {
+      "list_route": "/students",
+      "detail_route": "/students/[id]",
+      "list_page": {
+        "type": "Server Component",
+        "loading": "loading.tsx: skeleton table with 8 rows",
+        "access_roles": ["MANAGING_DIRECTOR", "MARKETING_MANAGER", "FINANCE", "ADMISSIONS", "TRAVEL", "OPERATIONS"],
+        "components": [
+          "Page header: title 'Students' h1 Syne + breadcrumb + 'Add Student' button (shown only to MARKETING_MANAGER, MANAGING_DIRECTOR) in #9c003d",
+          "Filter bar (Client Component 'StudentFilters.tsx'): search Input (useDeferredValue for performance), PipelineStage Select dropdown (all stages + 'All'), Country Select, Gender Select, Date range picker (shadcn Popover + Calendar), Clear filters button",
+          "Stats strip above table: small chips showing count per pipeline stage with color dots — e.g. '4 Leads • 3 Counseling • 2 Payment Pending...'",
+          "Data table (Client Component 'StudentsTable.tsx'): uses @tanstack/react-table (install it) for sorting, filtering, pagination",
+          "Table columns: Checkbox (selectable), Avatar+Name (Avatar component + full name + reg number in smaller muted text below), Nationality, Target University, Target Country, Pipeline Stage (StatusBadge), Assigned Agent, Created Date, Actions (View ChevronRight link + shadcn DropdownMenu for more actions)",
+          "Row click navigates to /students/[id]",
+          "Pagination: shadcn Pagination component — shows page X of Y, items per page selector (10, 25, 50)",
+          "Bulk actions bar: appears when rows selected — 'Export Selected', 'Change Stage' (manager only)",
+          "Empty state: EmptyState component with Users icon"
+        ]
+      },
+      "detail_page": {
+        "type": "Server Component for data fetch, Client Component child for tabs",
+        "loading": "loading.tsx: skeleton header + skeleton tabs",
+        "components": [
+          "Back button: ArrowLeft icon + 'Back to Students' — uses router.back()",
+          "Student header: Avatar (large 64px), Full Name h1 Syne, Registration number badge, Pipeline stage badge, 'Edit' button (role-restricted)",
+          "Pipeline progress bar: PipelineStageBar component showing all 9 stages with current highlighted",
+          "Tabs (shadcn Tabs, role-restricted tabs hidden per access_rules):",
+          "  Tab 'Personal Info': two-column grid of labeled field-value pairs. Edit button opens inline edit mode with react-hook-form. Fields: full name, DOB, gender, nationality, email, phone, whatsapp, passport number.",
+          "  Tab 'Payments': PaymentBreakdown component — 4 rows (Agency, Application, Tuition, Hostel) each with amount due, amount paid, balance, status badge, payment date. Total summary card at bottom. Record Payment button (Finance only) opens SlideInPanel with payment form.",
+          "  Tab 'Application': ApplicationCard showing university, country, program, level, intake, submission date, status stepper, offer letter download. Update status button (Admissions only).",
+          "  Tab 'Travel': TravelCard showing passport status, visa status with substeps, flight details, accommodation, pickup info. Update button (Travel only).",
+          "  Tab 'Documents': DocumentsList — shadcn Table with type, name, uploaded date, uploaded by, verified badge, download button. Upload button opens file input.",
+          "  Tab 'Activity Log': ActivityTimeline — reverse-chronological list of all changes to this student, with actor, action, field changed, old→new value, timestamp."
+        ],
+        "access_rules": {
+          "MANAGING_DIRECTOR": "All tabs read",
+          "MARKETING_MANAGER": "All tabs read",
+          "FINANCE": "Personal Info (read) + Payments (full access)",
+          "ADMISSIONS": "Personal Info (read) + Application (full) + Documents (full)",
+          "TRAVEL": "Personal Info (read) + Travel (full)",
+          "OPERATIONS": "Personal Info (read) + Activity Log (read)"
+        }
+      }
+    },
+
+    "leads": {
+      "route": "/leads",
+      "type": "Client Component (interactive kanban)",
+      "access_roles": ["MARKETING_MANAGER", "MARKETING_STAFF", "SUB_AGENT"],
+      "components": [
+        "Page header: 'Leads' h1 + 'Add Lead' button",
+        "View toggle: Button group — 'Board' (LayoutGrid icon) / 'Table' (List icon) — persists to localStorage",
+        "Board view (Kanban): 4 columns — New, Contacted, Counseled, Converted. Each column has header with title + count badge. Cards use @dnd-kit for drag-to-change-status using useOptimistic for instant UI feedback.",
+        "Lead card: white bg rounded-lg shadow-card p-4. Full name bold Syne. Phone + source badge row. Interested in text-sm muted. Bottom: assigned agent avatar + name + created date. Right-click or kebab menu: View, Edit, Convert to Student, Mark as Lost.",
+        "Table view: same style as Image 1 — columns: Name, Phone, Source badge, Interested In, Status badge, Assigned To, Created Date, Actions",
+        "Add Lead SlideInPanel: react-hook-form with zod. Fields: Full Name*, Phone*, Email, Source (Select), Interested In (Input), Interested Country (Select), Notes (Textarea), Assign To (Select — filtered by marketing staff), Follow Up Date (DatePicker). Submit via Server Action.",
+        "Convert to Student dialog: confirmation with student registration number preview. On confirm: creates student record, marks lead as CONVERTED.",
+        "MARKETING_STAFF and SUB_AGENT: filter applied — only see their own leads (by assignedToId matching session.userId)"
+      ]
+    },
+
+    "payments": {
+      "route": "/payments",
+      "type": "Server Component + Client Component table",
+      "access_roles": ["FINANCE", "MANAGING_DIRECTOR"],
+      "components": [
+        "Page header: 'Payments & Finance' + 'Submit Report' button (Finance only)",
+        "KPI strip: 4 inline stat cards — Total Collected TZS, Pending, Overdue, Fully Cleared students",
+        "Filter bar: search by student name/receipt, status filter, date range, currency",
+        "Data table inspired by Image 2: columns — Date, Student Name, Receipt Number(s), Agency Fee (paid/due inline), Application Fee (paid/due), Tuition (paid/due), Hostel (paid/due), Total Due, Total Paid, Balance, Status badge (styled exactly like Image 2 pills — Cleared=gray, Partial=green italic, Overdue=orange, Pending=gray), kebab menu",
+        "Kebab menu actions: View Full Record, Record New Payment, Generate Receipt PDF, Flag as Overdue, Add Note",
+        "Record Payment SlideInPanel: student name (read-only), payment type (Select — agency/application/tuition/hostel), amount (Input with TZS prefix), receipt number (Input), payment date (DatePicker), notes (Textarea), upload receipt image (file input). Submit via Server Action.",
+        "Generate Receipt: mock PDF generation — opens a print-friendly modal showing receipt layout",
+        "Export: shadcn DropdownMenu — 'Export CSV' / 'Export PDF Report'",
+        "Submit Finance Report: opens modal — period select, summary textarea, submits to MD directly"
+      ]
+    },
+
+    "applications": {
+      "route": "/applications",
+      "type": "Server Component + Client Component for filters and panel",
+      "access_roles": ["ADMISSIONS", "MANAGING_DIRECTOR", "MARKETING_MANAGER"],
+      "components": [
+        "Page header: 'University Applications' + 'Submit Report' button (Admissions only)",
+        "Filter bar: search, status filter (all ApplicationStatus values), country filter",
+        "Status summary chips above table: count per ApplicationStatus with color dots",
+        "Applications table: columns — Student (avatar + name), University, Country, Program, Level badge, Intake, Submitted Date, Status badge, Decision Date, Actions",
+        "Status badges: Preparing=gray, Submitted=blue, Under Review=yellow, Accepted=green bold, Rejected=red, Waitlisted=purple, Deferred=orange",
+        "Row click opens ApplicationDetailPanel (SlideInPanel):",
+        "  Panel header: student name + current status badge",
+        "  Application status stepper: horizontal steps Preparing → Submitted → Under Review → Decision (Accepted/Rejected/Waitlisted)",
+        "  Fields: university, country, program, level, intake, submission date, decision date, notes",
+        "  Documents section: offer letter upload/view, conditions doc upload/view",
+        "  Update Status button (Admissions only): opens inner dialog to change status with notes",
+        "  'Mark as Accepted' special button: triggers confirm dialog, on confirm — changes student pipeline stage to UNIVERSITY_ACCEPTED, sends mock notification to Travel dept",
+        "Admissions report submit: period, summary, auto-submits to Marketing Manager"
+      ]
+    },
+
+    "travel": {
+      "routes": {
+        "list": "/travel",
+        "visa": "/visa"
+      },
+      "access_roles": ["TRAVEL", "MANAGING_DIRECTOR", "MARKETING_MANAGER"],
+      "travel_list_page": {
+        "type": "Server Component + Client Components",
+        "components": [
+          "Page header: 'Travel Management' + tab nav: 'All Students' / 'Upcoming Departures' / 'Visa Tracker' (or use sub-routes)",
+          "KPI strip: Awaiting Departure, Visas Approved, Travelled This Month, Pickups Arranged",
+          "Upcoming departures highlight: horizontal scrollable row of departure cards — each card: student avatar + name, destination flag emoji + city, flight date, days until departure countdown badge (red if <7 days, yellow if <14, green otherwise)",
+          "Main table: columns — Student, Destination, Passport Status badge, Visa Status badge, Flight Date, Airline, Pickup Arranged (Yes/No chip), Travel Status badge, Actions",
+          "Travel status badges: Planning=gray, Visa Pending=yellow, Ready=green, Travelled=#9c003d white text",
+          "Row click opens TravelDetailPanel:",
+          "  Section 1 — Passport: status badge, passport number, expiry date",
+          "  Section 2 — Visa: status with visual progress steps (Not Started → Gathering Docs → Applied → Appointment → Decision), visa type, dates",
+          "  Section 3 — Flight: date, flight number, airline, departure city, destination airport",
+          "  Section 4 — Accommodation: address, contact person",
+          "  Section 5 — Pickup: arranged toggle, contact name + phone",
+          "  Bottom: Update button (Travel staff only), 'Mark as Travelled' button",
+          "Travel tracking cards inspired by Image 6: each student shown as a tracking card with step-by-step progress from Passport → Visa → Flight Booked → Travelled with timestamp per completed step"
+        ]
+      },
+      "visa_page": {
+        "route": "/visa",
+        "description": "Dedicated visa tracking sub-page with all visa applications, appointment calendar, and status management"
+      }
+    },
+
+    "operations": {
+      "routes": { "monitoring": "/monitoring", "checkins": "/checkins" },
+      "access_roles": ["OPERATIONS", "MANAGING_DIRECTOR", "MARKETING_MANAGER"],
+      "components": [
+        "Page header: 'Student Monitoring'",
+        "KPI strip: Students Abroad, Check-ins This Week, Escalations (highlighted in red if > 0), Enrolled & Settled",
+        "Alert banner: if any escalations exist, show red Alert banner at top with student names + quick links",
+        "Monitoring table: columns — Student (avatar + name), University, Country, Arrival Date, Last Check-in date, Check-in Count, Wellbeing Status badge, Enrollment Confirmed (toggle chip), Escalation Flag (flame icon if true), Actions",
+        "Wellbeing badges: Good=green, Needs Attention=yellow pulsing, Escalated=red with AlertTriangle icon",
+        "Row click opens StudentMonitoringPanel: full monitoring record + check-in history timeline",
+        "Add Check-in button: SlideInPanel — select student (searchable), wellbeing status (radio group with color indicators), notes textarea (required), submit",
+        "Check-ins page /checkins: reverse-chronological activity feed — student avatar, name, wellbeing status dot, notes excerpt, submitted by, time ago. Inspired by Image 6 Track's Actions panel.",
+        "Operations report submit: to Marketing Manager"
+      ]
+    },
+
+    "staff_management": {
+      "route": "/staff",
+      "type": "Server Component + Client Components",
+      "access_roles": ["IT_ADMIN", "MANAGING_DIRECTOR"],
+      "components": [
+        "Page header: 'Staff Management' + 'Add Staff Member' button",
+        "Stats row: Total, Active (green), Inactive (gray), Suspended (red) — small stat chips",
+        "Filter bar: search by name/email, filter by Role (Select), filter by Department, filter by Status",
+        "Staff table matching Image 1 style: columns — Avatar+Name+Email, Role badge (RoleBadge component with color per role), Department, Phone, Status badge, Last Login (formatDistanceToNow), Created By, Actions",
+        "Row actions (shadcn DropdownMenu — kebab icon): View Profile, Edit Role, Reset Password, Deactivate, Suspend",
+        "Add Staff SlideInPanel: Full Name*, Email*, Temporary Password* (auto-generate button), Role* (Select — IT_ADMIN cannot show MANAGING_DIRECTOR or MARKETING_MANAGER options), Department (auto-fills from role selection), Phone, Profile Photo (file upload optional). Submit via Server Action.",
+        "Edit Role: dialog — current role shown, new role Select, reason textarea, confirm. MD only can assign manager roles.",
+        "Reset Password: dialog — shows newly generated temp password in a copy-to-clipboard box, instructions to share securely",
+        "Deactivate/Suspend: confirm dialog with reason textarea",
+        "RoleBadge component: shadcn Badge with custom bg/text colors per role from design_system.colors.role_badge_colors",
+        "IT_ADMIN restriction: role Select options exclude MANAGING_DIRECTOR and MARKETING_MANAGER. Server Action also validates this server-side."
+      ]
+    },
+
+    "task_manager": {
+      "route": "/tasks",
+      "type": "Client Component heavy — real-time-like feel with useOptimistic",
+      "access_roles": "ALL",
+      "description": "The task management system is a critical feature. Every staff member uses it daily. At end of day, each person submits a report on each assigned task. Reports flow up to department heads.",
+      "components": [
+        "Page header: 'Task Manager' + 'Create Task' button (shown to all — staff create their own tasks, managers assign to others)",
+        "Tab navigation (shadcn Tabs): 'My Tasks' (tasks assigned to me) | 'Assigned by Me' (tasks I created for others) | 'Department' (all dept tasks — managers see this) | 'Company' (MANAGING_DIRECTOR only)",
+        "View toggle per tab: Card Grid (default — 3 col desktop, 2 tablet, 1 mobile) / Kanban Board (4 columns) / Table",
+        "Filter bar: Priority filter (All/High/Medium/Low/Urgent), Status filter, Date range, Search by title",
+
+        "CARD GRID VIEW: TaskCard component exactly matching Image 3 style:",
+        "  Priority badge top-left: pill shape — High=blue bg blue text, Medium=amber bg amber text, Low=rose bg rose text, Urgent=red bg white text",
+        "  Status dot top-right: colored dot — TODO=gray, IN_PROGRESS=blue pulsing, COMPLETED=green, BLOCKED=red, REPORTED=purple",
+        "  Title: Syne font-semibold text-gray-900 mt-3 text-lg — 2 lines max",
+        "  Description: DM Sans text-sm text-gray-500 mt-1 line-clamp-3",
+        "  Tags row: small gray pills for each tag",
+        "  Bottom row: left — calendar icon + due date (red text if past due), right — AvatarCluster of assignees",
+        "  Report Pending badge: if task is IN_PROGRESS or TODO and it's past 5PM today, show red 'Report Due' badge at bottom",
+        "  Card hover: shadow elevates, thin 3px left border appears in priority color",
+        "  Card click: opens TaskDetailPanel",
+
+        "KANBAN VIEW: 4 columns (TODO, IN_PROGRESS, COMPLETED, BLOCKED) using @dnd-kit. Drag cards between columns. useOptimistic for instant UI. Column headers show count. Column backgrounds: TODO=gray-50, IN_PROGRESS=blue-50, COMPLETED=green-50, BLOCKED=red-50.",
+
+        "TABLE VIEW: columns — Title, Priority badge, Status badge, Assigned To (AvatarCluster), Due Date, Report Status, Actions",
+
+        "CREATE TASK SlideInPanel: react-hook-form + zod",
+        "  Title* (Input)",
+        "  Description* (Textarea)",
+        "  Assign To* (multi-select — Command component with search — shows staff filtered by dept for staff, all staff for managers)",
+        "  Priority* (RadioGroup with colored labels)",
+        "  Due Date* (DatePicker)",
+        "  Tags (Input — comma separated, renders as chips)",
+        "  Submit via Server Action createTask()",
+
+        "TASK DETAIL PANEL (SlideInPanel wide=600px):",
+        "  Header: task title + status badge + priority badge + kebab menu (Edit, Delete, Mark Complete, Mark Blocked)",
+        "  Meta row: Assigned by avatar+name | Created date | Due date with countdown",
+        "  Assignees: AvatarCluster with names list below",
+        "  Description: full text",
+        "  Tags: chip pills",
+        "  Attachments section (if any)",
+        "  Divider: 'End-of-Day Report' section heading with clock icon",
+        "  If report already submitted: read-only report card with submitted timestamp, percent complete, all report fields displayed",
+        "  If report NOT submitted and user is an assignee: END-OF-DAY REPORT FORM:",
+        "    Progress slider (0-100%) — visual percentage complete indicator",
+        "    'Task Summary Today' Textarea* — what did you work on?",
+        "    'Progress Made' Textarea* — what was accomplished?",
+        "    'Blockers' Textarea — anything blocking progress? (optional)",
+        "    'Plan for Tomorrow' Textarea* — what will you do next?",
+        "    'Submit End-of-Day Report' button in #9c003d — disabled until all required fields filled",
+        "    On submit: task status changes to REPORTED, notification sent to task creator, toast success",
+        "  If user is task creator viewing someone else's report: see submitted report read-only + 'Acknowledge' button"
+      ],
+      "eod_report_rules": [
+        "Staff must submit report on every IN_PROGRESS or TODO task assigned to them",
+        "Reports flow to: MARKETING_STAFF/ADMISSIONS/TRAVEL/OPERATIONS → Marketing Manager. FINANCE → Managing Director. IT_ADMIN → Managing Director.",
+        "After 5PM daily, any task without a submitted report shows a 'Report Due' badge",
+        "Marketing Manager and MD see a daily summary widget on their dashboard: 'X of Y staff have submitted today's reports'"
+      ]
+    },
+
+    "reports": {
+      "route": "/reports",
+      "type": "Server Component + Client forms",
+      "access_roles": ["MANAGING_DIRECTOR", "MARKETING_MANAGER", "FINANCE", "ADMISSIONS", "TRAVEL", "OPERATIONS"],
+      "components": [
+        "Page header: 'Reports' + 'Submit New Report' button",
+        "Filter tabs: All | This Week | This Month | By Department (manager/MD only)",
+        "Reports table: Title, Submitted By (avatar+name), Department badge, Period, Submitted To, Status badge (Submitted=blue, Acknowledged=green, Archived=gray), Date, Actions",
+        "Row click opens report detail modal: full summary text, key metrics (if any), submitted by, period, submitted to, acknowledge button",
+        "Submit Report SlideInPanel: react-hook-form — Title*, Period (Select: Daily/Weekly/Monthly/Custom), Date Range (if Custom), Summary* (Textarea large), Key Metrics (repeatable key-value pairs with + Add Metric button). Submit To auto-populates based on session role. Submit via Server Action.",
+        "Access rules: each role can only submit reports. Cannot see other departments' reports except managers/MD."
+      ]
+    },
+
+    "audit_logs": {
+      "route": "/audit",
+      "type": "Server Component",
+      "access_roles": ["IT_ADMIN", "MANAGING_DIRECTOR"],
+      "components": [
+        "Page header: 'Audit Logs'",
+        "Filter bar: search by user name, action type Select (all AuditLog action values), module Select, date range",
+        "Large table: columns — Timestamp (full datetime), User (avatar+name), Role badge, Action (colored badge), Module, Detail (truncated with expand), IP Address. Color-coded action badges: LOGIN=green, LOGOUT=gray, CREATE=blue, UPDATE=yellow, DELETE=red, PASSWORD_RESET=orange, STAGE_CHANGE=purple.",
+        "Row click: expand detail row showing full detail, previous value → new value if applicable",
+        "Export CSV button top right",
+        "Pagination: 50 per page default"
+      ]
+    },
+
+    "settings": {
+      "route": "/settings",
+      "type": "Client Component",
+      "access_roles": "ALL (each user sees their own profile settings; IT_ADMIN and MD see additional system settings)",
+      "components": [
+        "Tab navigation: 'My Profile' | 'Security' | 'Notifications' | 'System' (IT_ADMIN + MD only)",
+        "My Profile tab: avatar upload (circular dropzone), full name input, phone input, email (read-only), department (read-only), role (read-only). Save button.",
+        "Security tab: change password form (current password, new password, confirm). Password strength indicator.",
+        "Notifications tab: toggles for each notification type — email notification (mock), in-app notification.",
+        "System tab (IT/MD only): system name, company logo upload, default currency, default timezone, support email."
+      ]
+    }
+  },
+
+  "shared_components": {
+    "directory": "components/shared/",
+    "description": "Reusable components used across multiple pages. All props must be fully typed.",
+    "components": {
+      "KPICard": {
+        "file": "KPICard.tsx",
+        "type": "Server Component",
+        "props": "{ label: string; value: string | number; icon: React.ElementType; trend?: string; trendDirection?: 'up' | 'down' | 'neutral'; description?: string; className?: string; }",
+        "design": "White bg, rounded-xl, shadow-card, p-5. Icon in 40px square rounded-lg bg-primary-muted. Value in Syne text-3xl font-extrabold. Trend row with ArrowTrendingUp/Down (lucide) colored green/red. Hover: shadow-card-hover."
+      },
+      "StatusBadge": {
+        "file": "StatusBadge.tsx",
+        "type": "Server Component",
+        "props": "{ status: string; variant?: 'pipeline' | 'payment' | 'application' | 'travel' | 'visa' | 'wellbeing' | 'task' | 'role' | 'staff' | 'audit' | 'report'; className?: string; }",
+        "design": "Uses cn() to apply correct bg/text colors from design_system color maps. Pill shape: px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1."
+      },
+      "DataTable": {
+        "file": "DataTable.tsx",
+        "type": "'use client' — uses @tanstack/react-table",
+        "props": "{ columns: ColumnDef<TData>[]; data: TData[]; searchKey?: string; pagination?: boolean; selectable?: boolean; onRowClick?: (row: TData) => void; emptyMessage?: string; }",
+        "design": "shadcn Table base. Header: text-xs uppercase tracking-wide text-gray-500 font-medium bg-gray-50. Rows: border-b border-gray-100 hover:bg-gray-50 cursor-pointer. Selected row: bg-primary-muted. Avatar+name column: flex items-center gap-3 — Avatar (32px) + name font-medium + secondary text below in xs muted."
+      },
+      "TaskCard": {
+        "file": "TaskCard.tsx",
+        "type": "'use client' (needs click handler)",
+        "props": "{ task: Task; onClick: (task: Task) => void; isDragging?: boolean; }",
+        "design": "Matches Image 3 exactly. White bg rounded-xl shadow-card p-4 cursor-pointer. Priority badge top-left pill. Status dot top-right. Title Syne font-semibold text-gray-900. Description text-sm text-gray-500 line-clamp-3 mt-1. Tags row text-xs chips mt-2. Bottom flex: calendar+date left, AvatarCluster right. Report Due badge: red text-xs font-medium 'Report Due' with Clock icon. Card border-l-3 on hover in priority color. Framer motion whileHover scale 1.01."
+      },
+      "SlideInPanel": {
+        "file": "SlideInPanel.tsx",
+        "type": "'use client'",
+        "props": "{ open: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; width?: 'sm' | 'md' | 'lg' | 'xl'; footer?: React.ReactNode; }",
+        "design": "shadcn Sheet side='right'. Width variants: sm=380px md=480px lg=600px xl=720px. Header: title Syne h3 + subtitle text-sm muted + X button. Body: ScrollArea flex-1 p-6. Footer: sticky bottom-0 bg-white border-t pt-4 px-6 pb-6 flex justify-end gap-3 — Cancel button (variant outline) + primary action button."
+      },
+      "AvatarCluster": {
+        "file": "AvatarCluster.tsx",
+        "type": "Server Component",
+        "props": "{ users: Array<{ name: string; avatar?: string }>; max?: number; size?: 'sm' | 'md'; }",
+        "design": "Flex row with negative margin overlap -ml-2 per avatar. Each: shadcn Avatar with ring-2 ring-white. Last item if overflow: gray circle with +N text in xs. Hover: shadcn Tooltip showing full names list. Size sm=24px md=32px."
+      },
+      "PipelineStageBar": {
+        "file": "PipelineStageBar.tsx",
+        "type": "Server Component",
+        "props": "{ currentStage: PipelineStage; compact?: boolean; }",
+        "design": "Horizontal flex of stage steps. Each step: circle icon (CheckCircle for completed, current stage circle in #9c003d, future stages gray) + label below in xs. Connected by line. Compact mode: no labels, smaller circles. Responsive: scrollable on mobile."
+      },
+      "EmptyState": {
+        "file": "EmptyState.tsx",
+        "type": "Server Component",
+        "props": "{ icon?: React.ElementType; title: string; description?: string; action?: React.ReactNode; }",
+        "design": "Centered py-16. Icon 48px text-gray-300. Title Syne text-lg text-gray-700. Description text-sm text-gray-400 mt-1. Action slot mt-4."
+      },
+      "ConfirmDialog": {
+        "file": "ConfirmDialog.tsx",
+        "type": "'use client'",
+        "props": "{ open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; confirmLabel?: string; onConfirm: () => void; variant?: 'default' | 'danger'; isLoading?: boolean; }",
+        "design": "shadcn AlertDialog. Danger variant: confirm button bg-red-600. Default variant: confirm button bg-primary. Loading state: spinner in button."
+      },
+      "ActivityFeed": {
+        "file": "ActivityFeed.tsx",
+        "type": "Server Component",
+        "props": "{ events: Array<{ id: string; actorName: string; actorAvatar?: string; action: string; module: string; detail: string; timestamp: string; }>; title?: string; showAll?: boolean; }",
+        "design": "Matches Image 6 Track's Actions panel. Each item: flex row — Avatar (28px) + right column (actor name font-medium + action detail text-sm text-gray-500 + module pill text-xs + timestamp text-xs text-gray-400 text-right). Items separated by subtle border-b. Last item no border."
+      },
+      "RoleBadge": {
+        "file": "RoleBadge.tsx",
+        "type": "Server Component",
+        "props": "{ role: Role; className?: string; }",
+        "design": "Uses role_badge_colors from design system. Clean pill with role label (formatted: 'Marketing Manager' not 'MARKETING_MANAGER'). Include small dot before text in same text color."
+      },
+      "PageHeader": {
+        "file": "PageHeader.tsx",
+        "type": "Server Component",
+        "props": "{ title: string; description?: string; breadcrumbs?: Array<{ label: string; href?: string }>; actions?: React.ReactNode; }",
+        "design": "Flex justify-between items-start mb-6. Left: breadcrumb (shadcn Breadcrumb) above title. Title Syne text-2xl font-bold text-gray-900. Description text-sm text-gray-500 mt-1. Right: actions slot (buttons)."
+      },
+      "LoadingSkeleton": {
+        "file": "LoadingSkeleton.tsx",
+        "type": "Server Component",
+        "variants": "{ table: rows x columns skeleton, card-grid: N skeleton cards, kpi-row: 4 KPI skeletons, form: labeled field skeletons }",
+        "design": "shadcn Skeleton component with matching layouts. Animate pulse."
+      }
+    }
+  },
+
+  "hooks": {
+    "directory": "hooks/",
+    "hooks": {
+      "useSession": "Client hook — reads from SessionContext, returns { session: Session | null, isLoading: boolean }",
+      "usePermission": "Client hook — takes (roles: Role[]), returns boolean hasPermission. Usage: const canEdit = usePermission(['ADMISSIONS', 'MANAGING_DIRECTOR'])",
+      "useLocalStorage": "Generic hook — useLocalStorage<T>(key, initialValue): [T, (value: T) => void]",
+      "useDebounce": "useDebounce<T>(value: T, delay: number): T — for search input debouncing",
+      "useMediaQuery": "useMediaQuery(query: string): boolean — for responsive sidebar behavior",
+      "useNotifications": "Client hook — returns { notifications, unreadCount, markAsRead, markAllAsRead } from mock data filtered by session.userId",
+      "useTaskStats": "Client hook — returns today's task completion stats for current user"
+    }
+  },
+
+  "server_actions": {
+    "directory": "app/actions/",
+    "description": "All form submissions go through Server Actions. Even though data is mocked, structure actions as real — validate with zod, return typed ActionResult, use revalidatePath to refresh data.",
+    "pattern": "'use server' at top of each action file. Export named async functions. Each returns Promise<ActionResult>. Import mock data and simulate mutation by logging/returning modified object.",
+    "files": {
+      "auth.actions.ts": ["validateLogin(formData: FormData): Promise<ActionResult>", "logoutUser(): Promise<void>"],
+      "student.actions.ts": ["createStudent(formData: FormData): Promise<ActionResult>", "updateStudent(id: string, formData: FormData): Promise<ActionResult>", "updatePipelineStage(id: string, stage: PipelineStage): Promise<ActionResult>"],
+      "lead.actions.ts": ["createLead(formData: FormData): Promise<ActionResult>", "updateLead(id: string, formData: FormData): Promise<ActionResult>", "convertLeadToStudent(leadId: string): Promise<ActionResult>"],
+      "payment.actions.ts": ["recordPayment(formData: FormData): Promise<ActionResult>", "updatePaymentStatus(id: string, status: PaymentStatus): Promise<ActionResult>"],
+      "application.actions.ts": ["updateApplicationStatus(id: string, status: ApplicationStatus, notes: string): Promise<ActionResult>", "markStudentAccepted(studentId: string, applicationId: string): Promise<ActionResult>"],
+      "travel.actions.ts": ["updateTravelRecord(id: string, formData: FormData): Promise<ActionResult>", "markStudentTravelled(studentId: string): Promise<ActionResult>"],
+      "operations.actions.ts": ["addCheckIn(formData: FormData): Promise<ActionResult>", "updateWellbeingStatus(id: string, status: WellbeingStatus): Promise<ActionResult>", "flagEscalation(id: string, reason: string): Promise<ActionResult>"],
+      "task.actions.ts": ["createTask(formData: FormData): Promise<ActionResult>", "updateTaskStatus(id: string, status: TaskStatus): Promise<ActionResult>", "submitEndOfDayReport(taskId: string, formData: FormData): Promise<ActionResult>", "acknowledgeReport(taskId: string): Promise<ActionResult>"],
+      "staff.actions.ts": ["createStaffAccount(formData: FormData): Promise<ActionResult>", "updateStaffRole(id: string, role: Role): Promise<ActionResult>", "deactivateStaff(id: string): Promise<ActionResult>", "resetPassword(id: string): Promise<ActionResult>"],
+      "report.actions.ts": ["submitReport(formData: FormData): Promise<ActionResult>", "acknowledgeReport(id: string): Promise<ActionResult>"]
+    }
+  },
+
+  "file_structure": {
+    "description": "Complete Next.js 15 App Router project structure. Every file listed here must be created.",
+    "structure": {
+      "app": {
+        "layout.tsx": "Root layout — imports fonts (next/font/google), applies CSS variables to <html>, wraps with SessionProvider, Toaster (sonner)",
+        "globals.css": "CSS reset, CSS variables (colors, fonts), shadcn variable overrides, scrollbar styling, utility classes",
+        "(auth)": {
+          "layout.tsx": "Auth layout — no sidebar, full screen, bg #9c003d left brand + white right",
+          "login": {
+            "page.tsx": "Login page — Server Component shell",
+            "LoginForm.tsx": "'use client' — the actual form component with react-hook-form"
+          }
+        },
+        "(dashboard)": {
+          "layout.tsx": "Dashboard shell — Server Component reads session cookie, renders Sidebar + Topbar + children",
+          "loading.tsx": "Global dashboard loading skeleton",
+          "error.tsx": "'use client' — error boundary for dashboard",
+          "not-found.tsx": "Custom 404",
+          "dashboard": {
+            "page.tsx": "Server Component — detects role, renders appropriate dashboard variant",
+            "loading.tsx": "KPI + chart skeleton",
+            "_components": {
+              "ManagingDirectorDashboard.tsx": "Server Component",
+              "MarketingManagerDashboard.tsx": "Server Component",
+              "ITAdminDashboard.tsx": "Server Component",
+              "FinanceDashboard.tsx": "Server Component",
+              "AdmissionsDashboard.tsx": "Server Component",
+              "TravelDashboard.tsx": "Server Component",
+              "OperationsDashboard.tsx": "Server Component",
+              "MarketingStaffDashboard.tsx": "Server Component",
+              "SubAgentDashboard.tsx": "Server Component"
+            }
+          },
+          "students": {
+            "page.tsx": "Server Component — fetches mock students, renders StudentsTable",
+            "loading.tsx": "Table skeleton",
+            "_components": {
+              "StudentsTable.tsx": "'use client' — @tanstack/react-table",
+              "StudentFilters.tsx": "'use client' — filter bar",
+              "AddStudentPanel.tsx": "'use client' — SlideInPanel with form"
+            },
+            "[id]": {
+              "page.tsx": "Server Component — fetches student by ID + all related records",
+              "loading.tsx": "Detail page skeleton",
+              "_components": {
+                "StudentTabs.tsx": "'use client' — shadcn Tabs",
+                "PaymentTab.tsx": "'use client'",
+                "ApplicationTab.tsx": "'use client'",
+                "TravelTab.tsx": "'use client'",
+                "DocumentsTab.tsx": "'use client'",
+                "ActivityLogTab.tsx": "Server Component"
+              }
+            }
+          },
+          "leads": {
+            "page.tsx": "'use client' — kanban board is client-heavy",
+            "_components": {
+              "LeadsKanban.tsx": "'use client' — @dnd-kit",
+              "LeadCard.tsx": "'use client'",
+              "LeadsTable.tsx": "'use client'",
+              "AddLeadPanel.tsx": "'use client'",
+              "ConvertLeadDialog.tsx": "'use client'"
+            }
+          },
+          "payments": {
+            "page.tsx": "Server Component",
+            "loading.tsx": "Table skeleton",
+            "_components": {
+              "PaymentsTable.tsx": "'use client'",
+              "RecordPaymentPanel.tsx": "'use client'",
+              "ReceiptModal.tsx": "'use client'"
+            }
+          },
+          "applications": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "ApplicationsTable.tsx": "'use client'",
+              "ApplicationDetailPanel.tsx": "'use client'",
+              "StatusStepper.tsx": "Server Component"
+            }
+          },
+          "travel": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "TravelTable.tsx": "'use client'",
+              "TravelDetailPanel.tsx": "'use client'",
+              "UpcomingDepartures.tsx": "Server Component",
+              "TravelTracker.tsx": "'use client'"
+            }
+          },
+          "visa": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "VisaTable.tsx": "'use client'"
+            }
+          },
+          "monitoring": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "MonitoringTable.tsx": "'use client'",
+              "CheckInPanel.tsx": "'use client'",
+              "StudentMonitoringPanel.tsx": "'use client'"
+            }
+          },
+          "checkins": {
+            "page.tsx": "Server Component",
+            "_components": { "CheckInFeed.tsx": "Server Component" }
+          },
+          "staff": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "StaffTable.tsx": "'use client'",
+              "AddStaffPanel.tsx": "'use client'",
+              "EditRoleDialog.tsx": "'use client'",
+              "ResetPasswordDialog.tsx": "'use client'"
+            }
+          },
+          "tasks": {
+            "page.tsx": "'use client' — interactive task board",
+            "loading.tsx": "Card grid skeleton",
+            "_components": {
+              "TaskCardGrid.tsx": "'use client'",
+              "TaskKanban.tsx": "'use client' — @dnd-kit",
+              "TaskTable.tsx": "'use client'",
+              "TaskDetailPanel.tsx": "'use client'",
+              "CreateTaskPanel.tsx": "'use client'",
+              "EndOfDayReportForm.tsx": "'use client'",
+              "TaskFilters.tsx": "'use client'"
+            }
+          },
+          "reports": {
+            "page.tsx": "Server Component",
+            "_components": {
+              "ReportsTable.tsx": "'use client'",
+              "ReportDetailModal.tsx": "'use client'",
+              "SubmitReportPanel.tsx": "'use client'"
+            }
+          },
+          "audit": {
+            "page.tsx": "Server Component",
+            "_components": { "AuditTable.tsx": "'use client'" }
+          },
+          "settings": {
+            "page.tsx": "'use client'",
+            "_components": {
+              "ProfileTab.tsx": "'use client'",
+              "SecurityTab.tsx": "'use client'",
+              "NotificationsTab.tsx": "'use client'",
+              "SystemTab.tsx": "'use client'"
+            }
+          }
+        },
+        "api": {
+          "auth": { "route.ts": "POST /api/auth — mock login endpoint" },
+          "notifications": { "route.ts": "GET /api/notifications?userId= — returns mock notifications" }
+        },
+        "actions": {
+          "auth.actions.ts": "Server Actions for login/logout",
+          "student.actions.ts": "Server Actions for student CRUD",
+          "lead.actions.ts": "Server Actions for lead management",
+          "payment.actions.ts": "Server Actions for payment recording",
+          "application.actions.ts": "Server Actions for application management",
+          "travel.actions.ts": "Server Actions for travel management",
+          "operations.actions.ts": "Server Actions for monitoring",
+          "task.actions.ts": "Server Actions for task management + EOD reports",
+          "staff.actions.ts": "Server Actions for staff management",
+          "report.actions.ts": "Server Actions for report submission"
+        }
+      },
+      "components": {
+        "layout": ["Sidebar.tsx", "Topbar.tsx", "NotificationPanel.tsx", "MobileSidebar.tsx"],
+        "shared": ["KPICard.tsx", "StatusBadge.tsx", "RoleBadge.tsx", "DataTable.tsx", "TaskCard.tsx", "SlideInPanel.tsx", "AvatarCluster.tsx", "EmptyState.tsx", "ConfirmDialog.tsx", "ActivityFeed.tsx", "PipelineStageBar.tsx", "PageHeader.tsx", "LoadingSkeleton.tsx"],
+        "charts": ["RevenueBarChart.tsx", "PipelineDonut.tsx", "LeadSourceBar.tsx", "MonthlyIntakeBar.tsx", "WellbeingDonut.tsx", "RadialKPI.tsx"]
+      },
+      "lib": {
+        "auth.ts": "getSession, setSession, clearSession, hasRole, getRedirectPath",
+        "utils.ts": "cn(), formatCurrency(amount, currency?), formatDate(date), formatRelativeTime(date), getPipelineStageLabel(stage), truncate(str, len)",
+        "validations": {
+          "login.schema.ts": "zod schema for login",
+          "student.schema.ts": "zod schema for student creation/edit",
+          "lead.schema.ts": "zod schema for lead",
+          "payment.schema.ts": "zod schema for payment recording",
+          "task.schema.ts": "zod schema for task creation",
+          "eod-report.schema.ts": "zod schema for end-of-day report",
+          "staff.schema.ts": "zod schema for staff creation",
+          "report.schema.ts": "zod schema for report submission"
+        },
+        "mock": {
+          "mockUsers.ts": "see mock_data_layer",
+          "mockStudents.ts": "see mock_data_layer",
+          "mockLeads.ts": "see mock_data_layer",
+          "mockPayments.ts": "see mock_data_layer",
+          "mockApplications.ts": "see mock_data_layer",
+          "mockDocuments.ts": "see mock_data_layer",
+          "mockTravel.ts": "see mock_data_layer",
+          "mockOperations.ts": "see mock_data_layer",
+          "mockCheckIns.ts": "see mock_data_layer",
+          "mockTasks.ts": "see mock_data_layer",
+          "mockReports.ts": "see mock_data_layer",
+          "mockAuditLogs.ts": "see mock_data_layer",
+          "mockNotifications.ts": "see mock_data_layer",
+          "utils.ts": "simulateDelay(ms?), generateId(), generateRegNumber()"
+        }
+      },
+      "hooks": ["useSession.ts", "usePermission.ts", "useLocalStorage.ts", "useDebounce.ts", "useMediaQuery.ts", "useNotifications.ts", "useTaskStats.ts"],
+      "contexts": ["SessionContext.tsx"],
+      "types": ["index.ts"],
+      "public": {
+        "logo": "ypit-logo.svg (white version), ypit-logo-dark.svg (dark version)",
+        "favicon.ico": "YPIT favicon"
+      },
+      "config_files": {
+        "next.config.ts": "images.remotePatterns for pravatar.cc (avatar images). Experimental: typedRoutes: true for typed Next.js routing.",
+        "tailwind.config.ts": "extend theme with YPIT colors, Syne + DM Sans font families, custom shadows, custom border-radius tokens",
+        "tsconfig.json": "strict: true, paths aliases for @/ @/components etc.",
+        "postcss.config.mjs": "@tailwindcss/postcss plugin for Tailwind v4",
+        ".eslintrc.json": "next/core-web-vitals + typescript rules",
+        "middleware.ts": "Route protection — redirect to /login if no session cookie"
+      }
+    }
+  },
+
+  "implementation_order": {
+    "description": "Strict phase-by-phase implementation guide. Do not skip phases — each builds on the previous.",
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Project Setup & Foundation",
+        "estimated_time": "2-3 hours",
+        "tasks": [
+          "1.1: npx create-next-app@latest ypit-ops --typescript --tailwind --eslint --app --src-dir=false --import-alias='@/*'",
+          "1.2: npx shadcn@latest init — style: Default, base color: Neutral, CSS variables: yes",
+          "1.3: Install all shadcn components listed in tech_stack.components.shadcn_ui.components_to_install",
+          "1.4: npm install lucide-react react-icons motion recharts react-hook-form @hookform/resolvers zod @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities date-fns sonner clsx tailwind-merge @tanstack/react-table",
+          "1.5: Configure tailwind.config.ts — add YPIT colors, Syne + DM Sans fontFamily, custom shadows and border-radius",
+          "1.6: Set up next/font/google in app/layout.tsx — import Syne and DM Sans, apply CSS variables to html element",
+          "1.7: Write app/globals.css — CSS variables for all design tokens, override shadcn primary to #9c003d HSL, scrollbar styling",
+          "1.8: Create types/index.ts with all interfaces and const objects from typescript_types section",
+          "1.9: Create lib/utils.ts with cn(), formatCurrency(), formatDate(), formatRelativeTime()",
+          "1.10: Create all lib/mock/ files with seed data",
+          "1.11: Create all zod schemas in lib/validations/",
+          "1.12: Configure next.config.ts with image domains and typedRoutes",
+          "1.13: Configure middleware.ts for route protection",
+          "1.14: Create lib/auth.ts with session utilities",
+          "1.15: Create contexts/SessionContext.tsx"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Authentication",
+        "estimated_time": "1-2 hours",
+        "tasks": [
+          "2.1: Create app/(auth)/layout.tsx — split screen layout",
+          "2.2: Create app/actions/auth.actions.ts — validateLogin Server Action",
+          "2.3: Create app/(auth)/login/LoginForm.tsx — 'use client' form with react-hook-form + zod + useActionState",
+          "2.4: Create app/(auth)/login/page.tsx — Server Component shell with brand panel",
+          "2.5: Test login flow for all 9 mock users — verify correct redirect per role",
+          "2.6: Test middleware route protection — unauthenticated users redirected to /login"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Shell Layout",
+        "estimated_time": "2-3 hours",
+        "tasks": [
+          "3.1: Build components/shared/RoleBadge.tsx",
+          "3.2: Build components/shared/StatusBadge.tsx",
+          "3.3: Build components/shared/AvatarCluster.tsx",
+          "3.4: Build components/shared/EmptyState.tsx",
+          "3.5: Build components/shared/PageHeader.tsx",
+          "3.6: Build components/layout/Sidebar.tsx with role-based nav items, collapse behavior",
+          "3.7: Build components/layout/MobileSidebar.tsx (shadcn Sheet)",
+          "3.8: Build components/layout/NotificationPanel.tsx",
+          "3.9: Build components/layout/Topbar.tsx with search command, notifications, user dropdown",
+          "3.10: Create app/(dashboard)/layout.tsx wiring Sidebar + Topbar + main content",
+          "3.11: Test sidebar nav items per role — log in as each role and verify correct nav items appear"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Shared Components",
+        "estimated_time": "2 hours",
+        "tasks": [
+          "4.1: Build KPICard.tsx",
+          "4.2: Build ActivityFeed.tsx",
+          "4.3: Build PipelineStageBar.tsx",
+          "4.4: Build SlideInPanel.tsx",
+          "4.5: Build ConfirmDialog.tsx",
+          "4.6: Build DataTable.tsx with @tanstack/react-table",
+          "4.7: Build LoadingSkeleton.tsx variants",
+          "4.8: Build all chart components in components/charts/"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Dashboards",
+        "estimated_time": "3-4 hours",
+        "tasks": [
+          "5.1: Build app/(dashboard)/dashboard/page.tsx role detection logic",
+          "5.2: Build each role dashboard component under _components/",
+          "5.3: Create loading.tsx for dashboard route",
+          "5.4: Test each dashboard by logging in as each role"
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Student Pipeline",
+        "estimated_time": "3-4 hours",
+        "tasks": [
+          "6.1: Build StudentsTable.tsx with all columns, sorting, pagination",
+          "6.2: Build StudentFilters.tsx with search (useDeferredValue), stage filter, country filter",
+          "6.3: Build app/(dashboard)/students/page.tsx",
+          "6.4: Build student detail page with all tabs",
+          "6.5: Build tab components: PaymentTab, ApplicationTab, TravelTab, DocumentsTab, ActivityLogTab",
+          "6.6: Apply access_rules — hide restricted tabs per role",
+          "6.7: Create student.actions.ts Server Actions"
+        ]
+      },
+      {
+        "phase": 7,
+        "name": "Leads Management",
+        "estimated_time": "2-3 hours",
+        "tasks": [
+          "7.1: Build LeadCard.tsx",
+          "7.2: Build LeadsKanban.tsx with @dnd-kit drag between status columns",
+          "7.3: Build LeadsTable.tsx",
+          "7.4: Build AddLeadPanel.tsx with form + validation",
+          "7.5: Build ConvertLeadDialog.tsx",
+          "7.6: Create lead.actions.ts Server Actions",
+          "7.7: Test lead conversion flow"
+        ]
+      },
+      {
+        "phase": 8,
+        "name": "Finance Module",
+        "estimated_time": "2 hours",
+        "tasks": [
+          "8.1: Build PaymentsTable.tsx matching Image 2 style exactly",
+          "8.2: Build RecordPaymentPanel.tsx",
+          "8.3: Build ReceiptModal.tsx",
+          "8.4: Create payment.actions.ts",
+          "8.5: Build payments page with KPI strip"
+        ]
+      },
+      {
+        "phase": 9,
+        "name": "Admissions Module",
+        "estimated_time": "2 hours",
+        "tasks": [
+          "9.1: Build ApplicationsTable.tsx",
+          "9.2: Build StatusStepper.tsx",
+          "9.3: Build ApplicationDetailPanel.tsx",
+          "9.4: Create application.actions.ts",
+          "9.5: Test stage promotion: Accepted → student moves to UNIVERSITY_ACCEPTED"
+        ]
+      },
+      {
+        "phase": 10,
+        "name": "Travel Module",
+        "estimated_time": "2-3 hours",
+        "tasks": [
+          "10.1: Build TravelTable.tsx",
+          "10.2: Build TravelDetailPanel.tsx with all sections",
+          "10.3: Build TravelTracker.tsx (Image 6 style tracking steps)",
+          "10.4: Build UpcomingDepartures.tsx with countdown badges",
+          "10.5: Build visa page and VisaTable.tsx",
+          "10.6: Create travel.actions.ts"
+        ]
+      },
+      {
+        "phase": 11,
+        "name": "Operations Module",
+        "estimated_time": "1-2 hours",
+        "tasks": [
+          "11.1: Build MonitoringTable.tsx",
+          "11.2: Build CheckInPanel.tsx",
+          "11.3: Build StudentMonitoringPanel.tsx",
+          "11.4: Build CheckInFeed.tsx (Image 6 activity feed style)",
+          "11.5: Create operations.actions.ts"
+        ]
+      },
+      {
+        "phase": 12,
+        "name": "Task Manager (Critical Feature)",
+        "estimated_time": "4-5 hours",
+        "tasks": [
+          "12.1: Build TaskCard.tsx matching Image 3 exactly",
+          "12.2: Build TaskCardGrid.tsx with motion stagger animation on load",
+          "12.3: Build TaskKanban.tsx with @dnd-kit drag-to-change-status + useOptimistic",
+          "12.4: Build TaskTable.tsx",
+          "12.5: Build TaskFilters.tsx",
+          "12.6: Build CreateTaskPanel.tsx with multi-select assignees (shadcn Command)",
+          "12.7: Build EndOfDayReportForm.tsx with all report fields + progress slider",
+          "12.8: Build TaskDetailPanel.tsx showing task details + EOD report section",
+          "12.9: Create task.actions.ts — createTask, updateStatus, submitEndOfDayReport, acknowledgeReport",
+          "12.10: Build tasks page.tsx with tabs (My Tasks / Assigned by Me / Department / Company)",
+          "12.11: Test EOD report flow: assign task → submit report → creator acknowledges",
+          "12.12: Test role visibility: staff sees only dept tasks, MD sees all"
+        ]
+      },
+      {
+        "phase": 13,
+        "name": "Staff Management",
+        "estimated_time": "2 hours",
+        "tasks": [
+          "13.1: Build StaffTable.tsx",
+          "13.2: Build AddStaffPanel.tsx with role-restricted role Select",
+          "13.3: Build EditRoleDialog.tsx",
+          "13.4: Build ResetPasswordDialog.tsx with copy-to-clipboard",
+          "13.5: Create staff.actions.ts",
+          "13.6: Test IT_ADMIN cannot assign manager-level roles"
+        ]
+      },
+      {
+        "phase": 14,
+        "name": "Reports & Audit",
+        "estimated_time": "1-2 hours",
+        "tasks": [
+          "14.1: Build ReportsTable.tsx",
+          "14.2: Build ReportDetailModal.tsx",
+          "14.3: Build SubmitReportPanel.tsx",
+          "14.4: Build AuditTable.tsx with color-coded actions",
+          "14.5: Create report.actions.ts"
+        ]
+      },
+      {
+        "phase": 15,
+        "name": "Settings & Polish",
+        "estimated_time": "2-3 hours",
+        "tasks": [
+          "15.1: Build all settings tabs",
+          "15.2: Add loading.tsx skeletons to all routes missing them",
+          "15.3: Add error.tsx error boundaries to all route segments",
+          "15.4: Add not-found.tsx to dashboard group",
+          "15.5: Audit all forms for validation completeness",
+          "15.6: Add toast notifications (sonner) to all Server Action success/error responses",
+          "15.7: Test full user journey for all 9 roles",
+          "15.8: Responsive QA — test sidebar collapse on mobile, table horizontal scroll",
+          "15.9: Accessibility audit — check focus states, ARIA labels, keyboard nav"
+        ]
+      }
+    ]
+  },
+
+  "ai_assistant_prompt_templates": {
+    "description": "Ready-to-paste prompts for each major build task. Copy, paste into Cursor/Claude/Copilot, then paste the relevant JSON section.",
+    "templates": {
+      "global_context_header": "I am building YPIT Consultancies Internal Operations System using Next.js 15 (App Router), React 19, Tailwind CSS v4, shadcn/ui, lucide-react, react-icons, framer-motion (motion/react), recharts, react-hook-form + zod, @tanstack/react-table, @dnd-kit/core. Primary brand color: #9c003d. Fonts: Syne (headings), DM Sans (body). All data is mocked. Server Actions are used for all mutations. Use 'use client' directive ONLY when necessary. Always use TypeScript strict mode. Reference types from types/index.ts. Apply cn() from lib/utils.ts for conditional classes.",
+
+      "phase_1_setup": "TASK: Set up the Next.js 15 project foundation for YPIT-OPS. Create: (1) tailwind.config.ts with YPIT colors, Syne + DM Sans fonts, custom shadows. (2) app/globals.css with CSS variables and shadcn overrides for #9c003d brand. (3) app/layout.tsx importing both Google Fonts via next/font/google. (4) types/index.ts with ALL interfaces and const objects from the spec. (5) lib/utils.ts with cn(), formatCurrency(amount, currency='TZS'), formatDate(), formatRelativeTime(). Spec reference: [paste tech_stack + design_system + typescript_types sections]",
+
+      "mock_data": "TASK: Create the mock data file [FILE_NAME] for YPIT-OPS. Use realistic East African names. Follow the exact TypeScript interface from types/index.ts. Export named arrays and helper functions as specified. Use https://i.pravatar.cc/150?u=[uniqueId] for avatar URLs. Spec reference: [paste specific mock file spec from mock_data_layer section]",
+
+      "component_build": "TASK: Build the [COMPONENT_NAME] React component for YPIT-OPS. File location: [FILE_PATH]. Component type: [Server/Client Component]. Props interface: [paste from shared_components spec]. Design requirements: [paste design spec]. Use shadcn/ui components where applicable. Use lucide-react for icons. Apply design system tokens via Tailwind classes. Fully typed TypeScript. No inline styles — Tailwind only.",
+
+      "page_build": "TASK: Build the [PAGE_NAME] page for YPIT-OPS at route [ROUTE]. This is a [Server/Client] Component. Access roles: [ROLES]. Import mock data from lib/mock/[file]. Render [list of components]. Apply the design specifications: [paste relevant page spec]. Include loading.tsx skeleton. Ensure role-based access restrictions are applied. Use Next.js 15 patterns — async Server Component, Suspense boundaries, Server Actions for forms.",
+
+      "dashboard_build": "TASK: Build the [ROLE] role dashboard for YPIT-OPS. Location: app/(dashboard)/dashboard/_components/[Role]Dashboard.tsx — Server Component. Import stats from getMock[Entity]Stats() helpers. Render: (1) PageHeader with greeting + date. (2) KPI cards row using KPICard component. (3) Charts section using recharts components — all charts must be 'use client' sub-components. (4) Additional widgets as specified. Brand color for charts: #9c003d. Reference: [paste specific role's dashboard spec from pages.dashboard.role_variants]",
+
+      "task_manager": "TASK: Build the complete Task Manager feature for YPIT-OPS. This is the most critical feature. Location: app/(dashboard)/tasks/. Requirements: (1) TaskCard component matching Image 3 exactly — priority badge top-left, title, description, date + avatar cluster. (2) Three views: Card Grid (default), Kanban (@dnd-kit), Table. (3) End-of-Day Report form on each task — staff submits progress summary, blockers, tomorrow's plan, percent complete. (4) Role-based tab visibility. (5) useOptimistic for instant status updates. (6) Notifications after report submission. Reference: [paste full task_manager page spec]",
+
+      "auth_flow": "TASK: Build the authentication system for YPIT-OPS. Requirements: (1) Login page at /login with split-screen design — left brand panel (#9c003d with YPIT logo + geometric pattern), right white form panel. (2) react-hook-form + zod validation on email + password. (3) Server Action validateLogin() that matches against mockUsers, stores session in sessionStorage + cookie, redirects to role-appropriate route. (4) middleware.ts for route protection. (5) Demo credentials expandable section on login form for all 9 roles. Reference: [paste auth + login page specs]"
+    }
+  }
+}
