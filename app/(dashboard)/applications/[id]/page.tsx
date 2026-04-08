@@ -2,6 +2,7 @@ import { GenericDetailPage } from '@/components/shared/GenericDetailPage';
 import { mockApplications } from '@/lib/mock/mockApplications';
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { DocumentManagement } from '../_components/DocumentManagement';
 
 export default async function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
@@ -12,5 +13,18 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   
   if (!record) notFound();
   
-  return <GenericDetailPage title={`Application Lifecycle: ${record.studentName}`} data={record} backPath="/applications" backLabel="Applications" />;
+  return (
+    <div className="space-y-8">
+      <GenericDetailPage
+        title={`Application Lifecycle: ${record.studentName}`}
+        data={record}
+        backPath="/applications"
+        backLabel="Applications"
+      />
+
+      <div className="max-w-5xl mx-auto px-4 md:px-0">
+        <DocumentManagement studentId={record.studentId} />
+      </div>
+    </div>
+  );
 }
