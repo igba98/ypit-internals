@@ -26,7 +26,7 @@ export type PipelineStage = typeof PIPELINE_STAGES[keyof typeof PIPELINE_STAGES]
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'REPORTED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE';
+export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE' | 'CAMPAIGN';
 export type ApplicationStatus = 'PREPARING' | 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED' | 'WAITLISTED' | 'DEFERRED';
 export type VisaStatus = 'NOT_STARTED' | 'DOCUMENTS_GATHERING' | 'APPLIED' | 'APPOINTMENT_BOOKED' | 'APPROVED' | 'REJECTED' | 'APPEALING';
 export type PassportStatus = 'HAS_PASSPORT' | 'APPLYING' | 'READY';
@@ -79,6 +79,8 @@ export interface Student {
   targetIntake: string;
   pipelineStage: PipelineStage;
   leadSource: LeadSource;
+  campaignName?: string;
+  sourceDetails?: string;
   assignedAgentId?: string;
   assignedAgentName?: string;
   marketingStaffId?: string;
@@ -93,6 +95,8 @@ export interface Lead {
   phone: string;
   email?: string;
   source: LeadSource;
+  campaignName?: string;
+  sourceDetails?: string;
   interestedIn: string;
   interestedCountry?: string;
   status: 'NEW' | 'CONTACTED' | 'COUNSELED' | 'CONVERTED' | 'LOST';

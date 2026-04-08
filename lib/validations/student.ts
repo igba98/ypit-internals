@@ -13,7 +13,9 @@ export const studentSchema = z.object({
   targetCountry: z.string().min(2, "Target country is required"),
   targetProgram: z.string().min(2, "Target program is required"),
   targetIntake: z.string().min(2, "Target intake is required"),
-  leadSource: z.enum(["SOCIAL_MEDIA", "SCHOOL_VISIT", "SUB_AGENT", "REFERRAL", "WALK_IN", "WEBSITE"]),
+  leadSource: z.enum(["SOCIAL_MEDIA", "SCHOOL_VISIT", "SUB_AGENT", "REFERRAL", "WALK_IN", "WEBSITE", "CAMPAIGN"]),
+  campaignName: z.string().optional(),
+  sourceDetails: z.string().optional(),
   assignedAgentId: z.string().optional(),
   marketingStaffId: z.string().optional(),
   notes: z.string().optional()

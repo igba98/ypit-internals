@@ -13,13 +13,14 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, onClick, isDragging }: LeadCardProps) {
-  const sourceColors = {
+  const sourceColors: Record<string, string> = {
     SOCIAL_MEDIA: 'bg-blue-100 text-blue-700',
     SCHOOL_VISIT: 'bg-green-100 text-green-700',
     SUB_AGENT: 'bg-purple-100 text-purple-700',
     REFERRAL: 'bg-amber-100 text-amber-700',
     WALK_IN: 'bg-gray-100 text-gray-700',
-    WEBSITE: 'bg-indigo-100 text-indigo-700'
+    WEBSITE: 'bg-indigo-100 text-indigo-700',
+    CAMPAIGN: 'bg-pink-100 text-pink-700'
   };
 
   return (

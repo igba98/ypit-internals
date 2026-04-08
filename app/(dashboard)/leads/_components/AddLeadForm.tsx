@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { addLead } from '@/lib/actions/leadActions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 export function AddLeadForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, formAction, isPending] = useActionState(addLead, null);
+  const [source, setSource] = useState("");
 
   useEffect(() => {
     if (state?.success) {
@@ -44,7 +45,7 @@ export function AddLeadForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <Label htmlFor="source">Source *</Label>
-        <Select id="source" name="source" required defaultValue="">
+        <Select id="source" name="source" required value={source} onChange={(e) => setSource(e.target.value)}>
           <option value="" disabled>Select a source...</option>
           <option value="SOCIAL_MEDIA">Social Media</option>
           <option value="SCHOOL_VISIT">School Visit</option>
@@ -52,9 +53,26 @@ export function AddLeadForm({ onSuccess }: { onSuccess: () => void }) {
           <option value="REFERRAL">Referral</option>
           <option value="WALK_IN">Walk In</option>
           <option value="WEBSITE">Website</option>
+          <option value="CAMPAIGN">Campaign</option>
         </Select>
         {state?.errors?.source && <p className="text-red-500 text-xs">{state.errors.source[0]}</p>}
       </div>
+
+      {source === 'CAMPAIGN' && (
+        <div className="space-y-2">
+          <Label htmlFor="campaignName">Campaign Name</Label>
+          <Input id="campaignName" name="campaignName" placeholder="e.g. Summer Intake 2026 Promo" />
+          {state?.errors?.campaignName && <p className="text-red-500 text-xs">{state.errors.campaignName[0]}</p>}
+        </div>
+      )}
+
+      {source && source !== 'CAMPAIGN' && (
+        <div className="space-y-2">
+          <Label htmlFor="sourceDetails">Source Details</Label>
+          <Input id="sourceDetails" name="sourceDetails" placeholder="e.g. Facebook, John Doe Referral, etc." />
+          {state?.errors?.sourceDetails && <p className="text-red-500 text-xs">{state.errors.sourceDetails[0]}</p>}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
          <div className="space-y-2">
