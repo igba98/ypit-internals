@@ -2,6 +2,8 @@
 
 import { paymentSchema } from '../validations/payment';
 import { mockPayments } from '../mock/mockPayments';
+import { mockStudents } from '../mock/mockStudents';
+import { mockLeads } from '../mock/mockLeads';
 import { revalidatePath } from 'next/cache';
 import { ActionResult } from '@/types';
 
@@ -59,7 +61,25 @@ export async function recordPayment(prevState: any, formData: FormData): Promise
       record.status = 'PARTIAL';
     }
 
+    // Update Student pipeline stage if they are in early stages
+    const student = mockStudents.find(s => s.id === studentId);
+    if (student) {
+      if (['LEAD', 'COUNSELING', 'PAYMENT_PENDING'].includes(student.pipelineStage)) {
+        student.pipelineStage = 'PAYMENT_CONFIRMED';
+        student.updatedAt = new Date().toISOString();
+      }
+
+      // Ensure any linked lead is marked as CONVERTED
+      const lead = mockLeads.find(l => l.convertedStudentId === studentId);
+      if (lead && lead.status !== 'CONVERTED') {
+        lead.status = 'CONVERTED';
+        lead.updatedAt = new Date().toISOString();
+      }
+    }
+
     revalidatePath('/payments');
+    revalidatePath('/students');
+    revalidatePath('/leads');
 
     return { success: true, message: "Payment processed and balance updated!" };
   } catch (error) {
