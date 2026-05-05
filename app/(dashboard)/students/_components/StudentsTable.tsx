@@ -64,7 +64,25 @@ export function StudentsTable({ data }: StudentsTableProps) {
     },
     {
       accessorKey: 'assignedAgentName',
-      header: 'Assigned To',
+      header: 'Assigned Lead',
+      cell: ({ row }) => {
+        const student = row.original;
+        if (!student.assignedAgentId || !student.assignedAgentName) {
+          return <span className="text-gray-400 text-sm">Unassigned</span>;
+        }
+        
+        return (
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/leads/${student.assignedAgentId}`);
+            }}
+            className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 rounded-md text-xs font-medium cursor-pointer transition-colors"
+          >
+            {student.assignedAgentName}
+          </div>
+        );
+      }
     },
     {
       accessorKey: 'createdAt',
