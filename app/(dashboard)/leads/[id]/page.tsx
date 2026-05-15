@@ -1,4 +1,5 @@
-import { mockUsers, findUserById } from '@/lib/mock/mockUsers';
+import Image from 'next/image';
+import { findUserById } from '@/lib/mock/mockUsers';
 import { mockStudents } from '@/lib/mock/mockStudents';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-
-const ADMITTED_STAGES = ['UNIVERSITY_ACCEPTED', 'TRAVEL_PLANNING', 'TRAVELLED', 'MONITORING'];
+import { ADMITTED_STAGES } from '@/types';
 
 // Map month index (0-11) to Month Name
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -83,7 +83,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           {lead.avatar ? (
-            <img src={lead.avatar} alt={lead.fullName} className="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-sm" />
+            <Image src={lead.avatar} alt={lead.fullName} width={96} height={96} className="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-sm" />
           ) : (
             <div className="w-24 h-24 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-3xl border-4 border-white shadow-sm">
               {lead.fullName.charAt(0)}

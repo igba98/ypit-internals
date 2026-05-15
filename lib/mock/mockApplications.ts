@@ -13,7 +13,8 @@ export const mockApplications: Application[] = [
     submissionDate: "2026-02-01T00:00:00Z",
     status: "UNDER_REVIEW",
     submittedBy: "usr_005",
-    updatedAt: "2026-02-15T00:00:00Z"
+    updatedAt: "2026-02-15T00:00:00Z",
+    decisionNotes: "Awaiting committee review. Strong academic profile."
   },
   {
     id: "app_002",
@@ -29,7 +30,8 @@ export const mockApplications: Application[] = [
     decisionDate: "2026-02-10T00:00:00Z",
     offerLetterUrl: "https://example.com/offer.pdf",
     submittedBy: "usr_005",
-    updatedAt: "2026-02-10T00:00:00Z"
+    updatedAt: "2026-02-10T00:00:00Z",
+    decisionNotes: "Unconditional offer issued. Welcome pack dispatched."
   },
   {
     id: "app_003",
@@ -46,7 +48,8 @@ export const mockApplications: Application[] = [
     offerLetterUrl: "https://example.com/offer2.pdf",
     conditionsUrl: "https://example.com/conditions.pdf",
     submittedBy: "usr_005",
-    updatedAt: "2026-02-05T00:00:00Z"
+    updatedAt: "2026-02-05T00:00:00Z",
+    decisionNotes: "Conditional offer: IELTS 7.0 and final transcript required."
   },
   {
     id: "app_004",
@@ -62,7 +65,8 @@ export const mockApplications: Application[] = [
     decisionDate: "2026-01-15T00:00:00Z",
     offerLetterUrl: "https://example.com/offer3.pdf",
     submittedBy: "usr_005",
-    updatedAt: "2026-01-15T00:00:00Z"
+    updatedAt: "2026-01-15T00:00:00Z",
+    decisionNotes: "Full acceptance with partial scholarship (USD 8,000/yr)."
   },
   {
     id: "app_005",
@@ -78,7 +82,159 @@ export const mockApplications: Application[] = [
     decisionDate: "2025-03-01T00:00:00Z",
     offerLetterUrl: "https://example.com/offer4.pdf",
     submittedBy: "usr_005",
-    updatedAt: "2025-03-01T00:00:00Z"
+    updatedAt: "2025-03-01T00:00:00Z",
+    decisionNotes: "Currently enrolled. Reporting via monitoring."
+  },
+  {
+    id: "app_006",
+    studentId: "std_010",
+    studentName: "Aisha Mwale",
+    university: "University of Birmingham",
+    country: "UK",
+    program: "BSc Economics",
+    level: "UNDERGRADUATE",
+    intake: "Sep 2026",
+    submissionDate: "2026-02-20T00:00:00Z",
+    status: "ACCEPTED",
+    decisionDate: "2026-03-05T00:00:00Z",
+    offerLetterUrl: "https://example.com/offer5.pdf",
+    conditionsUrl: "https://example.com/conditions2.pdf",
+    submittedBy: "usr_005",
+    updatedAt: "2026-03-05T00:00:00Z",
+    decisionNotes: "Conditional offer: pending IELTS retake (target 6.5)."
+  },
+  {
+    id: "app_007",
+    studentId: "std_012",
+    studentName: "Zainab Ahmed",
+    university: "University of Leeds",
+    country: "UK",
+    program: "MA Media Studies",
+    level: "POSTGRADUATE",
+    intake: "Sep 2026",
+    submissionDate: "2025-10-01T00:00:00Z",
+    status: "ACCEPTED",
+    decisionDate: "2025-11-10T00:00:00Z",
+    offerLetterUrl: "https://example.com/offer6.pdf",
+    submittedBy: "usr_005",
+    updatedAt: "2025-11-10T00:00:00Z",
+    decisionNotes: "Unconditional offer. Student arrived in UK Jan 2026."
+  },
+  {
+    id: "app_008",
+    studentId: "std_013",
+    studentName: "Brian Kibet",
+    university: "Curtin University",
+    country: "Australia",
+    program: "BSc IT",
+    level: "UNDERGRADUATE",
+    intake: "Feb 2027",
+    submissionDate: "2026-03-12T00:00:00Z",
+    status: "UNDER_REVIEW",
+    submittedBy: "usr_005",
+    updatedAt: "2026-03-15T00:00:00Z",
+    decisionNotes: "Application under departmental review."
+  },
+  {
+    id: "app_009",
+    studentId: "std_014",
+    studentName: "Mary Wanjiru",
+    university: "Sunway University",
+    country: "Malaysia",
+    program: "BA Psychology",
+    level: "UNDERGRADUATE",
+    intake: "Aug 2026",
+    submissionDate: "2025-12-15T00:00:00Z",
+    status: "ACCEPTED",
+    decisionDate: "2026-01-20T00:00:00Z",
+    offerLetterUrl: "https://example.com/offer7.pdf",
+    submittedBy: "usr_005",
+    updatedAt: "2026-01-20T00:00:00Z",
+    decisionNotes: "Unconditional offer. Visa application in progress."
+  },
+  {
+    id: "app_010",
+    studentId: "std_004",
+    studentName: "Fatima Ali",
+    university: "Tsinghua University",
+    country: "China",
+    program: "BSc Medicine",
+    level: "UNDERGRADUATE",
+    intake: "Sep 2026",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-02-20T00:00:00Z",
+    decisionNotes: "Preparing application pack. Awaiting transcript notarization."
+  },
+  {
+    id: "app_011",
+    studentId: "std_001",
+    studentName: "John Doe",
+    university: "University of Manchester",
+    country: "UK",
+    program: "BSc Computer Science",
+    level: "UNDERGRADUATE",
+    intake: "Sep 2026",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-01-16T00:00:00Z",
+    decisionNotes: "Initial inquiry. Documents being gathered (transcript pending notarization)."
+  },
+  {
+    id: "app_012",
+    studentId: "std_002",
+    studentName: "Jane Smith",
+    university: "Taylor's University",
+    country: "Malaysia",
+    program: "BA Business Administration",
+    level: "UNDERGRADUATE",
+    intake: "Aug 2026",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-01-20T00:00:00Z",
+    decisionNotes: "Counseling complete. Drafting personal statement and reviewing scholarship options."
+  },
+  {
+    id: "app_013",
+    studentId: "std_003",
+    studentName: "Ali Hassan",
+    university: "University of Sydney",
+    country: "Australia",
+    program: "MSc Engineering",
+    level: "POSTGRADUATE",
+    intake: "Feb 2027",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-02-12T00:00:00Z",
+    decisionNotes: "All documents collected. Awaiting agency fee clearance before submission."
+  },
+  {
+    id: "app_014",
+    studentId: "std_011",
+    studentName: "Paul Ndlovu",
+    university: "Monash University",
+    country: "Australia",
+    program: "BEng Civil",
+    level: "UNDERGRADUATE",
+    intake: "Feb 2027",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-02-22T00:00:00Z",
+    decisionNotes: "Application paused — pending initial payment from student."
+  },
+  {
+    id: "app_015",
+    studentId: "std_015",
+    studentName: "Emmanuel Ochieng",
+    university: "University of Alberta",
+    country: "Canada",
+    program: "BSc Agriculture",
+    level: "UNDERGRADUATE",
+    intake: "Sep 2026",
+    status: "PREPARING",
+    submittedBy: "usr_005",
+    updatedAt: "2026-03-10T00:00:00Z",
+    decisionNotes: "Fresh inquiry. First counseling session scheduled."
   }
 ];
 

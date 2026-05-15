@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { Save } from 'lucide-react';
 
@@ -34,7 +35,7 @@ export function SettingsForm() {
           <form className="space-y-6 max-w-2xl">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
-                <img src="https://i.pravatar.cc/150?u=current_user" alt="Profile" className="w-full h-full object-cover" />
+                <Image src="https://i.pravatar.cc/150?u=current_user" alt="Profile" width={80} height={80} className="w-full h-full object-cover" />
               </div>
               <button type="button" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                 Change Avatar

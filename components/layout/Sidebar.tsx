@@ -10,6 +10,7 @@ import {
   Users,
   UserPlus,
   CreditCard,
+  Wallet,
   FileText,
   Plane,
   Activity,
@@ -18,7 +19,6 @@ import {
   Shield,
   Settings,
   LogOut,
-  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -37,17 +37,29 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
   if (!session) return null;
 
   const getNavItems = () => {
+    // FINANCE role gets a focused sidebar: just the things relevant to them.
+    if (session.role === 'FINANCE') {
+      return [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'Finance Hub', href: '/finance', icon: Wallet },
+        { label: 'Student Payments', href: '/payments', icon: CreditCard },
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { label: 'Reports', href: '/reports', icon: BarChart3 },
+      ];
+    }
+
     const items = [
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ALL'] },
-      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'FINANCE', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
+      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Leads', href: '/leads', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT'] },
       { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR'] },
-      { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['FINANCE', 'MANAGING_DIRECTOR'] },
+      { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
+      { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
-      { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'FINANCE', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
+      { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Audit Logs', href: '/audit', icon: Shield, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
     ];

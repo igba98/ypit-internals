@@ -20,14 +20,13 @@ export function SessionProvider({ children, initialSession = null }: { children:
       const s = sessionStorage.getItem('ypit_session');
       if (s) {
         try {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from sessionStorage on mount
           setSessionState(JSON.parse(s));
         } catch (e) {
           console.error("Failed to parse session", e);
         }
       }
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
   }, [initialSession]);
 

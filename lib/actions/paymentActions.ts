@@ -5,7 +5,25 @@ import { mockPayments } from '../mock/mockPayments';
 import { mockStudents } from '../mock/mockStudents';
 import { mockLeads } from '../mock/mockLeads';
 import { revalidatePath } from 'next/cache';
-import { ActionResult } from '@/types';
+import { ActionResult, PaymentStatus } from '@/types';
+
+const PAYMENT_STATUSES: PaymentStatus[] = ['PENDING', 'PARTIAL', 'CLEARED', 'OVERDUE'];
+
+export async function updatePaymentStatus(paymentId: string, newStatus: string): Promise<ActionResult> {
+  if (!PAYMENT_STATUSES.includes(newStatus as PaymentStatus)) {
+    return { success: false, message: "Invalid payment status." };
+  }
+  const record = mockPayments.find(p => p.id === paymentId);
+  if (!record) {
+    return { success: false, message: "Payment record not found." };
+  }
+  record.status = newStatus as PaymentStatus;
+
+  revalidatePath('/payments');
+  revalidatePath(`/students/${record.studentId}`);
+
+  return { success: true, message: `Payment marked as ${newStatus.toLowerCase()}.` };
+}
 
 export async function recordPayment(prevState: any, formData: FormData): Promise<ActionResult> {
   try {

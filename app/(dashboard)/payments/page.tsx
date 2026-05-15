@@ -30,20 +30,13 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Payments & Finance" 
+      <PageHeader
+        title="Payments & Finance"
         description="Manage student payments, agency fees, and tuition."
         actions={
-          <div className="flex items-center gap-3">
-            {session.role === 'FINANCE' && (
-              <button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                Submit Report
-              </button>
-            )}
-            {['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role) && (
-              <RecordPaymentButton />
-            )}
-           </div>
+          ['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role) && (
+            <RecordPaymentButton />
+          )
         }
       />
       

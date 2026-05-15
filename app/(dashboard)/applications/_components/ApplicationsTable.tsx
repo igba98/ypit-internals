@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Application } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -19,7 +20,7 @@ export function ApplicationsTable({ data }: ApplicationsTableProps) {
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
-            <img src={`https://i.pravatar.cc/150?u=${row.original.studentId}`} alt={row.original.studentName} className="w-full h-full object-cover" />
+            <Image src={`https://i.pravatar.cc/150?u=${row.original.studentId}`} alt={row.original.studentName} width={32} height={32} className="w-full h-full object-cover" />
           </div>
           <span className="font-medium text-gray-900">{row.original.studentName}</span>
         </div>

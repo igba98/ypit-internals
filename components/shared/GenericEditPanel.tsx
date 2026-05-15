@@ -24,17 +24,17 @@ export function GenericEditPanel({ title, record, collectionName, isOpen, onClos
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      try {
-        await genericEditRecord(collectionName, record.id, formData);
-        toast.success(`${title} record updated securely`);
+      const result = await genericEditRecord(collectionName, record.id, formData);
+      if (result.success) {
+        toast.success(result.message);
         onClose();
-      } catch (error) {
-        toast.error('Failed to update system registry');
+      } else {
+        toast.error(result.message);
       }
     });
   };
 
-  // Blacklist generic metadata tracking elements that should be immutable natively.
+  // Display blacklist — the server enforces a per-collection whitelist regardless.
   const readOnlyKeys = ['id', 'createdAt', 'updatedAt', 'avatar', 'password', 'timestamp', 'userId', 'studentId', 'studentName'];
 
   return (

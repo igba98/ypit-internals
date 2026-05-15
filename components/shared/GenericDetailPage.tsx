@@ -29,7 +29,7 @@ export function GenericDetailPage({ title, data, backPath, backLabel, actions }:
         <div className="mb-8 border-b border-gray-100 pb-6 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold font-urbanist text-gray-900">{title}</h1>
-            <p className="text-gray-500 mt-1">Detailed breakdown of this record's comprehensive data.</p>
+            <p className="text-gray-500 mt-1">Detailed breakdown of this record&apos;s comprehensive data.</p>
           </div>
           {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
         </div>

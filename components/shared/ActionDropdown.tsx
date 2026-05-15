@@ -30,13 +30,13 @@ export function ActionDropdown({ basePath, record, hideEdit, hideDelete }: Actio
   }, []);
 
   const handleDelete = async () => {
-    if (!confirm("Are you explicitly sure you want to permanently delete this record?")) return;
-    try {
-      const collectionName = basePath.replace('/', '');
-      await genericDeleteRecord(collectionName, record.id);
-      toast.success('Record systematically deleted.');
-    } catch {
-      toast.error('Failed to securely delete data row.');
+    if (!confirm("Are you sure you want to permanently delete this record?")) return;
+    const collectionName = basePath.replace('/', '');
+    const result = await genericDeleteRecord(collectionName, record.id);
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
     }
   };
 

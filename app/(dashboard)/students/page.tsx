@@ -16,9 +16,15 @@ export default async function StudentsPage() {
   const session = JSON.parse(sessionCookie.value);
   
   // Role check
-  const allowedRoles = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'FINANCE', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'];
+  const allowedRoles = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'FINANCE', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS', 'MARKETING_STAFF', 'SUB_AGENT'];
   if (!allowedRoles.includes(session.role)) {
     redirect('/dashboard');
+  }
+
+  // Filter students if it's an agent/staff
+  let students = mockStudents;
+  if (['MARKETING_STAFF', 'SUB_AGENT'].includes(session.role)) {
+    students = mockStudents.filter(s => s.assignedAgentId === session.userId);
   }
 
   return (
@@ -27,7 +33,7 @@ export default async function StudentsPage() {
         title="Students" 
         description="Manage all student records and their pipeline status."
         actions={
-          ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'].includes(session.role) && (
+          ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT'].includes(session.role) && (
             <AddStudentButton />
           )
         }
@@ -48,7 +54,7 @@ export default async function StudentsPage() {
         </div>
       </div>
       
-      <StudentsTable data={mockStudents} />
+      <StudentsTable data={students} userRole={session.role} />
     </div>
   );
 }

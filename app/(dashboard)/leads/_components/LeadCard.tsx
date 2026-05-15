@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Lead } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
 import { Phone, Mail, MoreVertical, Calendar, Eye } from 'lucide-react';
@@ -71,7 +72,7 @@ export function LeadCard({ lead, onClick, isDragging }: LeadCardProps) {
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden shrink-0">
             {lead.assignedToId ? (
-              <img src={`https://i.pravatar.cc/150?u=${lead.assignedToId}`} alt={lead.assignedToName} className="w-full h-full object-cover" />
+              <Image src={`https://i.pravatar.cc/150?u=${lead.assignedToId}`} alt={lead.assignedToName ?? 'Assignee'} width={24} height={24} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-500 text-[10px] font-medium">?</div>
             )}

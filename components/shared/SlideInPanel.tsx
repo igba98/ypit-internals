@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface SlideInPanelProps {
@@ -14,12 +14,6 @@ interface SlideInPanelProps {
 }
 
 export function SlideInPanel({ isOpen, onClose, title, description, children }: SlideInPanelProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,7 +25,7 @@ export function SlideInPanel({ isOpen, onClose, title, description, children }: 
     };
   }, [isOpen]);
 
-  if (!mounted) return null;
+  if (typeof window === 'undefined') return null;
 
   return createPortal(
     <AnimatePresence>

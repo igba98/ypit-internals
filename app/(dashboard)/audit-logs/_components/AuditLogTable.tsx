@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { AuditLog } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -60,7 +61,7 @@ export function AuditLogTable({ data }: AuditLogTableProps) {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden shrink-0">
-            <img src={`https://i.pravatar.cc/150?u=${row.original.userId}`} alt={row.original.userName} className="w-full h-full object-cover" />
+            <Image src={`https://i.pravatar.cc/150?u=${row.original.userId}`} alt={row.original.userName} width={24} height={24} className="w-full h-full object-cover" />
           </div>
           <span className="text-gray-700">{row.original.userName}</span>
         </div>

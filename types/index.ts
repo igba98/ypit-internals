@@ -24,6 +24,25 @@ export const PIPELINE_STAGES = {
 } as const;
 export type PipelineStage = typeof PIPELINE_STAGES[keyof typeof PIPELINE_STAGES];
 
+export const PIPELINE_ORDER: PipelineStage[] = [
+  'LEAD',
+  'COUNSELING',
+  'PAYMENT_PENDING',
+  'PAYMENT_CONFIRMED',
+  'APPLICATION_SUBMITTED',
+  'UNIVERSITY_ACCEPTED',
+  'TRAVEL_PLANNING',
+  'TRAVELLED',
+  'MONITORING',
+];
+
+export const ADMITTED_STAGES: PipelineStage[] = [
+  'UNIVERSITY_ACCEPTED',
+  'TRAVEL_PLANNING',
+  'TRAVELLED',
+  'MONITORING',
+];
+
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'REPORTED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE';
@@ -316,4 +335,138 @@ export interface ActionResult {
   message: string;
   data?: unknown;
   errors?: Record<string, string[]>;
+}
+
+// ============================================================
+// FINANCE MODULE
+// ============================================================
+
+export type PaymentMethod =
+  | 'BANK_TRANSFER'
+  | 'CASH'
+  | 'CHEQUE'
+  | 'CARD'
+  | 'MOBILE_MONEY'
+  | 'PETTY_CASH';
+
+export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'PARTIAL' | 'OVERDUE' | 'VOID';
+export type InvoiceRecipientType = 'STUDENT' | 'VENDOR' | 'OTHER';
+
+export interface InvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface Invoice {
+  id: string;                       // INV-2026-0001
+  recipientType: InvoiceRecipientType;
+  recipientId?: string;             // linked studentId / vendor id
+  recipientName: string;
+  description: string;
+  lineItems: InvoiceLineItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  currency: string;
+  issueDate: string;
+  dueDate: string;
+  status: InvoiceStatus;
+  paidAmount: number;
+  paidDate?: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  createdById?: string;
+  createdByName?: string;
+  createdAt: string;
+}
+
+export type PayrollStatus = 'DRAFT' | 'APPROVED' | 'PAID' | 'CANCELLED';
+
+export interface PayrollEntry {
+  id: string;                       // PR-2026-MAR-001
+  staffId: string;
+  staffName: string;
+  staffRole: Role;
+  department: string;
+  period: string;                   // "March 2026"
+  periodStart: string;
+  periodEnd: string;
+  baseSalary: number;
+  allowances: number;
+  deductions: number;
+  tax: number;                      // PAYE
+  pension: number;                  // NSSF
+  netPay: number;
+  status: PayrollStatus;
+  paidDate?: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  createdAt: string;
+}
+
+export type PettyCashTxType = 'EXPENSE' | 'REPLENISHMENT' | 'INITIAL_FLOAT';
+export type PettyCashCategory =
+  | 'OFFICE_SUPPLIES'
+  | 'TRANSPORT'
+  | 'MEALS'
+  | 'UTILITIES'
+  | 'POSTAGE'
+  | 'REPAIRS'
+  | 'CLEANING'
+  | 'STAFF_WELFARE'
+  | 'COURIER'
+  | 'OTHER';
+
+export interface PettyCashTransaction {
+  id: string;                       // PC-2026-0001
+  date: string;
+  type: PettyCashTxType;
+  category?: PettyCashCategory;
+  description: string;
+  amount: number;                   // always positive; sign derived from type
+  currency: string;
+  recipient?: string;
+  voucherNumber?: string;           // PV-001
+  balanceAfter: number;
+  recordedById?: string;
+  recordedByName?: string;
+  notes?: string;
+}
+
+export type ExpenseCategory =
+  | 'RENT'
+  | 'UTILITIES'
+  | 'INTERNET'
+  | 'OFFICE_SUPPLIES'
+  | 'TRAVEL'
+  | 'MARKETING'
+  | 'PROFESSIONAL_FEES'
+  | 'INSURANCE'
+  | 'EQUIPMENT'
+  | 'TRAINING'
+  | 'COMMISSIONS'
+  | 'OTHER';
+
+export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
+
+export interface Expense {
+  id: string;                       // EXP-2026-0001
+  category: ExpenseCategory;
+  vendor?: string;
+  description: string;
+  amount: number;
+  currency: string;
+  date: string;                     // expense incurred date
+  paymentMethod: PaymentMethod;
+  status: ExpenseStatus;
+  approvedById?: string;
+  approvedByName?: string;
+  paidDate?: string;
+  receiptUrl?: string;
+  notes?: string;
+  recordedById?: string;
+  recordedByName?: string;
+  createdAt: string;
 }

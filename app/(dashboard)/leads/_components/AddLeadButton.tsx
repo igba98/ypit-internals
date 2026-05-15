@@ -4,23 +4,23 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SlideInPanel } from '@/components/shared/SlideInPanel';
 import { AddLeadForm } from './AddLeadForm';
-import { Plus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 export function AddLeadButton() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} className="gap-2">
-        <Plus className="w-4 h-4" />
-        Add Lead
+      <Button onClick={() => setIsOpen(true)} className="gap-2 bg-primary hover:bg-primary-light text-white">
+        <UserPlus className="w-4 h-4" />
+        Add Employee Lead
       </Button>
 
       <SlideInPanel
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Add New Lead"
-        description="Enter the potential student's contact details and initial interests to begin tracking."
+        title="Add Employee Lead"
+        description="Onboard a new marketing staff member or sub-agent into the system."
       >
         <AddLeadForm onSuccess={() => setIsOpen(false)} />
       </SlideInPanel>

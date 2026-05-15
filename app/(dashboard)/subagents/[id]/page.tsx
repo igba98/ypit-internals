@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockUsers } from '@/lib/mock/mockUsers';
 import { mockLeads } from '@/lib/mock/mockLeads';

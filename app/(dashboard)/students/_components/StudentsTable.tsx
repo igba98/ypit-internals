@@ -1,19 +1,58 @@
 'use client';
 
-import { Student } from '@/types';
+import Image from 'next/image';
+import { useTransition } from 'react';
+import { Student, ADMITTED_STAGES } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
-import { MoreHorizontal, Eye } from 'lucide-react';
+import { Eye, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { admitStudent } from '@/lib/actions/studentActions';
+import { toast } from 'sonner';
+
+const ADMIT_ROLES = ['MARKETING_STAFF', 'SUB_AGENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS'];
 
 interface StudentsTableProps {
   data: Student[];
+  userRole?: string;
 }
 
-export function StudentsTable({ data }: StudentsTableProps) {
+function AdmitStudentButton({ student }: { student: Student }) {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const handleAdmit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isPending) return;
+    startTransition(async () => {
+      const result = await admitStudent(student.id);
+      if (result.success) {
+        toast.success(result.message);
+        router.refresh();
+      } else {
+        toast.error(result.message);
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={handleAdmit}
+      disabled={isPending}
+      className="p-2 text-gray-400 hover:text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      title="Mark as admitted (University Accepted)"
+      aria-label={`Admit ${student.fullName}`}
+    >
+      <CheckCircle className="w-4 h-4" />
+    </button>
+  );
+}
+
+export function StudentsTable({ data, userRole }: StudentsTableProps) {
+  const router = useRouter();
+  const canAdmit = !!userRole && ADMIT_ROLES.includes(userRole);
 
   const columns: ColumnDef<Student>[] = [
     {
@@ -25,7 +64,7 @@ export function StudentsTable({ data }: StudentsTableProps) {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
               {student.avatar ? (
-                <img src={student.avatar} alt={student.fullName} className="w-full h-full object-cover" />
+                <Image src={student.avatar} alt={student.fullName} width={32} height={32} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm font-medium">
                   {student.fullName.charAt(0)}
@@ -92,16 +131,23 @@ export function StudentsTable({ data }: StudentsTableProps) {
     {
       id: 'actions',
       cell: ({ row }) => {
+        const student = row.original;
+        const isAdmitted = ADMITTED_STAGES.includes(student.pipelineStage);
         return (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push(`/students/${row.original.id}`);
-            }}
-            className="p-2 text-gray-400 hover:text-primary rounded-md hover:bg-primary-muted transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
+          <div className="flex items-center justify-end gap-1">
+            {canAdmit && !isAdmitted && <AdmitStudentButton student={student} />}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/students/${student.id}`);
+              }}
+              className="p-2 text-gray-400 hover:text-primary rounded-md hover:bg-primary-muted transition-colors"
+              title="View Details"
+              aria-label={`View ${student.fullName}`}
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
         );
       },
     },

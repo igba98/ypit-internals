@@ -1,38 +1,54 @@
 'use server';
 
+import { z } from 'zod';
+import { mockUsers } from '../mock/mockUsers';
 import { leadSchema } from '../validations/lead';
-import { mockLeads } from '../mock/mockLeads';
 import { revalidatePath } from 'next/cache';
-import { ActionResult, Lead } from '@/types';
+import { ActionResult, User } from '@/types';
 
-export async function addLead(prevState: any, formData: FormData): Promise<ActionResult> {
+export async function addLead(_prevState: unknown, formData: FormData): Promise<ActionResult> {
   try {
     const data = Object.fromEntries(formData.entries());
-    const validatedFields = leadSchema.safeParse(data);
+    const parsed = leadSchema.safeParse(data);
 
-    if (!validatedFields.success) {
+    if (!parsed.success) {
       return {
         success: false,
-        message: "Please fix the errors in the form.",
-        errors: validatedFields.error.flatten().fieldErrors,
+        message: "Please fix the validation errors.",
+        errors: z.flattenError(parsed.error).fieldErrors,
       };
     }
 
-    const newLead: Lead = {
-      id: `ld_${Math.random().toString(36).substr(2, 9)}`,
-      status: 'NEW',
+    const { fullName, email, phone, role, department } = parsed.data;
+
+    if (mockUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      return {
+        success: false,
+        message: "A user with this email already exists.",
+        errors: { email: ["This email is already in use."] },
+      };
+    }
+
+    const newUser: User = {
+      id: `usr_${Math.random().toString(36).slice(2, 11)}`,
+      fullName,
+      email,
+      phone,
+      role,
+      department,
+      password: 'ypit2026',
+      status: 'ACTIVE',
+      avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}`,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...validatedFields.data
-    } as Lead;
+    };
 
-    // Mutate the mock array
-    mockLeads.unshift(newLead);
-    
+    mockUsers.unshift(newUser);
+
     revalidatePath('/leads');
+    revalidatePath('/staff');
 
-    return { success: true, message: "Lead added successfully!" };
-  } catch (error) {
-    return { success: false, message: "An unexpected error occurred." };
+    return { success: true, message: "Employee lead added successfully!" };
+  } catch {
+    return { success: false, message: "An unexpected error occurred processing the lead." };
   }
 }

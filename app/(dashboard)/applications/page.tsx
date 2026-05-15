@@ -22,16 +22,9 @@ export default async function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="University Applications" 
+      <PageHeader
+        title="University Applications"
         description="Track and manage student university applications."
-        actions={
-          session.role === 'ADMISSIONS' && (
-            <button className="bg-primary hover:bg-primary-light text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-              Submit Report
-            </button>
-          )
-        }
       />
       
       <div className="flex flex-wrap gap-2 mb-4">

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockUsers } from '@/lib/mock/mockUsers';
 import { mockStudents } from '@/lib/mock/mockStudents';
@@ -6,8 +7,8 @@ import { redirect } from 'next/navigation';
 import { Users, Trophy, AlertCircle, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const ADMITTED_STAGES = ['UNIVERSITY_ACCEPTED', 'TRAVEL_PLANNING', 'TRAVELLED', 'MONITORING'];
+import { AddLeadButton } from './_components/AddLeadButton';
+import { ADMITTED_STAGES } from '@/types';
 
 export default async function LeadsPage() {
   const cookieStore = await cookies();
@@ -28,8 +29,8 @@ export default async function LeadsPage() {
   // 1. Identify "Leads" as employees (Marketing Staff and Sub Agents)
   let employeeLeads = mockUsers.filter(u => u.role === 'MARKETING_STAFF' || u.role === 'SUB_AGENT');
 
-  // If a standard staff member is viewing, they only see themselves
-  if (['MARKETING_STAFF', 'SUB_AGENT'].includes(session.role)) {
+  // If a sub agent is viewing, they only see themselves. Marketing staff can see everyone.
+  if (session.role === 'SUB_AGENT') {
     employeeLeads = employeeLeads.filter(u => u.id === session.userId);
   }
 
@@ -61,6 +62,11 @@ export default async function LeadsPage() {
       <PageHeader 
         title="Employee Leads Performance" 
         description="Track the performance of staff members and agents in converting students."
+        actions={
+          ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'MARKETING_STAFF'].includes(session.role) && (
+            <AddLeadButton />
+          )
+        }
       />
       
       {/* Summary KPI Cards using Shadcn Card */}
@@ -133,7 +139,7 @@ export default async function LeadsPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {lead.avatar ? (
-                        <img src={lead.avatar} alt={lead.fullName} width={40} height={40} className="rounded-full object-cover" />
+                        <Image src={lead.avatar} alt={lead.fullName} width={40} height={40} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-primary-muted text-primary flex items-center justify-center font-bold">
                           {lead.fullName.charAt(0)}
