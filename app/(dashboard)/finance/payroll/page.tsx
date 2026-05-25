@@ -63,12 +63,12 @@ export default async function PayrollPage() {
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Net Payroll</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(currentMonthBudget)}</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(currentMonthBudget, { compact: true })}</p>
             <p className="text-xs text-white/70 mt-1">After tax + NSSF</p>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Pending Payment</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(currentPending)}</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(currentPending, { compact: true })}</p>
             <p className="text-xs text-white/70 mt-1">{currentPaidOut > 0 ? `${formatCurrency(currentPaidOut)} paid` : 'None paid yet'}</p>
           </div>
         </div>

@@ -34,10 +34,10 @@ export default async function InvoicesPage() {
 
       {/* KPI strip */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued)} sub={`${mockInvoices.length} invoices`} />
-        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid)} sub={`${mockInvoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
-        <KpiTile icon={ArrowDownCircle} label="Outstanding" value={formatCurrency(outstanding)} sub="Pending collection" tone="warning" />
-        <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount)} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
+        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued, { compact: true })} sub={`${mockInvoices.length} invoices`} />
+        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid, { compact: true })} sub={`${mockInvoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
+        <KpiTile icon={ArrowDownCircle} label="Outstanding" value={formatCurrency(outstanding, { compact: true })} sub="Pending collection" tone="warning" />
+        <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount, { compact: true })} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
       </section>
 
       <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">

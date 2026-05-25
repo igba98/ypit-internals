@@ -77,10 +77,10 @@ export default async function ExpensesPage() {
       />
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal)} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
-        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid)} sub={`${monthExpenses.filter(e => e.status === 'PAID').length} settled`} tone="success" />
-        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending)} sub={`${mockExpenses.filter(e => e.status === 'PENDING').length} pending`} tone="warning" />
-        <KpiTile icon={AlertCircle} label="Approved · Unpaid" value={formatCurrency(approved)} sub="Ready to pay" tone={approved > 0 ? 'danger' : 'default'} />
+        <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal, { compact: true })} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
+        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid, { compact: true })} sub={`${monthExpenses.filter(e => e.status === 'PAID').length} settled`} tone="success" />
+        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending, { compact: true })} sub={`${mockExpenses.filter(e => e.status === 'PENDING').length} pending`} tone="warning" />
+        <KpiTile icon={AlertCircle} label="Approved · Unpaid" value={formatCurrency(approved, { compact: true })} sub="Ready to pay" tone={approved > 0 ? 'danger' : 'default'} />
       </section>
 
       {topCats.length > 0 && (

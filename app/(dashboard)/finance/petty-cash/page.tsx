@@ -95,7 +95,7 @@ export default async function PettyCashPage() {
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70 flex items-center gap-1.5">
               <Wallet className="w-3.5 h-3.5" /> Current Float
             </p>
-            <p className="text-4xl md:text-5xl font-bold mt-2">{formatCurrency(balance)}</p>
+            <p className="text-4xl md:text-5xl font-bold mt-2">{formatCurrency(balance, { compact: true })}</p>
             {lowBalance ? (
               <p className="mt-2 inline-flex items-center gap-1.5 text-sm bg-red-500/30 border border-red-300/40 px-3 py-1 rounded-full">
                 <AlertTriangle className="w-3.5 h-3.5" /> Below safe threshold — replenish soon
@@ -106,12 +106,12 @@ export default async function PettyCashPage() {
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Spent This Month</p>
-            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthExpenses)}</p>
+            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthExpenses, { compact: true })}</p>
             <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'EXPENSE' && new Date(t.date) >= monthStart).length} vouchers</p>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Replenished</p>
-            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthReplenishments)}</p>
+            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthReplenishments, { compact: true })}</p>
             <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart).length} top-ups</p>
           </div>
         </div>

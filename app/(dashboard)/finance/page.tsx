@@ -101,28 +101,28 @@ export default async function FinanceOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Receivables"
-          value={formatCurrency(receivablesTotal)}
+          value={formatCurrency(receivablesTotal, { compact: true })}
           sublabel={`${formatCurrency(invoicesOutstanding)} on open invoices`}
           icon={ArrowDownCircle}
           tone="success"
         />
         <KpiCard
           label="Payables"
-          value={formatCurrency(payablesTotal)}
+          value={formatCurrency(payablesTotal, { compact: true })}
           sublabel={`${mockExpenses.filter(e => e.status !== 'PAID' && e.status !== 'REJECTED').length} expenses · ${draftPayroll.length} draft payslips`}
           icon={ArrowUpCircle}
           tone="warning"
         />
         <KpiCard
           label="Petty Cash Float"
-          value={formatCurrency(pettyCashBalance)}
+          value={formatCurrency(pettyCashBalance, { compact: true })}
           sublabel={pettyCashBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'}
           icon={Wallet}
           tone={pettyCashBalance < 100000 ? 'danger' : 'primary'}
         />
         <KpiCard
           label="Net This Month"
-          value={formatCurrency(revenueThisMonth - expensesThisMonth)}
+          value={formatCurrency(revenueThisMonth - expensesThisMonth, { compact: true })}
           sublabel={`+${formatCurrency(revenueThisMonth)} · −${formatCurrency(expensesThisMonth)}`}
           icon={TrendingUp}
           tone="default"
