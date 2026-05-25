@@ -7,7 +7,8 @@ import { PipelineStageBar } from '@/components/shared/PipelineStageBar';
 import { StudentTabs } from './_components/StudentTabs';
 import { PipelineStatusSelect } from './_components/PipelineStatusSelect';
 import { getStudentDetail } from '@/lib/studentDetail';
-import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { ADMITTED_STAGES, Role } from '@/types';
 import { canEdit } from '@/lib/statusOptions';
 
@@ -109,7 +110,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <div className="rounded-lg bg-white border border-gray-100 p-3 shadow-card">
               <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">Balance</p>
               <p className="text-sm font-bold text-gray-900 mt-1">
-                {payment ? formatCurrency(payment.balance, payment.currency) : <span className="text-gray-400">—</span>}
+                {payment ? formatCurrency(payment.balance, { currency: payment.currency }) : <span className="text-gray-400">—</span>}
               </p>
             </div>
             <div className="rounded-lg bg-white border border-gray-100 p-3 shadow-card">

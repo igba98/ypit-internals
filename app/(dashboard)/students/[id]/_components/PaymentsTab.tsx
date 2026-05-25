@@ -1,7 +1,8 @@
 'use client';
 
 import { PaymentRecord, Role } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { StatusSelect } from '@/components/shared/StatusSelect';
 import { PAYMENT_STATUS_OPTIONS, canEdit } from '@/lib/statusOptions';
 import { updatePaymentStatus } from '@/lib/actions/paymentActions';
@@ -50,8 +51,8 @@ function FeeRow({ icon: Icon, label, total, paid, currency, paidDate }: FeeRowPr
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm font-bold text-gray-900">{formatCurrency(paid, currency)}</p>
-          <p className="text-[11px] text-gray-500">of {formatCurrency(total, currency)}</p>
+          <p className="text-sm font-bold text-gray-900">{formatCurrency(paid, { currency })}</p>
+          <p className="text-[11px] text-gray-500">of {formatCurrency(total, { currency })}</p>
         </div>
       </div>
       <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -91,7 +92,7 @@ export function PaymentsTab({ payment, userRole }: PaymentsTabProps) {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wider text-white/70">Total Due</p>
-              <p className="text-3xl font-bold mt-1">{formatCurrency(payment.totalDue, payment.currency)}</p>
+              <p className="text-3xl font-bold mt-1">{formatCurrency(payment.totalDue, { currency: payment.currency })}</p>
               <p className="text-xs text-white/70 mt-1">across {payment.receiptNumbers.length} receipt{payment.receiptNumbers.length === 1 ? '' : 's'}</p>
             </div>
             <StatusSelect
@@ -106,11 +107,11 @@ export function PaymentsTab({ payment, userRole }: PaymentsTabProps) {
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/15">
             <div>
               <p className="text-[11px] uppercase tracking-wider text-white/70">Paid</p>
-              <p className="text-lg font-bold mt-0.5">{formatCurrency(payment.totalPaid, payment.currency)}</p>
+              <p className="text-lg font-bold mt-0.5">{formatCurrency(payment.totalPaid, { currency: payment.currency })}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-white/70">Balance</p>
-              <p className="text-lg font-bold mt-0.5">{formatCurrency(payment.balance, payment.currency)}</p>
+              <p className="text-lg font-bold mt-0.5">{formatCurrency(payment.balance, { currency: payment.currency })}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-white/70">Progress</p>

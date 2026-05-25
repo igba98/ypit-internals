@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockPettyCash, getPettyCashBalance } from '@/lib/mock/mockPettyCash';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import {
   Wallet,
   ArrowUpRight,
@@ -94,7 +95,7 @@ export default async function PettyCashPage() {
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70 flex items-center gap-1.5">
               <Wallet className="w-3.5 h-3.5" /> Current Float
             </p>
-            <p className="text-4xl md:text-5xl font-bold mt-2">{formatCurrency(balance, 'TZS')}</p>
+            <p className="text-4xl md:text-5xl font-bold mt-2">{formatCurrency(balance)}</p>
             {lowBalance ? (
               <p className="mt-2 inline-flex items-center gap-1.5 text-sm bg-red-500/30 border border-red-300/40 px-3 py-1 rounded-full">
                 <AlertTriangle className="w-3.5 h-3.5" /> Below safe threshold — replenish soon
@@ -105,12 +106,12 @@ export default async function PettyCashPage() {
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Spent This Month</p>
-            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthExpenses, 'TZS')}</p>
+            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthExpenses)}</p>
             <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'EXPENSE' && new Date(t.date) >= monthStart).length} vouchers</p>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Replenished</p>
-            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthReplenishments, 'TZS')}</p>
+            <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthReplenishments)}</p>
             <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart).length} top-ups</p>
           </div>
         </div>
@@ -135,7 +136,7 @@ export default async function PettyCashPage() {
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${CATEGORY_PILL[cat as PettyCashCategory] ?? CATEGORY_PILL.OTHER}`}>
                       {CATEGORY_LABEL[cat as PettyCashCategory] ?? cat}
                     </span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(amount, 'TZS')}</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(amount)}</span>
                   </div>
                   <div className="mt-1.5 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -208,10 +209,10 @@ export default async function PettyCashPage() {
                     </td>
                     <td className="px-5 py-3.5 text-gray-700">{tx.recipient ?? <span className="text-gray-300">—</span>}</td>
                     <td className={`px-5 py-3.5 text-right font-bold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
-                      {isExpense ? '−' : '+'}{formatCurrency(tx.amount, tx.currency)}
+                      {isExpense ? '−' : '+'}{formatCurrency(tx.amount, { currency: tx.currency })}
                     </td>
                     <td className="px-5 py-3.5 text-right font-semibold text-gray-900">
-                      {formatCurrency(tx.balanceAfter, tx.currency)}
+                      {formatCurrency(tx.balanceAfter, { currency: tx.currency })}
                     </td>
                   </tr>
                 );

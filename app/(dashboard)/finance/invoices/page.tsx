@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockInvoices } from '@/lib/mock/mockInvoices';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { Building2, GraduationCap, FileText, ArrowDownCircle, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { NewInvoiceButton } from './_components/NewInvoiceButton';
 import { InvoiceStatusCell } from './_components/InvoiceStatusCell';
@@ -33,10 +34,10 @@ export default async function InvoicesPage() {
 
       {/* KPI strip */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued, 'TZS')} sub={`${mockInvoices.length} invoices`} />
-        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid, 'TZS')} sub={`${mockInvoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
-        <KpiTile icon={ArrowDownCircle} label="Outstanding" value={formatCurrency(outstanding, 'TZS')} sub="Pending collection" tone="warning" />
-        <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount, 'TZS')} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
+        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued)} sub={`${mockInvoices.length} invoices`} />
+        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid)} sub={`${mockInvoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
+        <KpiTile icon={ArrowDownCircle} label="Outstanding" value={formatCurrency(outstanding)} sub="Pending collection" tone="warning" />
+        <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount)} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
       </section>
 
       <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
@@ -82,7 +83,7 @@ export default async function InvoicesPage() {
                     <td className="px-5 py-3.5">
                       <p className="text-gray-900 max-w-[260px] truncate" title={inv.description}>{inv.description}</p>
                       {inv.lineItems[0] && (
-                        <p className="text-[11px] text-gray-500 mt-0.5">{inv.lineItems[0].quantity}× {formatCurrency(inv.lineItems[0].unitPrice, inv.currency)}</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">{inv.lineItems[0].quantity}× {formatCurrency(inv.lineItems[0].unitPrice, { currency: inv.currency })}</p>
                       )}
                     </td>
                     <td className="px-5 py-3.5">
@@ -92,11 +93,11 @@ export default async function InvoicesPage() {
                       </p>
                     </td>
                     <td className="px-5 py-3.5 text-right font-bold text-gray-900">
-                      {formatCurrency(inv.total, inv.currency)}
+                      {formatCurrency(inv.total, { currency: inv.currency })}
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <p className={`font-semibold ${inv.paidAmount >= inv.total ? 'text-green-600' : inv.paidAmount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
-                        {formatCurrency(inv.paidAmount, inv.currency)}
+                        {formatCurrency(inv.paidAmount, { currency: inv.currency })}
                       </p>
                       {inv.paidDate && (
                         <p className="text-[11px] text-gray-500 mt-0.5 inline-flex items-center gap-1">

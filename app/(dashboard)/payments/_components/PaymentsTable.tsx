@@ -4,7 +4,8 @@ import { PaymentRecord } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
 
 interface PaymentsTableProps {

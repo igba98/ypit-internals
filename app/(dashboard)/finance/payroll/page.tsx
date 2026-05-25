@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockPayroll } from '@/lib/mock/mockPayroll';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { Users, Banknote, Calendar, Wallet } from 'lucide-react';
 import { PayrollHeaderActions, PayrollRowStatus } from './_components/PayrollActions';
 
@@ -62,13 +63,13 @@ export default async function PayrollPage() {
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Net Payroll</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(currentMonthBudget, 'TZS')}</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(currentMonthBudget)}</p>
             <p className="text-xs text-white/70 mt-1">After tax + NSSF</p>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Pending Payment</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(currentPending, 'TZS')}</p>
-            <p className="text-xs text-white/70 mt-1">{currentPaidOut > 0 ? `${formatCurrency(currentPaidOut, 'TZS')} paid` : 'None paid yet'}</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(currentPending)}</p>
+            <p className="text-xs text-white/70 mt-1">{currentPaidOut > 0 ? `${formatCurrency(currentPaidOut)} paid` : 'None paid yet'}</p>
           </div>
         </div>
       </section>
@@ -117,7 +118,7 @@ export default async function PayrollPage() {
                     <span className="text-xs text-gray-500">{entries.length} staff</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm font-bold text-gray-900">{formatCurrency(total, 'TZS')}</span>
+                    <span className="text-sm font-bold text-gray-900">{formatCurrency(total)}</span>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${allPaid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                       {allPaid ? 'All paid' : 'Open'}
                     </span>
@@ -157,11 +158,11 @@ function PayrollTable({ entries }: { entries: typeof mockPayroll }) {
                 <p className="text-[11px] text-gray-500">{e.staffRole.replace(/_/g, ' ')}</p>
               </td>
               <td className="px-5 py-3.5 text-gray-700">{e.department}</td>
-              <td className="px-5 py-3.5 text-right text-gray-900">{formatCurrency(e.baseSalary, 'TZS')}</td>
-              <td className="px-5 py-3.5 text-right text-gray-700">{formatCurrency(e.allowances, 'TZS')}</td>
-              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.tax, 'TZS')}</td>
-              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.pension, 'TZS')}</td>
-              <td className="px-5 py-3.5 text-right font-bold text-gray-900">{formatCurrency(e.netPay, 'TZS')}</td>
+              <td className="px-5 py-3.5 text-right text-gray-900">{formatCurrency(e.baseSalary)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-700">{formatCurrency(e.allowances)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.tax)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.pension)}</td>
+              <td className="px-5 py-3.5 text-right font-bold text-gray-900">{formatCurrency(e.netPay)}</td>
               <td className="px-5 py-3.5">
                 <div className="flex flex-col items-start gap-1">
                   <PayrollRowStatus payrollId={e.id} value={e.status} />

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { mockInvoices } from '@/lib/mock/mockInvoices';
 import { mockPayroll } from '@/lib/mock/mockPayroll';
 import { mockPettyCash, getPettyCashBalance } from '@/lib/mock/mockPettyCash';
@@ -100,29 +101,29 @@ export default async function FinanceOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Receivables"
-          value={formatCurrency(receivablesTotal, 'TZS')}
-          sublabel={`${formatCurrency(invoicesOutstanding, 'TZS')} on open invoices`}
+          value={formatCurrency(receivablesTotal)}
+          sublabel={`${formatCurrency(invoicesOutstanding)} on open invoices`}
           icon={ArrowDownCircle}
           tone="success"
         />
         <KpiCard
           label="Payables"
-          value={formatCurrency(payablesTotal, 'TZS')}
+          value={formatCurrency(payablesTotal)}
           sublabel={`${mockExpenses.filter(e => e.status !== 'PAID' && e.status !== 'REJECTED').length} expenses · ${draftPayroll.length} draft payslips`}
           icon={ArrowUpCircle}
           tone="warning"
         />
         <KpiCard
           label="Petty Cash Float"
-          value={formatCurrency(pettyCashBalance, 'TZS')}
+          value={formatCurrency(pettyCashBalance)}
           sublabel={pettyCashBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'}
           icon={Wallet}
           tone={pettyCashBalance < 100000 ? 'danger' : 'primary'}
         />
         <KpiCard
           label="Net This Month"
-          value={formatCurrency(revenueThisMonth - expensesThisMonth, 'TZS')}
-          sublabel={`+${formatCurrency(revenueThisMonth, 'TZS')} · −${formatCurrency(expensesThisMonth, 'TZS')}`}
+          value={formatCurrency(revenueThisMonth - expensesThisMonth)}
+          sublabel={`+${formatCurrency(revenueThisMonth)} · −${formatCurrency(expensesThisMonth)}`}
           icon={TrendingUp}
           tone="default"
         />
@@ -136,7 +137,7 @@ export default async function FinanceOverviewPage() {
               tone="danger"
               icon={AlertTriangle}
               title={`${overdueInvoices.length} overdue invoice${overdueInvoices.length === 1 ? '' : 's'}`}
-              description={`${formatCurrency(overdueInvoices.reduce((s, i) => s + (i.total - i.paidAmount), 0), 'TZS')} past due`}
+              description={`${formatCurrency(overdueInvoices.reduce((s, i) => s + (i.total - i.paidAmount), 0))} past due`}
               href="/finance/invoices"
             />
           )}
@@ -145,7 +146,7 @@ export default async function FinanceOverviewPage() {
               tone="warning"
               icon={Clock}
               title={`${pendingApprovals.length} expense${pendingApprovals.length === 1 ? '' : 's'} awaiting approval`}
-              description={`${formatCurrency(pendingApprovals.reduce((s, e) => s + e.amount, 0), 'TZS')} pending`}
+              description={`${formatCurrency(pendingApprovals.reduce((s, e) => s + e.amount, 0))} pending`}
               href="/finance/expenses"
             />
           )}
@@ -154,7 +155,7 @@ export default async function FinanceOverviewPage() {
               tone="info"
               icon={Users}
               title={`${draftPayroll.length} draft payslip${draftPayroll.length === 1 ? '' : 's'}`}
-              description={`${formatCurrency(draftPayroll.reduce((s, p) => s + p.netPay, 0), 'TZS')} to process`}
+              description={`${formatCurrency(draftPayroll.reduce((s, p) => s + p.netPay, 0))} to process`}
               href="/finance/payroll"
             />
           )}
@@ -179,12 +180,12 @@ export default async function FinanceOverviewPage() {
           <div className="mt-6 pt-6 border-t border-gray-100">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-3">Account Snapshot</h4>
             <dl className="space-y-2.5">
-              <Row label="Cash (estimated)" value={formatCurrency(15000000 + pettyCashBalance, 'TZS')} />
-              <Row label="Petty cash" value={formatCurrency(pettyCashBalance, 'TZS')} />
-              <Row label="Student receivables" value={formatCurrency(studentBalance, 'TZS')} />
-              <Row label="Invoice receivables" value={formatCurrency(invoicesOutstanding, 'TZS')} />
-              <Row label="Open expenses" value={formatCurrency(expensesPending, 'TZS')} negative />
-              <Row label="Draft payroll" value={formatCurrency(payrollOutstanding, 'TZS')} negative />
+              <Row label="Cash (estimated)" value={formatCurrency(15000000 + pettyCashBalance)} />
+              <Row label="Petty cash" value={formatCurrency(pettyCashBalance)} />
+              <Row label="Student receivables" value={formatCurrency(studentBalance)} />
+              <Row label="Invoice receivables" value={formatCurrency(invoicesOutstanding)} />
+              <Row label="Open expenses" value={formatCurrency(expensesPending)} negative />
+              <Row label="Draft payroll" value={formatCurrency(payrollOutstanding)} negative />
             </dl>
           </div>
         </section>
@@ -222,7 +223,7 @@ export default async function FinanceOverviewPage() {
                       <p className="text-[11px] text-gray-500">{formatDate(item.date)} · {formatRelativeTime(item.date)}</p>
                     </div>
                     <span className={`text-sm font-bold ${positive ? 'text-green-600' : 'text-gray-700'}`}>
-                      {positive ? '+' : ''}{formatCurrency(item.amount, 'TZS')}
+                      {positive ? '+' : ''}{formatCurrency(item.amount)}
                     </span>
                     <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" />
                   </Link>

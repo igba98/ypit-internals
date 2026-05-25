@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockExpenses } from '@/lib/mock/mockExpenses';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import {
   Building,
   Zap,
@@ -76,10 +77,10 @@ export default async function ExpensesPage() {
       />
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal, 'TZS')} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
-        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid, 'TZS')} sub={`${monthExpenses.filter(e => e.status === 'PAID').length} settled`} tone="success" />
-        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending, 'TZS')} sub={`${mockExpenses.filter(e => e.status === 'PENDING').length} pending`} tone="warning" />
-        <KpiTile icon={AlertCircle} label="Approved · Unpaid" value={formatCurrency(approved, 'TZS')} sub="Ready to pay" tone={approved > 0 ? 'danger' : 'default'} />
+        <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal)} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
+        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid)} sub={`${monthExpenses.filter(e => e.status === 'PAID').length} settled`} tone="success" />
+        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending)} sub={`${mockExpenses.filter(e => e.status === 'PENDING').length} pending`} tone="warning" />
+        <KpiTile icon={AlertCircle} label="Approved · Unpaid" value={formatCurrency(approved)} sub="Ready to pay" tone={approved > 0 ? 'danger' : 'default'} />
       </section>
 
       {topCats.length > 0 && (
@@ -96,7 +97,7 @@ export default async function ExpensesPage() {
                     <Icon className="w-4 h-4" />
                   </div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{meta.label}</p>
-                  <p className="text-base font-bold text-gray-900 mt-1">{formatCurrency(amount, 'TZS')}</p>
+                  <p className="text-base font-bold text-gray-900 mt-1">{formatCurrency(amount)}</p>
                   <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-primary to-primary-light" style={{ width: `${pct}%` }} />
                   </div>
@@ -161,7 +162,7 @@ export default async function ExpensesPage() {
                         {PAYMENT_METHOD_LABEL[e.paymentMethod] ?? e.paymentMethod}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-right font-bold text-gray-900">{formatCurrency(e.amount, e.currency)}</td>
+                    <td className="px-5 py-3.5 text-right font-bold text-gray-900">{formatCurrency(e.amount, { currency: e.currency })}</td>
                     <td className="px-5 py-3.5"><ExpenseStatusCell expenseId={e.id} value={e.status} /></td>
                   </tr>
                 );
