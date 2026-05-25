@@ -103,7 +103,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (TZS) *</Label>
+          <Label htmlFor="amount">Amount (TSh) *</Label>
           <Input id="amount" name="amount" type="number" min={1} step="100" placeholder="0" required />
           {errors.amount && <p className="text-xs text-red-600">{errors.amount[0]}</p>}
         </div>

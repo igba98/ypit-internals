@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { formatCurrency } from '@/lib/format';
 
 const conversionData = [
   { name: 'Jan', leads: 400, enrolled: 240 },
@@ -119,7 +120,7 @@ export function ReportsDashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Revenue Collected</span>
-                <span className="font-bold text-xl text-primary">$1.2M</span>
+                <span className="font-bold text-xl text-primary">{formatCurrency(1200000, { compact: true })}</span>
               </div>
            </div>
         </div>

@@ -101,7 +101,7 @@ export default async function PettyCashPage() {
                 <AlertTriangle className="w-3.5 h-3.5" /> Below safe threshold — replenish soon
               </p>
             ) : (
-              <p className="text-xs text-white/70 mt-2">Healthy float · safe threshold TZS 100,000</p>
+              <p className="text-xs text-white/70 mt-2">Healthy float · safe threshold {formatCurrency(100000)}</p>
             )}
           </div>
           <div>

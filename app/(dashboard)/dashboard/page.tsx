@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { Users, Target, DollarSign, Plane } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/lib/format';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
         />
         <KPICard 
           label="Revenue Collected" 
-          value="TZS 45M" 
+          value={formatCurrency(45000000, { compact: true })}
           icon={DollarSign} 
           trend="2%" 
           trendDirection="up" 

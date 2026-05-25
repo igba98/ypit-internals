@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { recordPettyCashExpense, replenishPettyCash } from '@/lib/actions/pettyCashActions';
 import { Wallet, Plus, ArrowDownToLine } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 const CATEGORIES = [
   { value: 'OFFICE_SUPPLIES', label: 'Office Supplies' },
@@ -52,7 +53,7 @@ export function PettyCashActions({ balance }: { balance: number }) {
         isOpen={openExpense}
         onClose={() => setOpenExpense(false)}
         title="Record Petty Cash Voucher"
-        description={`Current balance: TZS ${balance.toLocaleString()}`}
+        description={`Current balance: ${formatCurrency(balance)}`}
       >
         <ExpenseForm onSuccess={() => setOpenExpense(false)} />
       </SlideInPanel>
@@ -107,7 +108,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (TZS) *</Label>
+          <Label htmlFor="amount">Amount (TSh) *</Label>
           <Input id="amount" name="amount" type="number" min={1} step="100" placeholder="0" required />
           {fieldErrors.amount && <p className="text-xs text-red-600">{fieldErrors.amount[0]}</p>}
         </div>
@@ -155,7 +156,7 @@ function ReplenishForm({ onSuccess }: { onSuccess: () => void }) {
     <form action={formAction} className="space-y-4">
       <div className="rounded-lg bg-blue-50/60 border border-blue-100 p-3">
         <p className="text-xs text-blue-900">
-          Replenishments increase the petty cash float. Standard top-up is between TZS 200,000 – 500,000 depending on month-end activity.
+          Replenishments increase the petty cash float. Standard top-up is between TSh 200,000 – 500,000 depending on month-end activity.
         </p>
       </div>
 
@@ -166,7 +167,7 @@ function ReplenishForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="amount">Amount (TZS) *</Label>
+        <Label htmlFor="amount">Amount (TSh) *</Label>
         <Input id="amount" name="amount" type="number" min={1} step="1000" placeholder="300000" required />
         {fieldErrors.amount && <p className="text-xs text-red-600">{fieldErrors.amount[0]}</p>}
       </div>

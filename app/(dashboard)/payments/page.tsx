@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { RecordPaymentButton } from './_components/RecordPaymentButton';
+import { formatCurrency } from '@/lib/format';
 
 export default async function PaymentsPage() {
   const cookieStore = await cookies();
@@ -43,7 +44,7 @@ export default async function PaymentsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           label="Total Collected" 
-          value={`TZS ${(totalCollected / 1000000).toFixed(1)}M`} 
+          value={formatCurrency(totalCollected, { compact: true })}
           icon={DollarSign} 
         />
         <KPICard 

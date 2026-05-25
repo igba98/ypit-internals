@@ -47,7 +47,7 @@ export function RecordPaymentForm({ onSuccess }: { onSuccess: () => void }) {
           {state?.errors?.feeType && <p className="text-red-500 text-xs">{state.errors.feeType[0]}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (TZS) *</Label>
+          <Label htmlFor="amount">Amount (TSh) *</Label>
           <Input id="amount" name="amount" type="number" placeholder="500000" min="1000" required />
           {state?.errors?.amount && <p className="text-red-500 text-xs">{state.errors.amount[0]}</p>}
         </div>
