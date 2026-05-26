@@ -26,7 +26,7 @@ export const taskReviewSchema = z
   })
   .refine(
     (d) => d.decision === 'APPROVE' || (d.note != null && d.note.trim().length >= 3),
-    { message: 'Reason required for Request changes / Reject', path: ['note'] }
+    { message: 'A reason is required when requesting changes or rejecting', path: ['note'] }
   );
 
 export const taskBlockSchema = z.object({
@@ -44,8 +44,8 @@ export const taskStartSchema = z.object({
 
 export const taskEditSchema = z.object({
   taskId: z.string().min(1),
-  title: z.string().min(5).optional(),
-  description: z.string().min(10).optional(),
+  title: z.string().min(5, 'Task title must be at least 5 characters').optional(),
+  description: z.string().min(10, 'Please provide a more detailed description').optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   dueDate: z.string().optional(),
   tags: z.string().optional(),
