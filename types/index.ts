@@ -43,7 +43,16 @@ export const ADMITTED_STAGES: PipelineStage[] = [
   'MONITORING',
 ];
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'REPORTED';
+export type TaskStatus =
+  | 'TODO' | 'IN_PROGRESS' | 'SUBMITTED'
+  | 'CHANGES_REQUESTED' | 'REJECTED'
+  | 'COMPLETED' | 'BLOCKED';
+
+export type TaskActivityType =
+  | 'CREATED' | 'STARTED' | 'SUBMITTED'
+  | 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'
+  | 'BLOCKED' | 'UNBLOCKED'
+  | 'EDITED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE';
 export type ApplicationStatus = 'PREPARING' | 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED' | 'WAITLISTED' | 'DEFERRED';
@@ -53,7 +62,7 @@ export type TravelStatus = 'PLANNING' | 'VISA_PENDING' | 'READY' | 'TRAVELLED';
 export type WellbeingStatus = 'GOOD' | 'NEEDS_ATTENTION' | 'ESCALATED';
 export type PaymentStatus = 'PENDING' | 'PARTIAL' | 'CLEARED' | 'OVERDUE';
 export type ReportPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
-export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';
+export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'TASK_REVIEWED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';
 
 export interface User {
   id: string;
@@ -253,17 +262,28 @@ export interface CheckIn {
   createdAt: string;
 }
 
-export interface EndOfDayReport {
-  taskSummary: string;
-  progressMade: string;
+export interface TaskAttachment {
+  url: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedById: string;
+  uploadedByName: string;
+}
+
+export interface TaskActivityEntry {
+  id: string;
+  type: TaskActivityType;
+  at: string;
+  actorId: string;
+  actorName: string;
+  note?: string;
+  progressMade?: string;
+  percentageComplete?: number;
+  nextActions?: string;
   blockers?: string;
-  tomorrowPlan: string;
-  percentageComplete: number;
-  submittedAt: string;
-  submittedById: string;
-  submittedByName: string;
-  acknowledgedAt?: string;
-  acknowledgedById?: string;
+  attachments?: TaskAttachment[];
 }
 
 export interface Task {
@@ -281,8 +301,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   tags: string[];
-  endOfDayReport?: EndOfDayReport;
-  attachmentUrls?: string[];
+  referenceAttachments?: TaskAttachment[];
+  activity: TaskActivityEntry[];
+  isPersonal: boolean;
+  currentRound: number;
 }
 
 export interface Report {
@@ -309,7 +331,7 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userRole: Role;
-  action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'PASSWORD_RESET' | 'ROLE_CHANGE' | 'STAGE_CHANGE' | 'PAYMENT_RECORDED' | 'REPORT_SUBMITTED' | 'TASK_ASSIGNED';
+  action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'PASSWORD_RESET' | 'ROLE_CHANGE' | 'STAGE_CHANGE' | 'PAYMENT_RECORDED' | 'REPORT_SUBMITTED' | 'TASK_ASSIGNED' | 'TASK_SUBMITTED' | 'TASK_REVIEWED' | 'TASK_BLOCKED';
   module: string;
   detail: string;
   entityId?: string;
