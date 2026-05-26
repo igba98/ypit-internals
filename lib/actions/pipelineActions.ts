@@ -10,6 +10,8 @@ import {
   StageTransitionPayload,
   Notification,
   PIPELINE_ORDER,
+  TravelSubStep,
+  TravelSubStepStatus,
 } from '@/types';
 import { mockStudents } from '@/lib/mock/mockStudents';
 import { mockTravelRecords } from '@/lib/mock/mockTravel';
@@ -21,7 +23,8 @@ import { mockNotifications } from '@/lib/mock/mockNotifications';
 import { getTransition } from '@/lib/pipeline/transitions';
 import { canAdvance, canRevert } from '@/lib/pipeline/permissions';
 import { sendSimulated } from '@/lib/pipeline/notify';
-import { allTravelStepsDone, emptyTravelStepStatus } from '@/lib/pipeline/travelSteps';
+import { allTravelStepsDone, emptyTravelStepStatus, getTravelStepDef } from '@/lib/pipeline/travelSteps';
+import { getStageOwners } from '@/lib/pipeline/stageOwnership';
 
 type ActionSession = Pick<Session, 'userId' | 'fullName' | 'role'>;
 
@@ -216,4 +219,191 @@ function applyTravelRecordSideEffect(student: typeof mockStudents[number]): void
       passport: student.passportNumber ? 'DONE' : 'NOT_STARTED',
     },
   });
+}
+
+export interface AdvanceTravelStepInput {
+  studentId: string;
+  step: TravelSubStep;
+  newStatus: TravelSubStepStatus;
+  capturedData: StageTransitionPayload;
+  session: ActionSession;
+}
+
+export async function advanceTravelStep(input: AdvanceTravelStepInput): Promise<ActionResult> {
+  const { studentId, step, newStatus, capturedData, session } = input;
+  const student = mockStudents.find(s => s.id === studentId);
+  if (!student) return { success: false, message: 'Student not found.' };
+  if (student.pipelineStage !== 'TRAVEL_PLANNING') {
+    return { success: false, message: 'Student is not in travel planning.' };
+  }
+  const def = getTravelStepDef(step);
+  if (!def) return { success: false, message: `Unknown sub-step ${step}.` };
+  if (session.role !== 'MANAGING_DIRECTOR' && !def.allowedRoles.includes(session.role)) {
+    return { success: false, message: 'Not allowed.' };
+  }
+
+  const trv = mockTravelRecords.find(t => t.studentId === studentId);
+  if (!trv) return { success: false, message: 'Travel record missing.' };
+  if (!trv.travelStepStatus) trv.travelStepStatus = { passport: 'NOT_STARTED', visa: 'NOT_STARTED', flight: 'NOT_STARTED', arrival: 'NOT_STARTED' };
+
+  if (newStatus === 'DONE') {
+    const errors: Record<string, string[]> = {};
+    for (const f of def.requiredFields) {
+      if (!f.required) continue;
+      const v = capturedData[f.key];
+      if (v === undefined || v === null || v === '') errors[f.key] = [`${f.label} is required.`];
+    }
+    if (Object.keys(errors).length) return { success: false, message: 'Please complete required fields.', errors };
+  }
+
+  applyTravelCapturedData(trv, step, capturedData);
+
+  trv.travelStepStatus[step] = newStatus;
+  if (step === 'flight' && newStatus === 'DONE' && trv.travelStepStatus.arrival === 'NOT_STARTED') {
+    trv.travelStepStatus.arrival = 'IN_PROGRESS';
+  }
+  trv.updatedAt = new Date().toISOString();
+
+  let notificationIds: string[] = [];
+  if (newStatus === 'DONE') {
+    const message = def.messageTemplate({ studentName: student.fullName, capturedData });
+    for (const audience of def.notifyOnDone) {
+      const ids = sendSimulated({
+        studentId,
+        audience,
+        newOwnerRole: 'TRAVEL',
+        title: `${student.fullName}: travel ${step} ✓`,
+        messageBody: message,
+        link: `/students/${studentId}`,
+      });
+      notificationIds.push(...ids);
+    }
+    mockStageTransitions.push({
+      id: `stx_${Math.random().toString(36).slice(2, 11)}`,
+      studentId,
+      fromStage: 'TRAVEL_PLANNING',
+      toStage: 'TRAVEL_PLANNING',
+      triggeredById: session.userId,
+      triggeredByName: session.fullName,
+      triggeredByRole: session.role,
+      capturedData: { ...capturedData, subStep: step, newSubStepStatus: newStatus },
+      notificationsSent: notificationIds,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  try {
+    revalidatePath('/travel');
+    revalidatePath(`/students/${studentId}`);
+  } catch {}
+  return { success: true, message: `Travel sub-step ${step} → ${newStatus.toLowerCase()}.` };
+}
+
+function applyTravelCapturedData(trv: typeof mockTravelRecords[number], step: TravelSubStep, data: StageTransitionPayload): void {
+  switch (step) {
+    case 'passport':
+      if (data.passportNumber) trv.passportNumber = String(data.passportNumber);
+      if (data.passportExpiry) trv.passportExpiry = String(data.passportExpiry);
+      if (data.passportNumber) trv.passportStatus = 'READY';
+      break;
+    case 'visa':
+      if (data.visaType) trv.visaType = String(data.visaType);
+      if (data.visaApprovalDate) trv.visaApprovalDate = String(data.visaApprovalDate);
+      if (data.visaExpiryDate) trv.visaExpiryDate = String(data.visaExpiryDate);
+      trv.visaStatus = 'APPROVED';
+      break;
+    case 'flight':
+      if (data.flightDate) trv.flightDate = String(data.flightDate);
+      if (data.flightNumber) trv.flightNumber = String(data.flightNumber);
+      if (data.airline) trv.airline = String(data.airline);
+      if (data.departureCity) trv.departureCity = String(data.departureCity);
+      if (data.destinationCity) trv.destinationCity = String(data.destinationCity);
+      break;
+    case 'arrival':
+      if (data.arrivalConfirmedDate) trv.updatedAt = String(data.arrivalConfirmedDate);
+      if (typeof data.airportPickupArranged === 'boolean') trv.airportPickupArranged = data.airportPickupArranged;
+      if (data.pickupContactName) trv.pickupContactName = String(data.pickupContactName);
+      if (data.pickupContactPhone) trv.pickupContactPhone = String(data.pickupContactPhone);
+      break;
+  }
+}
+
+export interface RevertStageInput {
+  studentId: string;
+  toStage: PipelineStage;
+  reason: string;
+  session: ActionSession;
+}
+
+export async function revertStage(input: RevertStageInput): Promise<ActionResult> {
+  const { studentId, toStage, reason, session } = input;
+  if (!canRevert(session.role)) {
+    return { success: false, message: 'Only Managing Director can revert a stage.' };
+  }
+  if (!reason || reason.trim().length === 0) {
+    return { success: false, message: 'A reason is required when reverting.' };
+  }
+  const student = mockStudents.find(s => s.id === studentId);
+  if (!student) return { success: false, message: 'Student not found.' };
+
+  const fromIdx = PIPELINE_ORDER.indexOf(student.pipelineStage);
+  const toIdx = PIPELINE_ORDER.indexOf(toStage);
+  if (toIdx >= fromIdx) {
+    return { success: false, message: 'Revert target must be earlier in the pipeline than the current stage.' };
+  }
+
+  const fromStage = student.pipelineStage;
+  student.pipelineStage = toStage;
+  student.stageEnteredAt = new Date().toISOString();
+  student.updatedAt = student.stageEnteredAt;
+  student.stageOwnerId = undefined;
+
+  const owners = getStageOwners(toStage);
+  const notificationIds: string[] = [];
+  for (const ownerRole of owners) {
+    const ids = sendSimulated({
+      studentId,
+      audience: 'TEAM',
+      newOwnerRole: ownerRole,
+      title: `${student.fullName} reverted to ${toStage.replace(/_/g, ' ').toLowerCase()}`,
+      messageBody: `${student.fullName} has been moved back to ${toStage.replace(/_/g, ' ').toLowerCase()}. Reason: ${reason}`,
+      link: `/students/${studentId}`,
+    });
+    notificationIds.push(...ids);
+  }
+
+  mockStageTransitions.push({
+    id: `stx_${Math.random().toString(36).slice(2, 11)}`,
+    studentId,
+    fromStage,
+    toStage,
+    triggeredById: session.userId,
+    triggeredByName: session.fullName,
+    triggeredByRole: session.role,
+    capturedData: {},
+    notificationsSent: notificationIds,
+    notes: reason,
+    createdAt: new Date().toISOString(),
+  });
+
+  mockAuditLogs.unshift({
+    id: `aud_${Math.random().toString(36).slice(2, 11)}`,
+    userId: session.userId,
+    userName: session.fullName,
+    userRole: session.role,
+    action: 'STAGE_CHANGE',
+    module: 'pipeline',
+    detail: `Reverted ${student.fullName} from ${fromStage} to ${toStage}. Reason: ${reason}`,
+    entityId: studentId,
+    entityType: 'Student',
+    previousValue: fromStage,
+    newValue: toStage,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    revalidatePath('/students');
+    revalidatePath(`/students/${studentId}`);
+  } catch {}
+  return { success: true, message: `Reverted to ${toStage.replace(/_/g, ' ').toLowerCase()}.` };
 }
