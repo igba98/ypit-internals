@@ -7,13 +7,6 @@ export function isPersonalTask(task: Task): boolean {
   );
 }
 
-const ACTIVE_STATUSES: Task['status'][] = [
-  'TODO',
-  'IN_PROGRESS',
-  'CHANGES_REQUESTED',
-  'BLOCKED',
-];
-
 const CLOSED_STATUSES: Task['status'][] = ['COMPLETED', 'REJECTED'];
 
 export function canStart(task: Task, userId: string): boolean {
@@ -47,7 +40,6 @@ export function canUnblock(task: Task, userId: string): boolean {
 export function canEdit(task: Task, userId: string): boolean {
   if (CLOSED_STATUSES.includes(task.status)) return false;
   if (task.status === 'SUBMITTED') return false;
-  if (isPersonalTask(task)) return task.assignedById === userId;
   return task.assignedById === userId;
 }
 
