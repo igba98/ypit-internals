@@ -470,3 +470,94 @@ export interface Expense {
   recordedByName?: string;
   createdAt: string;
 }
+
+// ============================================================
+// FINANCE PHASE 1 — Catalog & per-student fee ledger
+// ============================================================
+
+export type Currency = 'TZS' | 'USD' | 'GBP' | 'EUR';
+
+export type FeeType =
+  | 'APPLICATION'
+  | 'TUITION'
+  | 'HOSTEL'
+  | 'AGENCY'
+  | 'DEPOSIT'
+  | 'INSURANCE'
+  | 'VISA'
+  | 'AIRPORT_PICKUP'
+  | 'OTHER';
+
+export type StudyLevel = 'FOUNDATION' | 'BACHELOR' | 'MASTERS' | 'PHD' | 'DIPLOMA';
+
+export type CatalogStatus = 'ACTIVE' | 'ARCHIVED';
+
+export interface University {
+  id: string;                       // uni_coventry_london
+  name: string;                     // "Coventry University London"
+  country: string;                  // "United Kingdom"
+  city?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  defaultReportingMonths?: string[]; // ['September', 'January']
+  status: CatalogStatus;
+  createdAt: string;
+}
+
+export type FeeDueRule =
+  | { kind: 'DAYS_FROM_ENROLLMENT'; days: number }
+  | { kind: 'BEFORE_REPORTING_DATE'; days: number }
+  | { kind: 'ON_ENROLLMENT' }
+  | { kind: 'CUSTOM' };
+
+export interface FeeDefault {
+  type: FeeType;
+  label?: string;
+  amount: number;
+  currency: Currency;
+  dueRule: FeeDueRule;
+  required: boolean;
+}
+
+export interface Package {
+  id: string;                       // pkg_coventry_london_bachelor_business
+  universityId: string;
+  name: string;
+  studyLevel: StudyLevel;
+  program: string;
+  description?: string;
+  feeDefaults: FeeDefault[];
+  status: CatalogStatus;
+  createdById?: string;
+  createdByName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FeeLineStatus = 'UNPAID' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'WAIVED';
+
+export interface FeeLine {
+  id: string;                       // fl_001
+  type: FeeType;
+  label: string;
+  amount: number;
+  currency: Currency;
+  dueDate: string;
+  paidAmount: number;
+  status: FeeLineStatus;
+  overrideReason?: string;
+  overriddenById?: string;
+  overriddenByName?: string;
+  overriddenAt?: string;
+  sourceFeeDefaultIndex?: number;
+}
+
+export interface StudentFeeLedger {
+  studentId: string;
+  packageId?: string;
+  currencyDisplay?: Currency;       // KPI rollup pref; default TZS
+  lines: FeeLine[];
+  createdAt: string;
+  updatedAt: string;
+}
