@@ -3,6 +3,7 @@
 import { Task } from '@/types';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { motion } from 'motion/react';
+import { ClipboardList } from 'lucide-react';
 
 interface TaskCardGridProps {
   initialTasks: Task[];
@@ -35,14 +36,20 @@ export function TaskCardGrid({ initialTasks }: TaskCardGridProps) {
         <motion.div key={task.id} variants={item}>
           <TaskCard 
             task={task} 
-            onClick={(t) => console.log('Clicked task', t.id)} 
+            onClick={() => undefined}
           />
         </motion.div>
       ))}
       
       {initialTasks.length === 0 && (
-        <div className="col-span-full py-12 text-center text-gray-500">
-          No tasks found.
+        <div className="col-span-full py-16 flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-primary-muted flex items-center justify-center text-primary mb-4">
+            <ClipboardList className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-semibold text-gray-900">No tasks yet</h3>
+          <p className="text-sm text-gray-500 mt-1 max-w-xs">
+            You don’t have any tasks for this view. Use the “Create Task” button above to add one.
+          </p>
         </div>
       )}
     </motion.div>
