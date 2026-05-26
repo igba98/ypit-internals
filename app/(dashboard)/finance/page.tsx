@@ -1,5 +1,9 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { MyQueue } from '@/components/pipeline/MyQueue';
+import { Session } from '@/types';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { mockInvoices } from '@/lib/mock/mockInvoices';
@@ -22,6 +26,11 @@ import {
 } from 'lucide-react';
 
 export default async function FinanceOverviewPage() {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('ypit_session');
+  if (!sessionCookie) redirect('/login');
+  const session = JSON.parse(sessionCookie.value) as Session;
+
   // --- Aggregates ---
   const pettyCashBalance = getPettyCashBalance();
 
@@ -96,6 +105,8 @@ export default async function FinanceOverviewPage() {
         title="Finance Hub"
         description="Cash position, receivables, payables, payroll and petty cash — all in one place."
       />
+
+      <MyQueue session={session} title="Students Awaiting Payment Confirmation" />
 
       {/* Top KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

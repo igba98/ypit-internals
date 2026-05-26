@@ -6,6 +6,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plane, CheckCircle2, Calendar, Car } from 'lucide-react';
+import { MyQueue } from '@/components/pipeline/MyQueue';
+import { Session } from '@/types';
 
 export default async function TravelPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const cookieStore = await cookies();
@@ -15,8 +17,8 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
     redirect('/login');
   }
   
-  const session = JSON.parse(sessionCookie.value);
-  
+  const session = JSON.parse(sessionCookie.value) as Session;
+
   // Role check
   const allowedRoles = ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'];
   if (!allowedRoles.includes(session.role)) {
@@ -43,11 +45,13 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Travel Management" 
+      <PageHeader
+        title="Travel Management"
         description="Manage student visas, flights, and accommodation."
       />
-      
+
+      <MyQueue session={session} title="Students In Travel Planning" />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           label="Awaiting Departure" 
