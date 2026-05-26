@@ -1,60 +1,24 @@
 'use client';
 
 import Image from 'next/image';
-import { useTransition, useState, useMemo } from 'react';
-import { Student, ADMITTED_STAGES, ROLES, Role } from '@/types';
+import { useState, useMemo } from 'react';
+import { Student, ROLES, Role } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
-import { Eye, CheckCircle } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { admitStudent } from '@/lib/actions/studentActions';
-import { toast } from 'sonner';
 import { mockUsers } from '@/lib/mock/mockUsers';
 import { getStageOwners } from '@/lib/pipeline/stageOwnership';
-
-const ADMIT_ROLES = ['MARKETING_STAFF', 'SUB_AGENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS'];
 
 interface StudentsTableProps {
   data: Student[];
   userRole?: string;
 }
 
-function AdmitStudentButton({ student }: { student: Student }) {
-  const [isPending, startTransition] = useTransition();
+export function StudentsTable({ data }: StudentsTableProps) {
   const router = useRouter();
-
-  const handleAdmit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isPending) return;
-    startTransition(async () => {
-      const result = await admitStudent(student.id);
-      if (result.success) {
-        toast.success(result.message);
-        router.refresh();
-      } else {
-        toast.error(result.message);
-      }
-    });
-  };
-
-  return (
-    <button
-      onClick={handleAdmit}
-      disabled={isPending}
-      className="p-2 text-gray-400 hover:text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      title="Mark as admitted (University Accepted)"
-      aria-label={`Admit ${student.fullName}`}
-    >
-      <CheckCircle className="w-4 h-4" />
-    </button>
-  );
-}
-
-export function StudentsTable({ data, userRole }: StudentsTableProps) {
-  const router = useRouter();
-  const canAdmit = !!userRole && ADMIT_ROLES.includes(userRole);
   const [filterRole, setFilterRole] = useState<Role | null>(null);
 
   const filteredData = useMemo(() => {
@@ -150,10 +114,8 @@ export function StudentsTable({ data, userRole }: StudentsTableProps) {
       id: 'actions',
       cell: ({ row }) => {
         const student = row.original;
-        const isAdmitted = ADMITTED_STAGES.includes(student.pipelineStage);
         return (
           <div className="flex items-center justify-end gap-1">
-            {canAdmit && !isAdmitted && <AdmitStudentButton student={student} />}
             <button
               onClick={(e) => {
                 e.stopPropagation();
