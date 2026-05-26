@@ -72,6 +72,9 @@ export async function recordPettyCashExpense(_prev: unknown, formData: FormData)
     recordedById: user?.userId,
     recordedByName: user?.fullName,
     notes: v.notes,
+    receiptUrl: v.receiptUrl || undefined,
+    receiptFilename: v.receiptFilename || undefined,
+    receiptContentType: v.receiptContentType || undefined,
   };
 
   mockPettyCash.push(tx);

@@ -34,6 +34,9 @@ export const pettyCashExpenseSchema = z.object({
   recipient: z.string().optional(),
   voucherNumber: z.string().optional(),
   notes: z.string().optional(),
+  receiptUrl: z.string().optional(),
+  receiptFilename: z.string().optional(),
+  receiptContentType: z.string().optional(),
 });
 
 export const pettyCashReplenishSchema = z.object({
@@ -64,6 +67,9 @@ export const expenseSchema = z.object({
   date: z.string().min(8, 'Date is required'),
   paymentMethod: z.enum(['BANK_TRANSFER', 'CASH', 'CHEQUE', 'CARD', 'MOBILE_MONEY', 'PETTY_CASH']),
   notes: z.string().optional(),
+  receiptUrl: z.string().optional(),
+  receiptFilename: z.string().optional(),
+  receiptContentType: z.string().optional(),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;

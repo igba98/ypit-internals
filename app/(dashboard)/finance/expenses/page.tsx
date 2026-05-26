@@ -18,6 +18,7 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  Paperclip,
 } from 'lucide-react';
 import { LogExpenseButton, ExpenseStatusCell } from './_components/ExpenseActions';
 import { ExpenseCategory } from '@/types';
@@ -147,7 +148,22 @@ export default async function ExpensesPage() {
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-gray-900 max-w-[260px] truncate" title={e.description}>{e.description}</p>
+                      <div className="flex items-start gap-1.5">
+                        <p className="text-gray-900 max-w-[260px] truncate" title={e.description}>{e.description}</p>
+                        {e.receiptUrl && (
+                          <a
+                            href={e.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download={e.receiptFilename ?? 'receipt'}
+                            title={`Receipt: ${e.receiptFilename ?? 'attachment'}`}
+                            className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary bg-primary-muted px-1.5 py-0.5 rounded shrink-0 hover:bg-primary-muted-strong transition-colors"
+                          >
+                            <Paperclip className="w-2.5 h-2.5" />
+                            Receipt
+                          </a>
+                        )}
+                      </div>
                       {e.notes && <p className="text-[11px] text-gray-500 mt-0.5 truncate" title={e.notes}>{e.notes}</p>}
                     </td>
                     <td className="px-5 py-3.5 text-gray-700">{e.vendor ?? <span className="text-gray-300">—</span>}</td>

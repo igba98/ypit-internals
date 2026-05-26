@@ -11,6 +11,7 @@ import {
   Calendar,
   ReceiptText,
   AlertTriangle,
+  Paperclip,
 } from 'lucide-react';
 import { PettyCashActions } from './_components/PettyCashActions';
 import { PettyCashTxType, PettyCashCategory } from '@/types';
@@ -195,7 +196,22 @@ export default async function PettyCashPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-gray-900 font-medium">{tx.description}</p>
+                      <div className="flex items-start gap-1.5">
+                        <p className="text-gray-900 font-medium">{tx.description}</p>
+                        {tx.receiptUrl && (
+                          <a
+                            href={tx.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download={tx.receiptFilename ?? 'receipt'}
+                            title={`Receipt: ${tx.receiptFilename ?? 'attachment'}`}
+                            className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary bg-primary-muted px-1.5 py-0.5 rounded shrink-0 hover:bg-primary-muted-strong transition-colors"
+                          >
+                            <Paperclip className="w-2.5 h-2.5" />
+                            Receipt
+                          </a>
+                        )}
+                      </div>
                       {tx.notes && <p className="text-[11px] text-gray-500 mt-0.5">{tx.notes}</p>}
                     </td>
                     <td className="px-5 py-3.5">

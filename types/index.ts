@@ -442,6 +442,9 @@ export interface PettyCashTransaction {
   recordedById?: string;
   recordedByName?: string;
   notes?: string;
+  receiptUrl?: string;              // data: URL for attached receipt (image / pdf / doc)
+  receiptFilename?: string;
+  receiptContentType?: string;
 }
 
 export type ExpenseCategory =
@@ -473,7 +476,9 @@ export interface Expense {
   approvedById?: string;
   approvedByName?: string;
   paidDate?: string;
-  receiptUrl?: string;
+  receiptUrl?: string;              // data: URL for attached receipt (image / pdf / doc)
+  receiptFilename?: string;
+  receiptContentType?: string;
   notes?: string;
   recordedById?: string;
   recordedByName?: string;
