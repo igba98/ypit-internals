@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { AttachmentField } from '@/components/shared/AttachmentField';
 import { toast } from 'sonner';
 import { mockStudents } from '@/lib/mock/mockStudents';
 
@@ -66,10 +67,12 @@ export function RecordPaymentForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      <div className="space-y-2 pb-4">
+      <div className="space-y-2">
         <Label htmlFor="notes">Transaction Notes</Label>
         <Textarea id="notes" name="notes" placeholder="e.g. Cleared via Bank Transfer" />
       </div>
+
+      <AttachmentField name="receipt" label="Receipt / proof of payment" />
 
       <div className="pt-4 flex items-center justify-between border-t border-gray-100">
         <Button type="button" variant="ghost" onClick={onSuccess}>

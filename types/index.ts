@@ -126,6 +126,14 @@ export interface Lead {
   convertedStudentId?: string;
 }
 
+export interface PaymentReceiptAttachment {
+  receiptNumber: string;
+  url: string;                      // data: URL (image / pdf / doc)
+  filename: string;
+  contentType: string;
+  uploadedAt: string;
+}
+
 export interface PaymentRecord {
   id: string;
   studentId: string;
@@ -148,6 +156,7 @@ export interface PaymentRecord {
   status: PaymentStatus;
   currency: string;
   receiptNumbers: string[];
+  receiptAttachments?: PaymentReceiptAttachment[];
   lastPaymentDate?: string;
   recordedBy?: string;
   notes?: string;

@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
+import { Paperclip } from 'lucide-react';
 
 interface PaymentsTableProps {
   data: PaymentRecord[];
@@ -32,12 +33,30 @@ export function PaymentsTable({ data }: PaymentsTableProps) {
       header: 'Receipt(s)',
       cell: ({ row }) => {
         const receipts = row.original.receiptNumbers;
+        const attachments = row.original.receiptAttachments ?? [];
         if (!receipts || receipts.length === 0) return <span className="text-gray-400">-</span>;
+        const attachmentByNumber = new Map(attachments.map(a => [a.receiptNumber, a]));
         return (
           <div className="flex flex-col gap-1">
-            {receipts.map(r => (
-              <span key={r} className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{r}</span>
-            ))}
+            {receipts.map(r => {
+              const att = attachmentByNumber.get(r);
+              return att ? (
+                <a
+                  key={r}
+                  href={att.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={att.filename}
+                  title={`Open receipt: ${att.filename}`}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary-muted px-1.5 py-0.5 rounded hover:bg-primary-muted-strong transition-colors w-fit"
+                >
+                  <Paperclip className="w-3 h-3" />
+                  {r}
+                </a>
+              ) : (
+                <span key={r} className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded w-fit">{r}</span>
+              );
+            })}
           </div>
         );
       },

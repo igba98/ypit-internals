@@ -6,7 +6,10 @@ export const paymentSchema = z.object({
   amount: z.coerce.number().min(1000, "Minimum payment amount is 1,000"),
   receiptNumber: z.string().min(3, "Receipt number is required"),
   paymentDate: z.string().min(10, "Date is required"),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  receiptUrl: z.string().optional(),
+  receiptFilename: z.string().optional(),
+  receiptContentType: z.string().optional(),
 });
 
 export type PaymentFormValues = z.infer<typeof paymentSchema>;
