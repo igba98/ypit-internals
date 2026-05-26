@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { resolveRecipients } from './notify';
+import { resolveRecipients, sendSimulated } from './notify';
 import { mockStudents } from '@/lib/mock/mockStudents';
 import { mockGuardians } from '@/lib/mock/mockGuardians';
+import { mockNotifications } from '@/lib/mock/mockNotifications';
 
 describe('resolveRecipients', () => {
   beforeEach(() => {
@@ -71,5 +72,90 @@ describe('resolveRecipients', () => {
       newOwnerRole: 'FINANCE',
     });
     expect(recipients).toEqual([]);
+  });
+});
+
+describe('sendSimulated', () => {
+  beforeEach(() => {
+    mockNotifications.length = 0;
+  });
+
+  it('creates one Notification per resolved recipient and returns their IDs', () => {
+    const ids = sendSimulated({
+      studentId: 'std_001',
+      audience: 'ALL_PARENTS',
+      newOwnerRole: 'FINANCE',
+      title: 'Test transition',
+      messageBody: 'Hello parents',
+      link: '/students/std_001',
+    });
+
+    expect(ids).toHaveLength(2);
+    expect(mockNotifications).toHaveLength(2);
+    for (const n of mockNotifications) {
+      expect(n.simulated).toBe(true);
+      expect(n.channel).toBe('WHATSAPP');
+      expect(n.messageBody).toBe('Hello parents');
+      expect(n.message).toBe('Hello parents');
+      expect(n.title).toBe('Test transition');
+      expect(n.link).toBe('/students/std_001');
+      expect(n.entityId).toBe('std_001');
+      expect(n.type).toBe('STAGE_CHANGED');
+      expect(n.read).toBe(false);
+      expect(n.audience).toBe('ALL_PARENTS');
+      expect(n.recipientPhone).toBeTruthy();
+    }
+  });
+
+  it('for WHATSAPP recipients, sets Notification.userId to the studentId (no app user exists)', () => {
+    sendSimulated({
+      studentId: 'std_001',
+      audience: 'STUDENT',
+      newOwnerRole: 'FINANCE',
+      title: 't',
+      messageBody: 'm',
+    });
+    expect(mockNotifications).toHaveLength(1);
+    expect(mockNotifications[0].userId).toBe('std_001');
+    expect(mockNotifications[0].recipientName).toBe('John Doe');
+  });
+
+  it('for IN_APP recipients (NEW_OWNER), sets Notification.userId to each app user', () => {
+    sendSimulated({
+      studentId: 'std_001',
+      audience: 'NEW_OWNER',
+      newOwnerRole: 'FINANCE',
+      title: 'Heads up',
+      messageBody: 'New student in your queue',
+    });
+
+    expect(mockNotifications.length).toBeGreaterThan(0);
+    for (const n of mockNotifications) {
+      expect(n.channel).toBe('IN_APP');
+      expect(n.userId).not.toBe('std_001');  // should be a user id, not the student
+      expect(n.userId?.startsWith('usr_')).toBe(true);
+    }
+  });
+
+  it('TEAM audience creates one IN_APP Notification per active user in the role', () => {
+    const ids = sendSimulated({
+      studentId: 'std_001',
+      audience: 'TEAM',
+      newOwnerRole: 'ADMISSIONS',
+      title: 'Team alert',
+      messageBody: 'New student arriving',
+    });
+    expect(ids.length).toBeGreaterThan(0);
+    for (const n of mockNotifications) {
+      expect(n.channel).toBe('IN_APP');
+      expect(n.audience).toBe('TEAM');
+    }
+  });
+
+  it('uses unshift so newest notifications appear first', () => {
+    sendSimulated({ studentId: 'std_001', audience: 'STUDENT', newOwnerRole: 'FINANCE', title: 'first', messageBody: 'one' });
+    sendSimulated({ studentId: 'std_001', audience: 'STUDENT', newOwnerRole: 'FINANCE', title: 'second', messageBody: 'two' });
+    expect(mockNotifications[0].title).toBe('second');
+    expect(mockNotifications[1].title).toBe('first');
   });
 });
