@@ -1,127 +1,200 @@
 'use server';
 
-import { taskSchema } from '../validations/task';
-import { mockTasks } from '../mock/mockTasks';
-import { mockUsers } from '../mock/mockUsers';
 import { revalidatePath } from 'next/cache';
-import { ActionResult, Task } from '@/types';
 import { cookies } from 'next/headers';
+import { ActionResult, Task, TaskAttachment, TaskActivityEntry, NotificationType } from '@/types';
+import {
+  taskCreateSchema,
+  taskSubmitSchema,
+  taskReviewSchema,
+  taskBlockSchema,
+  taskUnblockSchema,
+  taskStartSchema,
+  taskEditSchema,
+} from '@/lib/validations/task';
+import { mockTasks } from '@/lib/mock/mockTasks';
+import { mockUsers } from '@/lib/mock/mockUsers';
+import { mockNotifications } from '@/lib/mock/mockNotifications';
+import { mockAuditLogs } from '@/lib/mock/mockAuditLogs';
+import { isPersonalTask, canStart, canSubmit, canReview, canBlock, canUnblock, canEdit } from '@/lib/tasks/permissions';
 
-export async function addTask(prevState: any, formData: FormData): Promise<ActionResult> {
+interface Session {
+  userId: string;
+  fullName: string;
+  role?: string;
+}
+
+async function readSession(): Promise<Session> {
+  const cookieStore = await cookies();
+  const c = cookieStore.get('ypit_session');
+  if (!c) return { userId: 'system', fullName: 'System Actions' };
   try {
-    const data = Object.fromEntries(formData.entries());
-    const validatedFields = taskSchema.safeParse(data);
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        message: "Please fix the form validation errors.",
-        errors: validatedFields.error.flatten().fieldErrors,
-      };
-    }
-
-    const assignedUser = mockUsers.find(u => u.id === validatedFields.data.assignedToId);
-    if (!assignedUser) {
-      return { success: false, message: "Invalid assignee selected." };
-    }
-
-    // Determine assigner from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('ypit_session');
-    let assignerId = 'system';
-    let assignerName = 'System Actions';
-    
-    if (sessionCookie) {
-      try {
-        const session = JSON.parse(sessionCookie.value);
-        assignerId = session.userId;
-        assignerName = session.fullName;
-      } catch (e) {}
-    }
-
-    const newTask: Task = {
-      id: `tsk_${Math.random().toString(36).substr(2, 9)}`,
-      title: validatedFields.data.title,
-      description: validatedFields.data.description,
-      priority: validatedFields.data.priority,
-      status: 'TODO',
-      dueDate: new Date(validatedFields.data.dueDate).toISOString(),
-      assignedToIds: [assignedUser.id],
-      assignedToNames: [assignedUser.fullName],
-      assignedById: assignerId,
-      assignedByName: assignerName,
-      department: assignedUser.department,
-      tags: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    mockTasks.unshift(newTask);
-    revalidatePath('/tasks');
-
-    return { success: true, message: "Task assigned successfully!" };
-  } catch (error) {
-    return { success: false, message: "Unexpected server error." };
+    const s = JSON.parse(c.value);
+    return { userId: s.userId, fullName: s.fullName, role: s.role };
+  } catch {
+    return { userId: 'system', fullName: 'System Actions' };
   }
 }
 
-export async function submitTaskReport(prevState: any, formData: FormData): Promise<ActionResult> {
-  try {
-    const taskId = formData.get('taskId') as string;
-    const taskSummary = formData.get('taskSummary') as string;
-    const progressMade = formData.get('progressMade') as string;
-    const tomorrowPlan = formData.get('tomorrowPlan') as string;
-    const blockers = formData.get('blockers') as string;
-    let percentageComplete = parseInt(formData.get('percentageComplete') as string);
-    if (isNaN(percentageComplete)) percentageComplete = 0;
-
-    if (!taskId || !taskSummary || !progressMade || !tomorrowPlan) {
-      return { success: false, message: "Please fill out all required report fields." };
-    }
-
-    const taskIndex = mockTasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) {
-      return { success: false, message: "Task could not be found." };
-    }
-
-    // Determine assigner from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('ypit_session');
-    let submitterId = 'system';
-    let submitterName = 'System Actions';
-    
-    if (sessionCookie) {
-      try {
-        const session = JSON.parse(sessionCookie.value);
-        submitterId = session.userId;
-        submitterName = session.fullName;
-      } catch (e) {}
-    }
-
-    mockTasks[taskIndex].endOfDayReport = {
-      taskSummary,
-      progressMade,
-      tomorrowPlan,
-      percentageComplete,
-      blockers: blockers || undefined,
-      submittedAt: new Date().toISOString(),
-      submittedById: submitterId,
-      submittedByName: submitterName
-    };
-
-    // Auto-complete the task if percentage is 100
-    if (percentageComplete === 100) {
-      mockTasks[taskIndex].status = 'COMPLETED';
-    } else {
-      mockTasks[taskIndex].status = 'IN_PROGRESS';
-    }
-    
-    mockTasks[taskIndex].updatedAt = new Date().toISOString();
-
-    revalidatePath('/tasks');
-
-    return { success: true, message: "Task report submitted securely!" };
-  } catch (error) {
-    return { success: false, message: "Unexpected server error." };
+function collectAttachments(
+  formData: FormData,
+  prefix: string,
+  actor: Session
+): TaskAttachment[] {
+  const out: TaskAttachment[] = [];
+  for (let i = 0; i < 5; i++) {
+    const url = (formData.get(`${prefix}_${i}_Url`) as string | null) ?? '';
+    if (!url) continue;
+    const filename = (formData.get(`${prefix}_${i}_Filename`) as string | null) ?? 'file';
+    const contentType = (formData.get(`${prefix}_${i}_ContentType`) as string | null) ?? 'application/octet-stream';
+    const sizeStr = (formData.get(`${prefix}_${i}_Size`) as string | null) ?? '0';
+    out.push({
+      url,
+      filename,
+      contentType,
+      size: parseInt(sizeStr, 10) || 0,
+      uploadedAt: new Date().toISOString(),
+      uploadedById: actor.userId,
+      uploadedByName: actor.fullName,
+    });
   }
+  return out;
+}
+
+function genActivityId(prefix: string): string {
+  return `act_${prefix}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function pushNotification(userId: string, title: string, message: string, type: NotificationType, taskId: string) {
+  if (!userId || userId === 'system') return;
+  mockNotifications.unshift({
+    id: `ntf_${Math.random().toString(36).slice(2, 9)}`,
+    userId,
+    title,
+    message,
+    type,
+    read: false,
+    link: `/tasks?taskId=${taskId}`,
+    entityId: taskId,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+function pushAuditLog(actor: Session, action: 'TASK_ASSIGNED' | 'TASK_SUBMITTED' | 'TASK_REVIEWED' | 'TASK_BLOCKED', detail: string, taskId: string) {
+  mockAuditLogs.unshift({
+    id: `aud_${Math.random().toString(36).slice(2, 9)}`,
+    userId: actor.userId,
+    userName: actor.fullName,
+    userRole: (actor.role as any) ?? 'OPERATIONS',
+    action,
+    module: 'tasks',
+    detail,
+    entityId: taskId,
+    entityType: 'task',
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export async function addTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const raw = Object.fromEntries(formData.entries());
+  const parsed = taskCreateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: 'Please fix the form validation errors.',
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const actor = await readSession();
+  const assigneeIdRaw = parsed.data.assignedToId?.trim();
+  const isSelfAssign = !assigneeIdRaw || assigneeIdRaw === actor.userId;
+  const assignee = isSelfAssign
+    ? mockUsers.find((u) => u.id === actor.userId)
+    : mockUsers.find((u) => u.id === assigneeIdRaw);
+
+  if (!isSelfAssign && !assignee) {
+    return { success: false, message: 'Invalid assignee selected.' };
+  }
+
+  const resolvedAssigneeId = assignee?.id ?? actor.userId;
+  const resolvedAssigneeName = assignee?.fullName ?? actor.fullName;
+  const resolvedDepartment = assignee?.department ?? 'Personal';
+  const isPersonal = resolvedAssigneeId === actor.userId;
+
+  const referenceAttachments = collectAttachments(formData, 'reference', actor);
+  const tags = (parsed.data.tags ?? '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const createdEntry: TaskActivityEntry = {
+    id: genActivityId('created'),
+    type: 'CREATED',
+    at: new Date().toISOString(),
+    actorId: actor.userId,
+    actorName: actor.fullName,
+    attachments: referenceAttachments.length > 0 ? referenceAttachments : undefined,
+  };
+
+  const newTask: Task = {
+    id: `tsk_${Math.random().toString(36).slice(2, 9)}`,
+    title: parsed.data.title,
+    description: parsed.data.description,
+    assignedToIds: [resolvedAssigneeId],
+    assignedToNames: [resolvedAssigneeName],
+    assignedById: actor.userId,
+    assignedByName: actor.fullName,
+    department: resolvedDepartment,
+    priority: parsed.data.priority,
+    status: 'TODO',
+    dueDate: new Date(parsed.data.dueDate).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    tags,
+    referenceAttachments: referenceAttachments.length > 0 ? referenceAttachments : undefined,
+    activity: [createdEntry],
+    isPersonal,
+    currentRound: 0,
+  };
+
+  mockTasks.unshift(newTask);
+
+  if (!isPersonal) {
+    pushNotification(
+      resolvedAssigneeId,
+      `New task: ${newTask.title}`,
+      `Assigned by ${actor.fullName}`,
+      'TASK_ASSIGNED',
+      newTask.id
+    );
+    pushAuditLog(actor, 'TASK_ASSIGNED', `Assigned "${newTask.title}" to ${resolvedAssigneeName}`, newTask.id);
+  }
+
+  revalidatePath('/tasks');
+  return {
+    success: true,
+    message: isPersonal ? 'Personal task added.' : 'Task assigned successfully!',
+  };
+}
+
+// The remaining actions get implemented in later tasks.
+// Stubs so the file typechecks:
+export async function startTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
+}
+export async function blockTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
+}
+export async function unblockTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
+}
+export async function submitTaskReport(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
+}
+export async function reviewTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
+}
+export async function editTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
+  return { success: false, message: 'Not implemented yet' };
 }
