@@ -73,7 +73,7 @@ Phases 2–4 will each get their own spec.
    Packages. Marketing + Admissions assign packages to students. Per-student
    fee overrides require Finance.
 6. **Migration:** Replace the existing `PaymentRecord` with the new
-   `StudentFeeLedger` in one PR. Migrate the 7 existing mock records 1:1. No
+   `StudentFeeLedger` in one PR. Migrate the 15 existing mock records 1:1. No
    parallel system.
 
 ---
@@ -476,7 +476,7 @@ catch any new references that landed between spec-time and plan-time.
 | Foundation — Computer Engineering | Intl College Dundee | FOUNDATION | similar |
 
 **Fee ledgers:**
-- 7 ledgers migrated 1:1 from existing `mockPayments.ts` (TZS-only legacy lines, no `packageId`)
+- 15 ledgers migrated 1:1 from existing `mockPayments.ts` (TZS-only legacy lines, no `packageId`)
 - ~3 fresh ledgers linked to new packages:
   - One fully UNPAID (newest enrollment)
   - One PARTIAL with mixed currencies
