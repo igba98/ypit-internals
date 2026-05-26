@@ -104,6 +104,8 @@ export interface Student {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  stageOwnerId?: string;
+  stageEnteredAt?: string;
 }
 
 export interface Lead {
@@ -207,6 +209,7 @@ export interface TravelRecord {
   accommodationAddress?: string;
   travelStatus: TravelStatus;
   updatedAt: string;
+  travelStepStatus?: TravelStepStatusMap;
 }
 
 export interface OperationsRecord {
@@ -319,6 +322,12 @@ export interface Notification {
   link?: string;
   entityId?: string;
   createdAt: string;
+  audience?: NotifyAudience;
+  channel?: NotifyChannel;
+  messageBody?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  simulated?: boolean;
 }
 
 export interface KPIMetric {
@@ -561,3 +570,50 @@ export interface StudentFeeLedger {
   createdAt: string;
   updatedAt: string;
 }
+
+// ============================================================
+// PIPELINE WORKFLOW
+// ============================================================
+
+export type GuardianRelation = 'MOTHER' | 'FATHER' | 'GUARDIAN' | 'SPONSOR' | 'OTHER';
+
+export interface Guardian {
+  id: string;
+  studentId: string;
+  fullName: string;
+  relation: GuardianRelation;
+  phone: string;
+  whatsapp?: string;
+  email?: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export type StageTransitionPayload = Record<string, string | number | boolean | null>;
+
+export interface StageTransition {
+  id: string;
+  studentId: string;
+  fromStage: PipelineStage;
+  toStage: PipelineStage;
+  triggeredById: string;
+  triggeredByName: string;
+  triggeredByRole: Role;
+  capturedData: StageTransitionPayload;
+  notificationsSent: string[];
+  notes?: string;
+  createdAt: string;
+}
+
+export type TravelSubStep = 'passport' | 'visa' | 'flight' | 'arrival';
+export type TravelSubStepStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'DONE';
+
+export interface TravelStepStatusMap {
+  passport: TravelSubStepStatus;
+  visa: TravelSubStepStatus;
+  flight: TravelSubStepStatus;
+  arrival: TravelSubStepStatus;
+}
+
+export type NotifyAudience = 'STUDENT' | 'PARENT_PRIMARY' | 'ALL_PARENTS' | 'NEW_OWNER' | 'TEAM';
+export type NotifyChannel = 'WHATSAPP' | 'IN_APP';
