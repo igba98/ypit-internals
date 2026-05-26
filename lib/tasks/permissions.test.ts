@@ -5,6 +5,7 @@ import {
   canSubmit,
   canReview,
   canBlock,
+  canUnblock,
   canEdit,
   needsMyAction,
   awaitsMyReview,
@@ -110,6 +111,20 @@ describe('canBlock', () => {
   it('blocks on terminal states', () => {
     expect(canBlock(makeTask({ status: 'COMPLETED' }), 'user_a')).toBe(false);
     expect(canBlock(makeTask({ status: 'REJECTED' }), 'user_a')).toBe(false);
+  });
+});
+
+describe('canUnblock', () => {
+  it('allows assignee and assigner when BLOCKED', () => {
+    const t = makeTask({ status: 'BLOCKED' });
+    expect(canUnblock(t, 'user_a')).toBe(true);   // assignee
+    expect(canUnblock(t, 'user_b')).toBe(true);   // assigner
+    expect(canUnblock(t, 'user_c')).toBe(false);  // random user
+  });
+  it('blocks when status is not BLOCKED', () => {
+    expect(canUnblock(makeTask({ status: 'IN_PROGRESS' }), 'user_a')).toBe(false);
+    expect(canUnblock(makeTask({ status: 'TODO' }), 'user_a')).toBe(false);
+    expect(canUnblock(makeTask({ status: 'COMPLETED' }), 'user_a')).toBe(false);
   });
 });
 
