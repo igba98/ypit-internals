@@ -202,5 +202,49 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           </select>
         </div>
       );
+    case 'file': {
+      const dataUrl = typeof value === 'string' && value.startsWith('data:') ? value : null;
+      const summary = dataUrl ? summarizeDataUrl(dataUrl) : null;
+      const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (field.maxBytes && file.size > field.maxBytes) {
+          toast.error(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max ${Math.round(field.maxBytes / 1024 / 1024)}MB)`);
+          e.target.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => onChange(String(reader.result));
+        reader.onerror = () => toast.error('Could not read file');
+        reader.readAsDataURL(file);
+      };
+      return (
+        <div>
+          <span>{labelEl}</span>
+          <input
+            id={field.key}
+            type="file"
+            accept={field.accept}
+            onChange={handleFile}
+            className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-muted file:text-primary hover:file:bg-primary/10"
+          />
+          {summary && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded px-2 py-1">
+              <span>📎 {summary.label}</span>
+              <button type="button" onClick={() => onChange(null)} className="ml-auto text-red-600 hover:underline">Remove</button>
+            </div>
+          )}
+        </div>
+      );
+    }
   }
+}
+
+function summarizeDataUrl(dataUrl: string): { mime: string; sizeKB: number; label: string } {
+  const match = dataUrl.match(/^data:([^;,]+)(?:;base64)?,(.*)$/);
+  const mime = match?.[1] ?? 'application/octet-stream';
+  const dataPart = match?.[2] ?? '';
+  const sizeBytes = Math.ceil(dataPart.length * 0.75);
+  const sizeKB = Math.max(1, Math.round(sizeBytes / 1024));
+  return { mime, sizeKB, label: `${mime} · ${sizeKB} KB` };
 }

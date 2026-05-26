@@ -7,6 +7,7 @@ export type FieldSpecKind =
   | 'date'
   | 'boolean'
   | 'url'
+  | 'file'
   | 'select'
   | 'userSelect'
   | 'paymentMethodSelect';
@@ -22,6 +23,7 @@ export type FieldSpec =
   | (BaseFieldSpec & { kind: 'text' | 'textarea' | 'date' | 'url' })
   | (BaseFieldSpec & { kind: 'number'; min?: number; currency?: string })
   | (BaseFieldSpec & { kind: 'boolean'; defaultValue?: boolean })
+  | (BaseFieldSpec & { kind: 'file'; accept?: string; maxBytes?: number })
   | (BaseFieldSpec & { kind: 'select'; options: { value: string; label: string }[] })
   | (BaseFieldSpec & { kind: 'userSelect'; roles: Role[] })
   | (BaseFieldSpec & { kind: 'paymentMethodSelect' });

@@ -62,7 +62,7 @@ export const TRANSITIONS: TransitionDef[] = [
       { key: 'amountReceived', label: 'Amount received (TZS)', kind: 'number', currency: 'TZS', min: 0, required: true },
       { key: 'receiptNumber', label: 'Receipt number', kind: 'text', required: true },
       { key: 'paymentMethod', label: 'Payment method', kind: 'paymentMethodSelect', required: true },
-      { key: 'proofUrl', label: 'Proof of payment URL', kind: 'url', required: false },
+      { key: 'proofUrl', label: 'Proof of payment (PDF, image, or document)', kind: 'file', accept: '.pdf,image/*,.doc,.docx,.xls,.xlsx,.txt', maxBytes: 10 * 1024 * 1024, required: false },
     ],
     notify: ['STUDENT', 'PARENT_PRIMARY', 'NEW_OWNER'],
     notifyTeams: [ROLES.ADMISSIONS],
