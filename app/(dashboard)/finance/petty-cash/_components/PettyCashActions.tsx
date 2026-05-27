@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { SlideInPanel } from '@/components/shared/SlideInPanel';
+import { AttachmentField } from '@/components/shared/AttachmentField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -127,6 +128,8 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" name="notes" rows={2} placeholder="Optional details" />
       </div>
+
+      <AttachmentField name="receipt" label="Receipt / proof of payment" />
 
       <div className="pt-4 flex items-center justify-between border-t border-gray-100">
         <Button type="button" variant="ghost" onClick={onSuccess}>Cancel</Button>

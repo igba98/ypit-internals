@@ -38,10 +38,20 @@ export async function recordPayment(prevState: any, formData: FormData): Promise
       };
     }
 
-    const { studentId, feeType, amount, receiptNumber, paymentDate, notes } = validatedFields.data;
+    const {
+      studentId,
+      feeType,
+      amount,
+      receiptNumber,
+      paymentDate,
+      notes,
+      receiptUrl,
+      receiptFilename,
+      receiptContentType,
+    } = validatedFields.data;
 
     const recordIndex = mockPayments.findIndex(p => p.studentId === studentId);
-    
+
     if (recordIndex === -1) {
       return { success: false, message: "No active payment record found for this student. They must exist in the system first." };
     }
@@ -53,7 +63,20 @@ export async function recordPayment(prevState: any, formData: FormData): Promise
     record.lastPaymentDate = new Date(paymentDate).toISOString();
     record.totalPaid += amount;
     record.balance = Math.max(0, record.totalDue - record.totalPaid);
-    
+
+    if (receiptUrl) {
+      record.receiptAttachments = [
+        ...(record.receiptAttachments ?? []),
+        {
+          receiptNumber,
+          url: receiptUrl,
+          filename: receiptFilename || 'receipt',
+          contentType: receiptContentType || 'application/octet-stream',
+          uploadedAt: new Date().toISOString(),
+        },
+      ];
+    }
+
     if (notes) {
       record.notes = notes;
     }

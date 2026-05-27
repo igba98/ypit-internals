@@ -5,12 +5,19 @@ import { ArrowLeft, Edit, Mail, Phone, MapPin, GraduationCap, Calendar, BadgeChe
 import Link from 'next/link';
 import { PipelineStageBar } from '@/components/shared/PipelineStageBar';
 import { StudentTabs } from './_components/StudentTabs';
-import { PipelineStatusSelect } from './_components/PipelineStatusSelect';
 import { getStudentDetail } from '@/lib/studentDetail';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
-import { ADMITTED_STAGES, Role } from '@/types';
-import { canEdit } from '@/lib/statusOptions';
+import { ADMITTED_STAGES, Session } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AdvanceStageButton } from '@/components/pipeline/AdvanceStageButton';
+import { RevertStageButton } from '@/components/pipeline/RevertStageButton';
+import { StageTimeline } from '@/components/pipeline/StageTimeline';
+import { SentMessagesPanel } from '@/components/pipeline/SentMessagesPanel';
+import { GuardiansSection } from '@/components/pipeline/GuardiansSection';
+import { getTransitionsForStudent } from '@/lib/mock/mockStageTransitions';
+import { getGuardiansForStudent } from '@/lib/mock/mockGuardians';
+import { mockNotifications } from '@/lib/mock/mockNotifications';
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
@@ -20,7 +27,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     redirect('/login');
   }
 
-  const session = JSON.parse(sessionCookie.value) as { role: Role };
+  const session = JSON.parse(sessionCookie.value) as Session;
   const { id } = await params;
   const student = getStudentById(id);
 
@@ -31,7 +38,6 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
   const detail = getStudentDetail(student);
   const { payment, application, travel, documents } = detail;
   const isAdmitted = ADMITTED_STAGES.includes(student.pipelineStage);
-  const canEditStage = canEdit('pipelineStage', session.role);
 
   return (
     <div className="space-y-6">
@@ -74,11 +80,14 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                   <span className="text-sm text-gray-500 font-medium">{student.registrationNumber}</span>
                   <span className="text-gray-300 text-xs">•</span>
-                  <PipelineStatusSelect
-                    studentId={student.id}
-                    value={student.pipelineStage}
-                    editable={canEditStage}
-                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {student.pipelineStage.replace(/_/g, ' ').toLowerCase()}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <AdvanceStageButton student={student} session={session} size="sm" />
+                  <RevertStageButton student={student} session={session} />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-600">
@@ -148,6 +157,29 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           {documents.filter(d => d.verified).length} verified
         </p>
       )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>Guardians</CardTitle></CardHeader>
+          <CardContent>
+            <GuardiansSection studentId={student.id} guardians={getGuardiansForStudent(student.id)} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Stage Timeline</CardTitle></CardHeader>
+          <CardContent>
+            <StageTimeline transitions={getTransitionsForStudent(student.id)} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle>Sent Messages (Simulated WhatsApp)</CardTitle></CardHeader>
+        <CardContent>
+          <SentMessagesPanel notifications={mockNotifications.filter(n => n.entityId === student.id)} />
+        </CardContent>
+      </Card>
 
       <StudentTabs detail={detail} userRole={session.role} />
     </div>

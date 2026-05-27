@@ -4,9 +4,7 @@ import { z } from 'zod';
 import { studentSchema } from '../validations/student';
 import { mockStudents } from '../mock/mockStudents';
 import { revalidatePath } from 'next/cache';
-import { ActionResult, Student, ADMITTED_STAGES, PipelineStage, PIPELINE_STAGES } from '@/types';
-
-const PIPELINE_STAGE_VALUES = Object.values(PIPELINE_STAGES);
+import { ActionResult, Student } from '@/types';
 
 export async function addStudent(_prevState: unknown, formData: FormData): Promise<ActionResult> {
   try {
@@ -45,47 +43,3 @@ export async function addStudent(_prevState: unknown, formData: FormData): Promi
   }
 }
 
-export async function updateStudentStage(studentId: string, newStage: string): Promise<ActionResult> {
-  if (!PIPELINE_STAGE_VALUES.includes(newStage as PipelineStage)) {
-    return { success: false, message: "Invalid pipeline stage." };
-  }
-  const student = mockStudents.find(s => s.id === studentId);
-  if (!student) {
-    return { success: false, message: "Student not found." };
-  }
-  if (student.pipelineStage === newStage) {
-    return { success: false, message: "Already at that stage." };
-  }
-  student.pipelineStage = newStage as PipelineStage;
-  student.updatedAt = new Date().toISOString();
-
-  revalidatePath('/students');
-  revalidatePath(`/students/${studentId}`);
-  revalidatePath('/leads');
-
-  return { success: true, message: `Stage updated to ${newStage.replace(/_/g, ' ').toLowerCase()}.` };
-}
-
-export async function admitStudent(studentId: string): Promise<ActionResult> {
-  if (!studentId) {
-    return { success: false, message: "Missing student ID." };
-  }
-
-  const student = mockStudents.find(s => s.id === studentId);
-  if (!student) {
-    return { success: false, message: "Student not found." };
-  }
-
-  if (ADMITTED_STAGES.includes(student.pipelineStage)) {
-    return { success: false, message: `${student.fullName} is already admitted.` };
-  }
-
-  student.pipelineStage = 'UNIVERSITY_ACCEPTED';
-  student.updatedAt = new Date().toISOString();
-
-  revalidatePath('/students');
-  revalidatePath(`/students/${studentId}`);
-  revalidatePath('/leads');
-
-  return { success: true, message: `${student.fullName} marked as admitted.` };
-}

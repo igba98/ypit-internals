@@ -1,58 +1,30 @@
 'use client';
 
 import Image from 'next/image';
-import { useTransition } from 'react';
-import { Student, ADMITTED_STAGES } from '@/types';
+import { useState, useMemo } from 'react';
+import { Student, ROLES, Role } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
-import { Eye, CheckCircle } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { admitStudent } from '@/lib/actions/studentActions';
-import { toast } from 'sonner';
-
-const ADMIT_ROLES = ['MARKETING_STAFF', 'SUB_AGENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS'];
+import { mockUsers } from '@/lib/mock/mockUsers';
+import { getStageOwners } from '@/lib/pipeline/stageOwnership';
 
 interface StudentsTableProps {
   data: Student[];
   userRole?: string;
 }
 
-function AdmitStudentButton({ student }: { student: Student }) {
-  const [isPending, startTransition] = useTransition();
+export function StudentsTable({ data }: StudentsTableProps) {
   const router = useRouter();
+  const [filterRole, setFilterRole] = useState<Role | null>(null);
 
-  const handleAdmit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isPending) return;
-    startTransition(async () => {
-      const result = await admitStudent(student.id);
-      if (result.success) {
-        toast.success(result.message);
-        router.refresh();
-      } else {
-        toast.error(result.message);
-      }
-    });
-  };
-
-  return (
-    <button
-      onClick={handleAdmit}
-      disabled={isPending}
-      className="p-2 text-gray-400 hover:text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      title="Mark as admitted (University Accepted)"
-      aria-label={`Admit ${student.fullName}`}
-    >
-      <CheckCircle className="w-4 h-4" />
-    </button>
-  );
-}
-
-export function StudentsTable({ data, userRole }: StudentsTableProps) {
-  const router = useRouter();
-  const canAdmit = !!userRole && ADMIT_ROLES.includes(userRole);
+  const filteredData = useMemo(() => {
+    if (!filterRole) return data;
+    return data.filter(s => getStageOwners(s.pipelineStage).includes(filterRole));
+  }, [data, filterRole]);
 
   const columns: ColumnDef<Student>[] = [
     {
@@ -102,6 +74,16 @@ export function StudentsTable({ data, userRole }: StudentsTableProps) {
       cell: ({ row }) => <StatusBadge status={row.original.pipelineStage} variant="pipeline" />,
     },
     {
+      id: 'owner',
+      header: 'Owner',
+      cell: ({ row }) => {
+        const s = row.original;
+        if (!s.stageOwnerId) return <span className="text-gray-400 text-sm">Unassigned</span>;
+        const u = mockUsers.find(u => u.id === s.stageOwnerId);
+        return <span className="text-sm text-gray-700">{u?.fullName ?? 'Unknown'}</span>;
+      },
+    },
+    {
       accessorKey: 'assignedAgentName',
       header: 'Assigned Lead',
       cell: ({ row }) => {
@@ -132,10 +114,8 @@ export function StudentsTable({ data, userRole }: StudentsTableProps) {
       id: 'actions',
       cell: ({ row }) => {
         const student = row.original;
-        const isAdmitted = ADMITTED_STAGES.includes(student.pipelineStage);
         return (
           <div className="flex items-center justify-end gap-1">
-            {canAdmit && !isAdmitted && <AdmitStudentButton student={student} />}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -154,11 +134,30 @@ export function StudentsTable({ data, userRole }: StudentsTableProps) {
   ];
 
   return (
-    <DataTable 
-      columns={columns} 
-      data={data} 
-      searchKey="fullName" 
-      onRowClick={(row) => router.push(`/students/${row.id}`)}
-    />
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 text-xs">
+        <button
+          onClick={() => setFilterRole(null)}
+          className={`px-2.5 py-1 rounded ${filterRole === null ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+        >
+          All
+        </button>
+        {[ROLES.MARKETING_STAFF, ROLES.FINANCE, ROLES.ADMISSIONS, ROLES.TRAVEL, ROLES.OPERATIONS].map(r => (
+          <button
+            key={r}
+            onClick={() => setFilterRole(r)}
+            className={`px-2.5 py-1 rounded ${filterRole === r ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          >
+            Waiting on {r.replace(/_/g, ' ').toLowerCase()}
+          </button>
+        ))}
+      </div>
+      <DataTable
+        columns={columns}
+        data={filteredData}
+        searchKey="fullName"
+        onRowClick={(row) => router.push(`/students/${row.id}`)}
+      />
+    </div>
   );
 }

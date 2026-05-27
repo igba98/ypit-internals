@@ -5,6 +5,8 @@ import { KPICard } from '@/components/shared/KPICard';
 import { Users, Target, DollarSign, Plane } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/format';
+import { MyQueue } from '@/components/pipeline/MyQueue';
+import { Session } from '@/types';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -14,16 +16,18 @@ export default async function DashboardPage() {
     redirect('/login');
   }
   
-  const session = JSON.parse(sessionCookie.value);
+  const session = JSON.parse(sessionCookie.value) as Session;
   const today = format(new Date(), 'EEEE, MMMM d, yyyy');
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <PageHeader
         title={`Welcome back, ${session.fullName.split(' ')[0]}`}
         description={today}
       />
-      
+
+      <MyQueue session={session} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           label="Total Students" 

@@ -25,6 +25,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-10T00:00:00Z",
     updatedAt: "2026-01-15T00:00:00Z",
+    stageEnteredAt: "2026-01-10T00:00:00Z",
     notes: "Interested in UK universities."
   },
   {
@@ -51,6 +52,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-12T00:00:00Z",
     updatedAt: "2026-01-18T00:00:00Z",
+    stageEnteredAt: "2026-01-12T00:00:00Z",
     notes: "Needs more info on scholarships."
   },
   {
@@ -77,6 +79,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-15T00:00:00Z",
     updatedAt: "2026-01-20T00:00:00Z",
+    stageEnteredAt: "2026-01-15T00:00:00Z",
     notes: "Waiting for agency fee payment."
   },
   {
@@ -103,6 +106,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-18T00:00:00Z",
     updatedAt: "2026-01-25T00:00:00Z",
+    stageEnteredAt: "2026-01-18T00:00:00Z",
     notes: "Agency fee paid. Ready for application."
   },
   {
@@ -129,6 +133,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-20T00:00:00Z",
     updatedAt: "2026-02-01T00:00:00Z",
+    stageEnteredAt: "2026-01-20T00:00:00Z",
     notes: "Application submitted. Awaiting decision."
   },
   {
@@ -155,6 +160,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-22T00:00:00Z",
     updatedAt: "2026-02-10T00:00:00Z",
+    stageEnteredAt: "2026-01-22T00:00:00Z",
     notes: "Accepted. Needs to pay tuition deposit."
   },
   {
@@ -181,6 +187,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-25T00:00:00Z",
     updatedAt: "2026-02-20T00:00:00Z",
+    stageEnteredAt: "2026-01-25T00:00:00Z",
     notes: "Visa approved. Booking flights."
   },
   {
@@ -207,6 +214,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2026-01-28T00:00:00Z",
     updatedAt: "2026-03-05T00:00:00Z",
+    stageEnteredAt: "2026-01-28T00:00:00Z",
     notes: "Arrived safely in Boston."
   },
   {
@@ -233,6 +241,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_008",
     createdAt: "2025-05-10T00:00:00Z",
     updatedAt: "2026-03-10T00:00:00Z",
+    stageEnteredAt: "2025-05-10T00:00:00Z",
     notes: "Doing well in second semester."
   },
   {
@@ -259,6 +268,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_010",
     createdAt: "2026-02-01T00:00:00Z",
     updatedAt: "2026-03-10T00:00:00Z",
+    stageEnteredAt: "2026-02-01T00:00:00Z",
     notes: "Accepted to Birmingham, preparing for visa."
   },
   {
@@ -285,6 +295,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_010",
     createdAt: "2026-02-15T00:00:00Z",
     updatedAt: "2026-02-20T00:00:00Z",
+    stageEnteredAt: "2026-02-15T00:00:00Z",
     notes: "Counseling done, waiting for initial payment."
   },
   {
@@ -311,6 +322,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_010",
     createdAt: "2025-08-10T00:00:00Z",
     updatedAt: "2026-01-15T00:00:00Z",
+    stageEnteredAt: "2025-08-10T00:00:00Z",
     notes: "Successfully arrived in UK."
   },
   {
@@ -337,6 +349,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_010",
     createdAt: "2026-02-28T00:00:00Z",
     updatedAt: "2026-03-15T00:00:00Z",
+    stageEnteredAt: "2026-02-28T00:00:00Z",
     notes: "Application under review."
   },
   {
@@ -363,6 +376,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_012",
     createdAt: "2025-11-20T00:00:00Z",
     updatedAt: "2026-03-01T00:00:00Z",
+    stageEnteredAt: "2025-11-20T00:00:00Z",
     notes: "Visa approved, planning travel."
   },
   {
@@ -389,6 +403,7 @@ export const mockStudents: Student[] = [
     marketingStaffId: "usr_012",
     createdAt: "2026-03-05T00:00:00Z",
     updatedAt: "2026-03-10T00:00:00Z",
+    stageEnteredAt: "2026-03-05T00:00:00Z",
     notes: "Just inquired, waiting for response."
   }
 ];

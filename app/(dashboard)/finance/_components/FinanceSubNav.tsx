@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, FileText, Wallet, Users, Receipt, CreditCard } from 'lucide-react';
+import { LayoutGrid, FileText, Wallet, Users, Receipt, CreditCard, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
   { label: 'Overview', href: '/finance', icon: LayoutGrid, exact: true },
+  { label: 'Catalog', href: '/finance/catalog', icon: BookOpen },
   { label: 'Petty Cash', href: '/finance/petty-cash', icon: Wallet },
   { label: 'Invoices', href: '/finance/invoices', icon: FileText },
   { label: 'Payroll', href: '/finance/payroll', icon: Users },

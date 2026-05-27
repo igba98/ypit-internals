@@ -3,6 +3,8 @@ import { ApplicationsTable } from './_components/ApplicationsTable';
 import { mockApplications } from '@/lib/mock/mockApplications';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { MyQueue } from '@/components/pipeline/MyQueue';
+import { Session } from '@/types';
 
 export default async function ApplicationsPage() {
   const cookieStore = await cookies();
@@ -12,8 +14,8 @@ export default async function ApplicationsPage() {
     redirect('/login');
   }
   
-  const session = JSON.parse(sessionCookie.value);
-  
+  const session = JSON.parse(sessionCookie.value) as Session;
+
   // Role check
   const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'];
   if (!allowedRoles.includes(session.role)) {
@@ -26,7 +28,9 @@ export default async function ApplicationsPage() {
         title="University Applications"
         description="Track and manage student university applications."
       />
-      
+
+      <MyQueue session={session} title="Students Awaiting Application Action" />
+
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-600 flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-gray-400" /> 0 Preparing

@@ -43,7 +43,16 @@ export const ADMITTED_STAGES: PipelineStage[] = [
   'MONITORING',
 ];
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'REPORTED';
+export type TaskStatus =
+  | 'TODO' | 'IN_PROGRESS' | 'SUBMITTED'
+  | 'CHANGES_REQUESTED' | 'REJECTED'
+  | 'COMPLETED' | 'BLOCKED';
+
+export type TaskActivityType =
+  | 'CREATED' | 'STARTED' | 'SUBMITTED'
+  | 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'
+  | 'BLOCKED' | 'UNBLOCKED'
+  | 'EDITED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type LeadSource = 'SOCIAL_MEDIA' | 'SCHOOL_VISIT' | 'SUB_AGENT' | 'REFERRAL' | 'WALK_IN' | 'WEBSITE';
 export type ApplicationStatus = 'PREPARING' | 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED' | 'WAITLISTED' | 'DEFERRED';
@@ -53,7 +62,7 @@ export type TravelStatus = 'PLANNING' | 'VISA_PENDING' | 'READY' | 'TRAVELLED';
 export type WellbeingStatus = 'GOOD' | 'NEEDS_ATTENTION' | 'ESCALATED';
 export type PaymentStatus = 'PENDING' | 'PARTIAL' | 'CLEARED' | 'OVERDUE';
 export type ReportPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
-export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';
+export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'TASK_REVIEWED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';
 
 export interface User {
   id: string;
@@ -104,6 +113,8 @@ export interface Student {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  stageOwnerId?: string;
+  stageEnteredAt?: string;
 }
 
 export interface Lead {
@@ -122,6 +133,14 @@ export interface Lead {
   notes?: string;
   followUpDate?: string;
   convertedStudentId?: string;
+}
+
+export interface PaymentReceiptAttachment {
+  receiptNumber: string;
+  url: string;                      // data: URL (image / pdf / doc)
+  filename: string;
+  contentType: string;
+  uploadedAt: string;
 }
 
 export interface PaymentRecord {
@@ -146,6 +165,7 @@ export interface PaymentRecord {
   status: PaymentStatus;
   currency: string;
   receiptNumbers: string[];
+  receiptAttachments?: PaymentReceiptAttachment[];
   lastPaymentDate?: string;
   recordedBy?: string;
   notes?: string;
@@ -207,6 +227,7 @@ export interface TravelRecord {
   accommodationAddress?: string;
   travelStatus: TravelStatus;
   updatedAt: string;
+  travelStepStatus?: TravelStepStatusMap;
 }
 
 export interface OperationsRecord {
@@ -241,17 +262,28 @@ export interface CheckIn {
   createdAt: string;
 }
 
-export interface EndOfDayReport {
-  taskSummary: string;
-  progressMade: string;
+export interface TaskAttachment {
+  url: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedById: string;
+  uploadedByName: string;
+}
+
+export interface TaskActivityEntry {
+  id: string;
+  type: TaskActivityType;
+  at: string;
+  actorId: string;
+  actorName: string;
+  note?: string;
+  progressMade?: string;
+  percentageComplete?: number;
+  nextActions?: string;
   blockers?: string;
-  tomorrowPlan: string;
-  percentageComplete: number;
-  submittedAt: string;
-  submittedById: string;
-  submittedByName: string;
-  acknowledgedAt?: string;
-  acknowledgedById?: string;
+  attachments?: TaskAttachment[];
 }
 
 export interface Task {
@@ -269,8 +301,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   tags: string[];
-  endOfDayReport?: EndOfDayReport;
-  attachmentUrls?: string[];
+  referenceAttachments?: TaskAttachment[];
+  activity: TaskActivityEntry[];
+  isPersonal: boolean;
+  currentRound: number;
 }
 
 export interface Report {
@@ -297,7 +331,7 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userRole: Role;
-  action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'PASSWORD_RESET' | 'ROLE_CHANGE' | 'STAGE_CHANGE' | 'PAYMENT_RECORDED' | 'REPORT_SUBMITTED' | 'TASK_ASSIGNED';
+  action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'PASSWORD_RESET' | 'ROLE_CHANGE' | 'STAGE_CHANGE' | 'PAYMENT_RECORDED' | 'REPORT_SUBMITTED' | 'TASK_ASSIGNED' | 'TASK_SUBMITTED' | 'TASK_REVIEWED' | 'TASK_BLOCKED';
   module: string;
   detail: string;
   entityId?: string;
@@ -319,6 +353,12 @@ export interface Notification {
   link?: string;
   entityId?: string;
   createdAt: string;
+  audience?: NotifyAudience;
+  channel?: NotifyChannel;
+  messageBody?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  simulated?: boolean;
 }
 
 export interface KPIMetric {
@@ -433,6 +473,9 @@ export interface PettyCashTransaction {
   recordedById?: string;
   recordedByName?: string;
   notes?: string;
+  receiptUrl?: string;              // data: URL for attached receipt (image / pdf / doc)
+  receiptFilename?: string;
+  receiptContentType?: string;
 }
 
 export type ExpenseCategory =
@@ -464,9 +507,149 @@ export interface Expense {
   approvedById?: string;
   approvedByName?: string;
   paidDate?: string;
-  receiptUrl?: string;
+  receiptUrl?: string;              // data: URL for attached receipt (image / pdf / doc)
+  receiptFilename?: string;
+  receiptContentType?: string;
   notes?: string;
   recordedById?: string;
   recordedByName?: string;
   createdAt: string;
 }
+
+// ============================================================
+// FINANCE PHASE 1 — Catalog & per-student fee ledger
+// ============================================================
+
+export type Currency = 'TZS' | 'USD' | 'GBP' | 'EUR';
+
+export type FeeType =
+  | 'APPLICATION'
+  | 'TUITION'
+  | 'HOSTEL'
+  | 'AGENCY'
+  | 'DEPOSIT'
+  | 'INSURANCE'
+  | 'VISA'
+  | 'AIRPORT_PICKUP'
+  | 'OTHER';
+
+export type StudyLevel = 'FOUNDATION' | 'BACHELOR' | 'MASTERS' | 'PHD' | 'DIPLOMA';
+
+export type CatalogStatus = 'ACTIVE' | 'ARCHIVED';
+
+export interface University {
+  id: string;                       // uni_coventry_london
+  name: string;                     // "Coventry University London"
+  country: string;                  // "United Kingdom"
+  city?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  defaultReportingMonths?: string[]; // ['September', 'January']
+  status: CatalogStatus;
+  createdAt: string;
+}
+
+export type FeeDueRule =
+  | { kind: 'DAYS_FROM_ENROLLMENT'; days: number }
+  | { kind: 'BEFORE_REPORTING_DATE'; days: number }
+  | { kind: 'ON_ENROLLMENT' }
+  | { kind: 'CUSTOM' };
+
+export interface FeeDefault {
+  type: FeeType;
+  label?: string;
+  amount: number;
+  currency: Currency;
+  dueRule: FeeDueRule;
+  required: boolean;
+}
+
+export interface Package {
+  id: string;                       // pkg_coventry_london_bachelor_business
+  universityId: string;
+  name: string;
+  studyLevel: StudyLevel;
+  program: string;
+  description?: string;
+  feeDefaults: FeeDefault[];
+  status: CatalogStatus;
+  createdById?: string;
+  createdByName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FeeLineStatus = 'UNPAID' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'WAIVED';
+
+export interface FeeLine {
+  id: string;                       // fl_001
+  type: FeeType;
+  label: string;
+  amount: number;
+  currency: Currency;
+  dueDate: string;
+  paidAmount: number;
+  status: FeeLineStatus;
+  overrideReason?: string;
+  overriddenById?: string;
+  overriddenByName?: string;
+  overriddenAt?: string;
+  sourceFeeDefaultIndex?: number;
+}
+
+export interface StudentFeeLedger {
+  studentId: string;
+  packageId?: string;
+  currencyDisplay?: Currency;       // KPI rollup pref; default TZS
+  lines: FeeLine[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// PIPELINE WORKFLOW
+// ============================================================
+
+export type GuardianRelation = 'MOTHER' | 'FATHER' | 'GUARDIAN' | 'SPONSOR' | 'OTHER';
+
+export interface Guardian {
+  id: string;
+  studentId: string;
+  fullName: string;
+  relation: GuardianRelation;
+  phone: string;
+  whatsapp?: string;
+  email?: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export type StageTransitionPayload = Record<string, string | number | boolean | null>;
+
+export interface StageTransition {
+  id: string;
+  studentId: string;
+  fromStage: PipelineStage;
+  toStage: PipelineStage;
+  triggeredById: string;
+  triggeredByName: string;
+  triggeredByRole: Role;
+  capturedData: StageTransitionPayload;
+  notificationsSent: string[];
+  notes?: string;
+  createdAt: string;
+}
+
+export type TravelSubStep = 'passport' | 'visa' | 'flight' | 'arrival';
+export type TravelSubStepStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'DONE';
+
+export interface TravelStepStatusMap {
+  passport: TravelSubStepStatus;
+  visa: TravelSubStepStatus;
+  flight: TravelSubStepStatus;
+  arrival: TravelSubStepStatus;
+}
+
+export type NotifyAudience = 'STUDENT' | 'PARENT_PRIMARY' | 'ALL_PARENTS' | 'NEW_OWNER' | 'TEAM';
+export type NotifyChannel = 'WHATSAPP' | 'IN_APP';
