@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Task, TaskStatus } from '@/types';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { TaskDetailPanel } from './TaskDetailPanel';
@@ -56,6 +56,9 @@ interface TaskKanbanProps {
 
 export function TaskKanban({ initialTasks, currentUserId }: TaskKanbanProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [, startMutation] = useTransition();

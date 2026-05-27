@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { ActionResult, Task, TaskAttachment, TaskActivityEntry, NotificationType } from '@/types';
+import { ActionResult, Role, Task, TaskAttachment, TaskActivityEntry, NotificationType } from '@/types';
 import {
   taskCreateSchema,
   taskSubmitSchema,
@@ -21,7 +21,7 @@ import { isPersonalTask, canStart, canSubmit, canReview, canBlock, canUnblock, c
 interface Session {
   userId: string;
   fullName: string;
-  role?: string;
+  role?: Role;
 }
 
 async function readSession(): Promise<Session> {
@@ -85,7 +85,7 @@ function pushAuditLog(actor: Session, action: 'TASK_ASSIGNED' | 'TASK_SUBMITTED'
     id: `aud_${Math.random().toString(36).slice(2, 9)}`,
     userId: actor.userId,
     userName: actor.fullName,
-    userRole: (actor.role as any) ?? 'OPERATIONS',
+    userRole: actor.role ?? 'OPERATIONS',
     action,
     module: 'tasks',
     detail,
