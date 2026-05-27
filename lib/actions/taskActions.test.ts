@@ -184,6 +184,8 @@ describe('startTask', () => {
     const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
     expect(t.status).toBe('IN_PROGRESS');
     expect(t.activity.at(-1)!.type).toBe('STARTED');
+    expect(t.activity.at(-1)!.actorId).toBe('usr_001');
+    expect(t.activity.at(-1)!.actorName).toBe('David Mwangi');
   });
 });
 
@@ -195,7 +197,7 @@ describe('blockTask', () => {
   });
 
   it('moves to BLOCKED with reason and emits audit log', async () => {
-    seed({ assignedToIds: ['usr_001'], status: 'IN_PROGRESS' });
+    seed({ assignedToIds: ['usr_002'], status: 'IN_PROGRESS' });
     const r = await blockTask(
       null,
       fd({ taskId: 'tsk_seed', reason: 'Waiting on visa confirmation from embassy' })
@@ -206,6 +208,7 @@ describe('blockTask', () => {
     expect(t.activity.at(-1)!.type).toBe('BLOCKED');
     expect(t.activity.at(-1)!.note).toMatch(/embassy/);
     expect(mockAuditLogs.some((a) => a.action === 'TASK_BLOCKED')).toBe(true);
+    expect(mockNotifications.some((n) => n.userId === 'usr_001' && n.type === 'SYSTEM_ALERT')).toBe(true);
   });
 });
 
