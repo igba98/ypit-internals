@@ -222,3 +222,109 @@ describe('unblockTask', () => {
     expect(t.activity.at(-1)!.type).toBe('UNBLOCKED');
   });
 });
+
+import { submitTaskReport } from './taskActions';
+
+describe('submitTaskReport', () => {
+  it('blocks non-assignee', async () => {
+    seed({ assignedToIds: ['usr_002'], status: 'IN_PROGRESS' });
+    const r = await submitTaskReport(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        summary: 'Short summary',
+        progressMade: 'Did the thing for ten chars',
+        percentageComplete: '50',
+      })
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it('moves assigned task IN_PROGRESS → SUBMITTED and notifies assigner', async () => {
+    seed({ assignedToIds: ['usr_001'], status: 'IN_PROGRESS', assignedById: 'usr_002', assignedByName: 'Sarah' });
+    const r = await submitTaskReport(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        summary: 'Initial draft done',
+        progressMade: 'Wrote the brief and circulated.',
+        percentageComplete: '60',
+        nextActions: 'Wait for feedback',
+      })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('SUBMITTED');
+    expect(t.currentRound).toBe(1);
+    expect(t.activity.at(-1)!.type).toBe('SUBMITTED');
+    expect(t.activity.at(-1)!.progressMade).toMatch(/brief/);
+    expect(mockNotifications.some((n) => n.userId === 'usr_002' && n.type === 'REPORT_SUBMITTED')).toBe(true);
+  });
+
+  it('moves personal task IN_PROGRESS → COMPLETED with no review needed', async () => {
+    seed({
+      assignedToIds: ['usr_001'],
+      assignedById: 'usr_001',
+      assignedByName: 'David Mwangi',
+      isPersonal: true,
+      status: 'IN_PROGRESS',
+    });
+    const r = await submitTaskReport(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        summary: 'Reviewed inbox',
+        progressMade: 'Cleared the queue and replied.',
+        percentageComplete: '100',
+      })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('COMPLETED');
+    expect(t.currentRound).toBe(1);
+  });
+
+  it('supports resubmission from CHANGES_REQUESTED and increments currentRound', async () => {
+    seed({
+      assignedToIds: ['usr_001'],
+      assignedById: 'usr_002',
+      assignedByName: 'Sarah',
+      status: 'CHANGES_REQUESTED',
+      currentRound: 1,
+    });
+    const r = await submitTaskReport(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        summary: 'Updated per feedback',
+        progressMade: 'Reworked the section flagged by reviewer.',
+        percentageComplete: '85',
+      })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('SUBMITTED');
+    expect(t.currentRound).toBe(2);
+  });
+
+  it('attaches deliverable files when present', async () => {
+    seed({ assignedToIds: ['usr_001'], status: 'IN_PROGRESS', assignedById: 'usr_002', assignedByName: 'Sarah' });
+    const r = await submitTaskReport(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        summary: 'Drafted the doc',
+        progressMade: 'Attached the final PDF for review.',
+        percentageComplete: '100',
+        deliverable_0_Url: 'data:application/pdf;base64,JVB',
+        deliverable_0_Filename: 'report.pdf',
+        deliverable_0_ContentType: 'application/pdf',
+        deliverable_0_Size: '2048',
+      })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.activity.at(-1)!.attachments).toHaveLength(1);
+    expect(t.activity.at(-1)!.attachments![0].filename).toBe('report.pdf');
+  });
+});

@@ -265,8 +265,56 @@ export async function unblockTask(_prev: unknown, formData: FormData): Promise<A
   revalidatePath('/tasks');
   return { success: true, message: 'Task unblocked.' };
 }
-export async function submitTaskReport(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+export async function submitTaskReport(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskSubmitSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: 'Please fix the form validation errors.',
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canSubmit(task, actor.userId)) {
+    return { success: false, message: 'You cannot submit this task.' };
+  }
+
+  const attachments = collectAttachments(formData, 'deliverable', actor);
+  const entry: TaskActivityEntry = {
+    id: genActivityId('submitted'),
+    type: 'SUBMITTED',
+    at: new Date().toISOString(),
+    actorId: actor.userId,
+    actorName: actor.fullName,
+    note: parsed.data.summary,
+    progressMade: parsed.data.progressMade,
+    percentageComplete: parsed.data.percentageComplete,
+    nextActions: parsed.data.nextActions,
+    blockers: parsed.data.blockers,
+    attachments: attachments.length > 0 ? attachments : undefined,
+  };
+
+  task.activity.push(entry);
+  task.currentRound += 1;
+  task.updatedAt = entry.at;
+  task.status = isPersonalTask(task) ? 'COMPLETED' : 'SUBMITTED';
+
+  pushAuditLog(actor, 'TASK_SUBMITTED', `Submitted "${task.title}" (round ${task.currentRound})`, task.id);
+  if (!isPersonalTask(task)) {
+    pushNotification(
+      task.assignedById,
+      `Report submitted: ${task.title}`,
+      `From ${actor.fullName} — ${parsed.data.summary}`,
+      'REPORT_SUBMITTED',
+      task.id
+    );
+  }
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Report submitted.' };
 }
 export async function reviewTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
   return { success: false, message: 'Not implemented yet' };
