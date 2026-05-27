@@ -77,7 +77,7 @@ export default function LoginForm() {
               type="email"
               name="email"
               required
-              placeholder="you@ypit.com"
+              placeholder="you@ypitconsultancies.com"
               className="pl-10 h-11"
             />
           </div>
@@ -153,7 +153,7 @@ export default function LoginForm() {
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        Need help? Contact IT: <a href="mailto:it@ypit.com" className="text-primary hover:underline">it@ypit.com</a>
+        Need help? Contact IT: <a href="mailto:IT@ypitconsultancies.com" className="text-primary hover:underline">IT@ypitconsultancies.com</a>
       </div>
     </motion.div>
   );

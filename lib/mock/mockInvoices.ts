@@ -22,7 +22,7 @@ export const mockInvoices: Invoice[] = [
     paymentMethod: 'BANK_TRANSFER',
     notes: 'Half paid. Balance due.',
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-02-01T08:00:00Z',
   },
   {
@@ -45,7 +45,7 @@ export const mockInvoices: Invoice[] = [
     paidDate: '2026-03-10T00:00:00Z',
     paymentMethod: 'BANK_TRANSFER',
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-03-01T09:30:00Z',
   },
   {
@@ -67,7 +67,7 @@ export const mockInvoices: Invoice[] = [
     paidDate: '2026-03-04T00:00:00Z',
     paymentMethod: 'BANK_TRANSFER',
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-03-01T10:00:00Z',
   },
   {
@@ -89,7 +89,7 @@ export const mockInvoices: Invoice[] = [
     status: 'OVERDUE',
     paidAmount: 0,
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-02-15T11:00:00Z',
     notes: 'Multiple reminders sent. Escalate to marketing lead.',
   },
@@ -111,7 +111,7 @@ export const mockInvoices: Invoice[] = [
     status: 'SENT',
     paidAmount: 0,
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-03-05T13:30:00Z',
   },
   {
@@ -134,7 +134,7 @@ export const mockInvoices: Invoice[] = [
     paidDate: '2026-02-12T00:00:00Z',
     paymentMethod: 'MOBILE_MONEY',
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-02-10T09:15:00Z',
   },
   {
@@ -154,7 +154,7 @@ export const mockInvoices: Invoice[] = [
     status: 'SENT',
     paidAmount: 0,
     createdById: 'usr_004',
-    createdByName: 'Amina Saleh',
+    createdByName: 'Cosmas Cosmas',
     createdAt: '2026-03-12T11:00:00Z',
   },
 ];

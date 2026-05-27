@@ -30,7 +30,7 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <Label htmlFor="email">Email Address *</Label>
-        <Input id="email" name="email" type="email" placeholder="jane@ypit.co.tz" required />
+        <Input id="email" name="email" type="email" placeholder="name@ypitconsultancies.com" required />
         {state?.errors?.email && <p className="text-red-500 text-xs">{state.errors.email[0]}</p>}
       </div>
 

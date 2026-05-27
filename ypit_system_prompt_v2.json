@@ -393,15 +393,15 @@
         "description": "9 mock users — one per role. Used for authentication simulation.",
         "exports": ["mockUsers: User[]", "findUserByEmail(email: string): User | undefined", "findUserById(id: string): User | undefined"],
         "seed_data": [
-          { "id": "usr_001", "fullName": "David Mwangi", "email": "md@ypit.com", "password": "ypit2026", "role": "MANAGING_DIRECTOR", "department": "Executive", "phone": "+255712000001", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_001" },
-          { "id": "usr_002", "fullName": "Sarah Kimani", "email": "mm@ypit.com", "password": "ypit2026", "role": "MARKETING_MANAGER", "department": "Marketing", "phone": "+255712000002", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_002" },
-          { "id": "usr_003", "fullName": "James Osei", "email": "it@ypit.com", "password": "ypit2026", "role": "IT_ADMIN", "department": "IT", "phone": "+255712000003", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_003" },
-          { "id": "usr_004", "fullName": "Amina Saleh", "email": "finance@ypit.com", "password": "ypit2026", "role": "FINANCE", "department": "Finance", "phone": "+255712000004", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_004" },
-          { "id": "usr_005", "fullName": "Peter Njoroge", "email": "admissions@ypit.com", "password": "ypit2026", "role": "ADMISSIONS", "department": "Admissions", "phone": "+255712000005", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_005" },
-          { "id": "usr_006", "fullName": "Grace Auma", "email": "travel@ypit.com", "password": "ypit2026", "role": "TRAVEL", "department": "Travel", "phone": "+255712000006", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_006" },
-          { "id": "usr_007", "fullName": "Ibrahim Hassan", "email": "ops@ypit.com", "password": "ypit2026", "role": "OPERATIONS", "department": "Operations", "phone": "+255712000007", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_007" },
-          { "id": "usr_008", "fullName": "Linda Owusu", "email": "marketing@ypit.com", "password": "ypit2026", "role": "MARKETING_STAFF", "department": "Marketing", "phone": "+255712000008", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_008" },
-          { "id": "usr_009", "fullName": "Kevin Dube", "email": "agent@ypit.com", "password": "ypit2026", "role": "SUB_AGENT", "department": "Marketing", "phone": "+255712000009", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_009" }
+          { "id": "usr_001", "fullName": "Shedrack Masine", "email": "director@ypitconsultancies.com", "password": "ypit2026", "role": "MANAGING_DIRECTOR", "department": "Executive", "phone": "+255759512804", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_001" },
+          { "id": "usr_002", "fullName": "Lilian Masine", "email": "marketing@ypitconsultancies.com", "password": "ypit2026", "role": "MARKETING_MANAGER", "department": "Marketing & Sales", "phone": "+255769227898", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_002" },
+          { "id": "usr_003", "fullName": "Noel Godson", "email": "IT@ypitconsultancies.com", "password": "ypit2026", "role": "IT_ADMIN", "department": "IT", "phone": "+255794140200", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_003" },
+          { "id": "usr_004", "fullName": "Cosmas Cosmas", "email": "finance@ypitconsultancies.com", "password": "ypit2026", "role": "FINANCE", "department": "Finance", "phone": "+255794130200", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_004" },
+          { "id": "usr_005", "fullName": "Justice Mwampiki", "email": "admission@ypitconsultancies.com", "password": "ypit2026", "role": "ADMISSIONS", "department": "Admissions", "phone": "+255748506660", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_005" },
+          { "id": "usr_006", "fullName": "Wisdom Mwaipape", "email": "travel@ypitconsultancies.com", "password": "ypit2026", "role": "TRAVEL", "department": "Travel", "phone": "+255761987507", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_006" },
+          { "id": "usr_007", "fullName": "Lucy Masine", "email": "administrator@ypitconsultancies.com", "password": "ypit2026", "role": "OPERATIONS", "department": "Administration", "phone": "+255794280200", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_007" },
+          { "id": "usr_008", "fullName": "Ayoub Mgassa", "email": "RO@ypitconsultancies.com", "password": "ypit2026", "role": "MARKETING_STAFF", "department": "Business Development & Events", "phone": "+255737325544", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_008" },
+          { "id": "usr_009", "fullName": "Kevin Dube", "email": "agent@ypitconsultancies.com", "password": "ypit2026", "role": "SUB_AGENT", "department": "Marketing", "phone": "+255712000009", "status": "ACTIVE", "avatar": "https://i.pravatar.cc/150?u=usr_009" }
         ]
       },
       "mockStudents.ts": {
@@ -518,13 +518,13 @@
           "Center vertically: heading 'Welcome Back' in Syne 2xl bold text-gray-900",
           "Subheading: 'Sign in to your YPIT workspace' in sm text-gray-500",
           "Form with react-hook-form + zod validation:",
-          "  Email field: label 'Email Address', Input with Mail lucide icon prefix, placeholder 'you@ypit.com'",
+          "  Email field: label 'Email Address', Input with Mail lucide icon prefix, placeholder 'you@ypitconsultancies.com'",
           "  Password field: label 'Password', Input with Lock icon prefix, Eye/EyeOff toggle suffix",
           "  Checkbox row: 'Remember me' left, 'Forgot password?' link right",
           "  Submit button: full width, bg #9c003d, white text 'Sign In', loading spinner via useFormStatus",
           "  Error alert: shadcn Alert with AlertCircle icon, red border, appears on invalid credentials",
           "Demo credentials helper: small collapsible section 'Demo Accounts' showing all 9 role credentials in a clean table — helps development testing",
-          "Bottom: 'Need help? Contact IT: it@ypit.com'"
+          "Bottom: 'Need help? Contact IT: IT@ypitconsultancies.com'"
         ]
       },
       "animations": "Right panel form fades up on mount with motion/react fade_up preset. Error alert uses AnimatePresence scale_in."

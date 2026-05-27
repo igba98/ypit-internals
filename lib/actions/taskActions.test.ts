@@ -13,7 +13,7 @@ vi.mock('next/headers', () => ({
         ? {
             value: JSON.stringify({
               userId: 'usr_001',
-              fullName: 'David Mwangi',
+              fullName: 'Shedrack Masine',
               role: 'MANAGING_DIRECTOR',
             }),
           }
@@ -42,9 +42,9 @@ function seed(t: Partial<Task> = {}): Task {
     title: 'Seed title here',
     description: 'A description long enough',
     assignedToIds: ['usr_005'],
-    assignedToNames: ['Peter Njoroge'],
+    assignedToNames: ['Justice Mwampiki'],
     assignedById: 'usr_001',
-    assignedByName: 'David Mwangi',
+    assignedByName: 'Shedrack Masine',
     department: 'Admissions',
     priority: 'MEDIUM',
     status: 'TODO',
@@ -58,7 +58,7 @@ function seed(t: Partial<Task> = {}): Task {
         type: 'CREATED',
         at: '2026-05-26T09:00:00Z',
         actorId: 'usr_001',
-        actorName: 'David Mwangi',
+        actorName: 'Shedrack Masine',
       },
     ],
     isPersonal: false,
@@ -185,7 +185,7 @@ describe('startTask', () => {
     expect(t.status).toBe('IN_PROGRESS');
     expect(t.activity.at(-1)!.type).toBe('STARTED');
     expect(t.activity.at(-1)!.actorId).toBe('usr_001');
-    expect(t.activity.at(-1)!.actorName).toBe('David Mwangi');
+    expect(t.activity.at(-1)!.actorName).toBe('Shedrack Masine');
   });
 });
 
@@ -265,7 +265,7 @@ describe('submitTaskReport', () => {
     seed({
       assignedToIds: ['usr_001'],
       assignedById: 'usr_001',
-      assignedByName: 'David Mwangi',
+      assignedByName: 'Shedrack Masine',
       isPersonal: true,
       status: 'IN_PROGRESS',
     });
@@ -337,9 +337,9 @@ describe('reviewTask', () => {
   function submittedSeed() {
     return seed({
       assignedToIds: ['usr_005'],
-      assignedToNames: ['Peter Njoroge'],
+      assignedToNames: ['Justice Mwampiki'],
       assignedById: 'usr_001',
-      assignedByName: 'David Mwangi',
+      assignedByName: 'Shedrack Masine',
       status: 'SUBMITTED',
       currentRound: 1,
     });

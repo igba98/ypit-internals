@@ -45,19 +45,19 @@ export function SettingsForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Full Name</label>
-                <input type="text" defaultValue="Admin User" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <input type="text" defaultValue="Shedrack Masine" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" defaultValue="admin@ypit.com" disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
+                <input type="email" defaultValue="director@ypitconsultancies.com" disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Phone Number</label>
-                <input type="tel" placeholder="+1 (555) 000-0000" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <input type="tel" placeholder="+255 759 512 804" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Department</label>
-                <input type="text" defaultValue="Management" disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
+                <input type="text" defaultValue="Executive" disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
               </div>
             </div>
 

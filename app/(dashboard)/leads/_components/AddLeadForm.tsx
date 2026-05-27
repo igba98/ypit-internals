@@ -33,7 +33,7 @@ export function AddLeadForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <Label htmlFor="email">Email Address *</Label>
-        <Input id="email" name="email" type="email" placeholder="john.doe@ypit.com" required />
+        <Input id="email" name="email" type="email" placeholder="john.doe@gmail.com" required />
         {fieldErrors.email && <p className="text-xs text-red-600">{fieldErrors.email[0]}</p>}
       </div>
 
