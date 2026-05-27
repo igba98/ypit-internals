@@ -18,11 +18,25 @@ const pipelineColors: Record<string, { text: string; bg: string; fontWeight?: st
   MONITORING: { text: "#ffffff", bg: "#0a0a0a" }
 };
 
+const taskColors: Record<string, { text: string; bg: string; fontWeight?: string }> = {
+  TODO: { text: '#374151', bg: '#f3f4f6' },
+  IN_PROGRESS: { text: '#1d4ed8', bg: '#dbeafe' },
+  SUBMITTED: { text: '#6d28d9', bg: '#ede9fe' },
+  CHANGES_REQUESTED: { text: '#b45309', bg: '#fef3c7' },
+  REJECTED: { text: '#b91c1c', bg: '#fee2e2' },
+  COMPLETED: { text: '#15803d', bg: '#dcfce7' },
+  BLOCKED: { text: '#ffffff', bg: '#b91c1c', fontWeight: '600' },
+};
+
 export function StatusBadge({ status, variant = 'pipeline', className }: StatusBadgeProps) {
   let colors = { text: "#374151", bg: "#f3f4f6", fontWeight: "500" };
 
   if (variant === 'pipeline' && pipelineColors[status]) {
     colors = { ...colors, ...pipelineColors[status] };
+  }
+
+  if (variant === 'task' && taskColors[status]) {
+    colors = { ...colors, ...taskColors[status] };
   }
 
   const formattedStatus = status.replace(/_/g, ' ').replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
