@@ -331,7 +331,7 @@ describe('submitTaskReport', () => {
   });
 });
 
-import { reviewTask } from './taskActions';
+import { reviewTask, editTask } from './taskActions';
 
 describe('reviewTask', () => {
   function submittedSeed() {
@@ -395,5 +395,38 @@ describe('reviewTask', () => {
     const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
     expect(t.status).toBe('REJECTED');
     expect(mockAuditLogs.some((a) => a.action === 'TASK_REVIEWED')).toBe(true);
+  });
+});
+
+describe('editTask', () => {
+  it('blocks non-assigner', async () => {
+    seed({ assignedById: 'usr_999', status: 'TODO' });
+    const r = await editTask(null, fd({ taskId: 'tsk_seed', title: 'New title here' }));
+    expect(r.success).toBe(false);
+  });
+
+  it('blocks once SUBMITTED', async () => {
+    seed({ assignedById: 'usr_001', status: 'SUBMITTED' });
+    const r = await editTask(null, fd({ taskId: 'tsk_seed', title: 'New title here' }));
+    expect(r.success).toBe(false);
+  });
+
+  it('updates fields and appends EDITED activity', async () => {
+    seed({ assignedById: 'usr_001', status: 'TODO' });
+    const r = await editTask(
+      null,
+      fd({
+        taskId: 'tsk_seed',
+        title: 'Refreshed task title',
+        priority: 'URGENT',
+        tags: 'Q2, Critical',
+      })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.title).toBe('Refreshed task title');
+    expect(t.priority).toBe('URGENT');
+    expect(t.tags).toEqual(['Q2', 'Critical']);
+    expect(t.activity.at(-1)!.type).toBe('EDITED');
   });
 });

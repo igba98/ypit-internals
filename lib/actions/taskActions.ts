@@ -381,6 +381,65 @@ export async function reviewTask(_prev: unknown, formData: FormData): Promise<Ac
   revalidatePath('/tasks');
   return { success: true, message: 'Review recorded.' };
 }
-export async function editTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+export async function editTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskEditSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: 'Please fix the form validation errors.',
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canEdit(task, actor.userId)) {
+    return { success: false, message: 'You cannot edit this task.' };
+  }
+
+  const changes: string[] = [];
+  if (parsed.data.title && parsed.data.title !== task.title) {
+    changes.push(`title: "${task.title}" → "${parsed.data.title}"`);
+    task.title = parsed.data.title;
+  }
+  if (parsed.data.description && parsed.data.description !== task.description) {
+    changes.push('description updated');
+    task.description = parsed.data.description;
+  }
+  if (parsed.data.priority && parsed.data.priority !== task.priority) {
+    changes.push(`priority: ${task.priority} → ${parsed.data.priority}`);
+    task.priority = parsed.data.priority;
+  }
+  if (parsed.data.dueDate) {
+    const next = new Date(parsed.data.dueDate).toISOString();
+    if (next !== task.dueDate) {
+      changes.push(`due date updated`);
+      task.dueDate = next;
+    }
+  }
+  if (parsed.data.tags !== undefined) {
+    const nextTags = parsed.data.tags.split(',').map((t) => t.trim()).filter(Boolean);
+    if (JSON.stringify(nextTags) !== JSON.stringify(task.tags)) {
+      changes.push('tags updated');
+      task.tags = nextTags;
+    }
+  }
+
+  if (changes.length === 0) {
+    return { success: true, message: 'No changes to save.' };
+  }
+
+  task.updatedAt = new Date().toISOString();
+  task.activity.push({
+    id: genActivityId('edited'),
+    type: 'EDITED',
+    at: task.updatedAt,
+    actorId: actor.userId,
+    actorName: actor.fullName,
+    note: changes.join('; '),
+  });
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Task updated.' };
 }
