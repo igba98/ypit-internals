@@ -62,10 +62,12 @@ export function CreateTaskForm({ onSuccess, currentUserId }: { onSuccess: () => 
               { label: 'Urgent!', value: 'URGENT' },
             ]}
           />
+          {state?.errors?.priority && <p className="text-red-500 text-xs">{state.errors.priority[0]}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="dueDate">Due Date *</Label>
           <DatePicker name="dueDate" required />
+          {state?.errors?.dueDate && <p className="text-red-500 text-xs">{state.errors.dueDate[0]}</p>}
         </div>
       </div>
 
