@@ -330,3 +330,70 @@ describe('submitTaskReport', () => {
     expect(t.activity.at(-1)!.attachments![0].filename).toBe('report.pdf');
   });
 });
+
+import { reviewTask } from './taskActions';
+
+describe('reviewTask', () => {
+  function submittedSeed() {
+    return seed({
+      assignedToIds: ['usr_005'],
+      assignedToNames: ['Peter Njoroge'],
+      assignedById: 'usr_001',
+      assignedByName: 'David Mwangi',
+      status: 'SUBMITTED',
+      currentRound: 1,
+    });
+  }
+
+  it('blocks non-assigner', async () => {
+    // Session is usr_001 (assigner). Set assigner to someone else so this user cannot review.
+    seed({ assignedById: 'usr_002', status: 'SUBMITTED' });
+    const r = await reviewTask(null, fd({ taskId: 'tsk_seed', decision: 'APPROVE' }));
+    expect(r.success).toBe(false);
+  });
+
+  it('blocks when status is not SUBMITTED', async () => {
+    seed({ status: 'IN_PROGRESS' });
+    const r = await reviewTask(null, fd({ taskId: 'tsk_seed', decision: 'APPROVE' }));
+    expect(r.success).toBe(false);
+  });
+
+  it('APPROVE moves SUBMITTED → COMPLETED and notifies assignee', async () => {
+    submittedSeed();
+    const r = await reviewTask(null, fd({ taskId: 'tsk_seed', decision: 'APPROVE' }));
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('COMPLETED');
+    expect(t.activity.at(-1)!.type).toBe('APPROVED');
+    expect(mockNotifications.some((n) => n.userId === 'usr_005' && n.type === 'TASK_REVIEWED')).toBe(true);
+  });
+
+  it('REQUEST_CHANGES requires a note and reopens to CHANGES_REQUESTED', async () => {
+    submittedSeed();
+    const noNote = await reviewTask(null, fd({ taskId: 'tsk_seed', decision: 'REQUEST_CHANGES' }));
+    expect(noNote.success).toBe(false);
+
+    submittedSeed();
+    const r = await reviewTask(
+      null,
+      fd({ taskId: 'tsk_seed', decision: 'REQUEST_CHANGES', note: 'Add the cost breakdown please.' })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('CHANGES_REQUESTED');
+    expect(t.activity.at(-1)!.type).toBe('CHANGES_REQUESTED');
+    expect(t.activity.at(-1)!.note).toMatch(/cost breakdown/);
+  });
+
+  it('REJECT requires a note and moves to terminal REJECTED', async () => {
+    submittedSeed();
+    const r = await reviewTask(
+      null,
+      fd({ taskId: 'tsk_seed', decision: 'REJECT', note: 'Out of scope for this quarter.' })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('REJECTED');
+    expect(mockAuditLogs.some((a) => a.action === 'TASK_REVIEWED')).toBe(true);
+  });
+});

@@ -316,8 +316,70 @@ export async function submitTaskReport(_prev: unknown, formData: FormData): Prom
   revalidatePath('/tasks');
   return { success: true, message: 'Report submitted.' };
 }
-export async function reviewTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+export async function reviewTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskReviewSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? 'Invalid input.',
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canReview(task, actor.userId)) {
+    return { success: false, message: 'You cannot review this task.' };
+  }
+
+  const now = new Date().toISOString();
+  let nextStatus: Task['status'];
+  let activityType: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+  let notifTitle: string;
+
+  switch (parsed.data.decision) {
+    case 'APPROVE':
+      nextStatus = 'COMPLETED';
+      activityType = 'APPROVED';
+      notifTitle = `Task approved: ${task.title}`;
+      break;
+    case 'REQUEST_CHANGES':
+      nextStatus = 'CHANGES_REQUESTED';
+      activityType = 'CHANGES_REQUESTED';
+      notifTitle = `Changes requested: ${task.title}`;
+      break;
+    case 'REJECT':
+      nextStatus = 'REJECTED';
+      activityType = 'REJECTED';
+      notifTitle = `Task rejected: ${task.title}`;
+      break;
+  }
+
+  task.status = nextStatus;
+  task.updatedAt = now;
+  task.activity.push({
+    id: genActivityId('review'),
+    type: activityType,
+    at: now,
+    actorId: actor.userId,
+    actorName: actor.fullName,
+    note: parsed.data.note,
+  });
+
+  pushAuditLog(actor, 'TASK_REVIEWED', `${parsed.data.decision} on "${task.title}"`, task.id);
+  task.assignedToIds.forEach((aid) =>
+    pushNotification(
+      aid,
+      notifTitle,
+      parsed.data.note ?? 'No additional notes.',
+      'TASK_REVIEWED',
+      task.id
+    )
+  );
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Review recorded.' };
 }
 export async function editTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
   return { success: false, message: 'Not implemented yet' };
