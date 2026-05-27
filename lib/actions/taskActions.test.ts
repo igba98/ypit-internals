@@ -282,6 +282,7 @@ describe('submitTaskReport', () => {
     const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
     expect(t.status).toBe('COMPLETED');
     expect(t.currentRound).toBe(1);
+    expect(mockNotifications.filter((n) => n.type === 'REPORT_SUBMITTED')).toHaveLength(0);
   });
 
   it('supports resubmission from CHANGES_REQUESTED and increments currentRound', async () => {
@@ -305,6 +306,7 @@ describe('submitTaskReport', () => {
     const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
     expect(t.status).toBe('SUBMITTED');
     expect(t.currentRound).toBe(2);
+    expect(t.activity.at(-1)!.type).toBe('SUBMITTED');
   });
 
   it('attaches deliverable files when present', async () => {
