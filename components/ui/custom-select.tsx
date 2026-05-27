@@ -17,9 +17,10 @@ interface CustomSelectProps {
   placeholder?: string;
   defaultValue?: string;
   required?: boolean;
+  onChange?: (value: string) => void;
 }
 
-export function CustomSelect({ name, options, placeholder = "Select...", defaultValue, required }: CustomSelectProps) {
+export function CustomSelect({ name, options, placeholder = "Select...", defaultValue, required, onChange }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<string | undefined>(defaultValue);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -70,6 +71,7 @@ export function CustomSelect({ name, options, placeholder = "Select...", default
                 onClick={() => {
                   setSelected(option.value);
                   setIsOpen(false);
+                  onChange?.(option.value);
                 }}
                 className={cn(
                   "relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-4 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100",

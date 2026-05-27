@@ -6,7 +6,7 @@ import { SlideInPanel } from '@/components/shared/SlideInPanel';
 import { CreateTaskForm } from './CreateTaskForm';
 import { Plus } from 'lucide-react';
 
-export function CreateTaskButton() {
+export function CreateTaskButton({ currentUserId }: { currentUserId: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -19,10 +19,10 @@ export function CreateTaskButton() {
       <SlideInPanel
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Assign New Task"
-        description="Dispatch a new actionable item to another staff member's queue."
+        title="Create Task"
+        description="Personal reminder or work for a teammate — same form, both supported."
       >
-        <CreateTaskForm onSuccess={() => setIsOpen(false)} />
+        <CreateTaskForm onSuccess={() => setIsOpen(false)} currentUserId={currentUserId} />
       </SlideInPanel>
     </>
   );
