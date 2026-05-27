@@ -70,7 +70,7 @@ export function MyDayStrip({
       {allClear && (
         <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-100 rounded-md px-3 py-2">
           <Sparkles className="w-4 h-4" />
-          You're all clear. Nice work. New tasks will surface here as they come in.
+          You&apos;re all clear. Nice work. New tasks will surface here as they come in.
         </div>
       )}
     </div>
