@@ -33,6 +33,42 @@ beforeEach(() => {
   mockAuditLogs.length = 0;
 });
 
+import { startTask, blockTask, unblockTask } from './taskActions';
+import { Task } from '@/types';
+
+function seed(t: Partial<Task> = {}): Task {
+  const task: Task = {
+    id: 'tsk_seed',
+    title: 'Seed title here',
+    description: 'A description long enough',
+    assignedToIds: ['usr_005'],
+    assignedToNames: ['Peter Njoroge'],
+    assignedById: 'usr_001',
+    assignedByName: 'David Mwangi',
+    department: 'Admissions',
+    priority: 'MEDIUM',
+    status: 'TODO',
+    dueDate: '2026-06-01T00:00:00Z',
+    createdAt: '2026-05-26T09:00:00Z',
+    updatedAt: '2026-05-26T09:00:00Z',
+    tags: [],
+    activity: [
+      {
+        id: 'act_seed_created',
+        type: 'CREATED',
+        at: '2026-05-26T09:00:00Z',
+        actorId: 'usr_001',
+        actorName: 'David Mwangi',
+      },
+    ],
+    isPersonal: false,
+    currentRound: 0,
+    ...t,
+  };
+  mockTasks.unshift(task);
+  return task;
+}
+
 describe('addTask', () => {
   it('rejects when required fields missing', async () => {
     const r = await addTask(null, fd({ title: 'too' }));
@@ -130,5 +166,56 @@ describe('addTask', () => {
       })
     );
     expect(mockTasks[0].tags).toEqual(['Finance', 'Monthly', 'Invoices']);
+  });
+});
+
+describe('startTask', () => {
+  it('blocks non-assignee', async () => {
+    seed({ assignedToIds: ['usr_002'] });
+    const r = await startTask(null, fd({ taskId: 'tsk_seed' }));
+    expect(r.success).toBe(false);
+    expect(r.message).toMatch(/not allowed|cannot/i);
+  });
+
+  it('moves TODO → IN_PROGRESS and appends STARTED activity (session = assignee)', async () => {
+    seed({ assignedToIds: ['usr_001'] });
+    const r = await startTask(null, fd({ taskId: 'tsk_seed' }));
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('IN_PROGRESS');
+    expect(t.activity.at(-1)!.type).toBe('STARTED');
+  });
+});
+
+describe('blockTask', () => {
+  it('requires a reason', async () => {
+    seed({ assignedToIds: ['usr_001'], status: 'IN_PROGRESS' });
+    const r = await blockTask(null, fd({ taskId: 'tsk_seed', reason: 'no' }));
+    expect(r.success).toBe(false);
+  });
+
+  it('moves to BLOCKED with reason and emits audit log', async () => {
+    seed({ assignedToIds: ['usr_001'], status: 'IN_PROGRESS' });
+    const r = await blockTask(
+      null,
+      fd({ taskId: 'tsk_seed', reason: 'Waiting on visa confirmation from embassy' })
+    );
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('BLOCKED');
+    expect(t.activity.at(-1)!.type).toBe('BLOCKED');
+    expect(t.activity.at(-1)!.note).toMatch(/embassy/);
+    expect(mockAuditLogs.some((a) => a.action === 'TASK_BLOCKED')).toBe(true);
+  });
+});
+
+describe('unblockTask', () => {
+  it('moves BLOCKED → IN_PROGRESS and appends UNBLOCKED activity', async () => {
+    seed({ assignedToIds: ['usr_001'], status: 'BLOCKED' });
+    const r = await unblockTask(null, fd({ taskId: 'tsk_seed' }));
+    expect(r.success).toBe(true);
+    const t = mockTasks.find((x) => x.id === 'tsk_seed')!;
+    expect(t.status).toBe('IN_PROGRESS');
+    expect(t.activity.at(-1)!.type).toBe('UNBLOCKED');
   });
 });

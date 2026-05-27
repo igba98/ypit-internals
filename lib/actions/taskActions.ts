@@ -178,16 +178,92 @@ export async function addTask(_prev: unknown, formData: FormData): Promise<Actio
   };
 }
 
-// The remaining actions get implemented in later tasks.
-// Stubs so the file typechecks:
-export async function startTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+export async function startTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskStartSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { success: false, message: 'Invalid input.' };
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canStart(task, actor.userId)) {
+    return { success: false, message: 'You cannot start this task.' };
+  }
+
+  task.status = 'IN_PROGRESS';
+  task.updatedAt = new Date().toISOString();
+  task.activity.push({
+    id: genActivityId('started'),
+    type: 'STARTED',
+    at: task.updatedAt,
+    actorId: actor.userId,
+    actorName: actor.fullName,
+  });
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Task started.' };
 }
-export async function blockTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+
+export async function blockTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskBlockSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { success: false, message: 'Block reason must be at least 3 characters.' };
+  }
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canBlock(task, actor.userId)) {
+    return { success: false, message: 'You cannot block this task.' };
+  }
+
+  task.status = 'BLOCKED';
+  task.updatedAt = new Date().toISOString();
+  task.activity.push({
+    id: genActivityId('blocked'),
+    type: 'BLOCKED',
+    at: task.updatedAt,
+    actorId: actor.userId,
+    actorName: actor.fullName,
+    note: parsed.data.reason,
+  });
+  pushAuditLog(actor, 'TASK_BLOCKED', `Blocked "${task.title}": ${parsed.data.reason}`, task.id);
+  if (!isPersonalTask(task)) {
+    pushNotification(
+      task.assignedById,
+      `Task blocked: ${task.title}`,
+      parsed.data.reason,
+      'SYSTEM_ALERT',
+      task.id
+    );
+  }
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Task blocked.' };
 }
-export async function unblockTask(_prev: unknown, _formData: FormData): Promise<ActionResult> {
-  return { success: false, message: 'Not implemented yet' };
+
+export async function unblockTask(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const parsed = taskUnblockSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { success: false, message: 'Invalid input.' };
+
+  const actor = await readSession();
+  const task = mockTasks.find((t) => t.id === parsed.data.taskId);
+  if (!task) return { success: false, message: 'Task not found.' };
+  if (!canUnblock(task, actor.userId)) {
+    return { success: false, message: 'You cannot unblock this task.' };
+  }
+
+  task.status = 'IN_PROGRESS';
+  task.updatedAt = new Date().toISOString();
+  task.activity.push({
+    id: genActivityId('unblocked'),
+    type: 'UNBLOCKED',
+    at: task.updatedAt,
+    actorId: actor.userId,
+    actorName: actor.fullName,
+  });
+
+  revalidatePath('/tasks');
+  return { success: true, message: 'Task unblocked.' };
 }
 export async function submitTaskReport(_prev: unknown, _formData: FormData): Promise<ActionResult> {
   return { success: false, message: 'Not implemented yet' };
