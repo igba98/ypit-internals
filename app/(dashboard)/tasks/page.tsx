@@ -69,7 +69,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </div>
         
         {view === 'grid' && <TaskCardGrid initialTasks={displayedTasks} />}
-        {view === 'board' && <TaskKanban initialTasks={displayedTasks} />}
+        {view === 'board' && <TaskKanban initialTasks={displayedTasks} currentUserId={session.userId} />}
         {view === 'list' && <TaskListView initialTasks={displayedTasks} />}
       </div>
     </div>
