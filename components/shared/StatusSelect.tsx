@@ -7,6 +7,7 @@ import {
   useEffect,
   useLayoutEffect,
   useCallback,
+  useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
@@ -40,6 +41,23 @@ const FALLBACK_PILL = 'bg-gray-100 text-gray-700 border border-gray-200';
 const DROPDOWN_MIN_WIDTH = 200;
 const VIEWPORT_PADDING = 8;
 
+/**
+ * Returns true once the component is mounted on the client. Used to gate the
+ * portal render so the server's HTML matches the client's first paint.
+ *
+ * `useSyncExternalStore` is the idiomatic way to express "is hydrated" — the
+ * server snapshot is `false`, the client snapshot is `true`, and React swaps
+ * them after hydration without a cascading setState (which is what Next.js
+ * 16's `react-hooks/set-state-in-effect` rule rightly flags).
+ */
+function useIsClient(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 export function StatusSelect({
   value,
   options,
@@ -55,15 +73,12 @@ export function StatusSelect({
   const router = useRouter();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [coords, setCoords] = useState<{ top: number; left: number; width: number }>({
     top: 0,
     left: 0,
     width: DROPDOWN_MIN_WIDTH,
   });
-
-  // Defer portal rendering until after hydration so SSR markup matches the client.
-  useEffect(() => setMounted(true), []);
 
   const current = options.find(o => o.value === value);
   const triggerLabel = current?.label ?? fallbackLabel ?? value;
