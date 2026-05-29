@@ -1,42 +1,96 @@
-import { getStudentById } from '@/lib/mock/mockStudents';
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, GraduationCap, Calendar, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import { PipelineStageBar } from '@/components/shared/PipelineStageBar';
+import { Avatar } from '@/components/shared/Avatar';
 import { StudentTabs } from './_components/StudentTabs';
-import { getStudentDetail } from '@/lib/studentDetail';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
-import { ADMITTED_STAGES, Session } from '@/types';
+import {
+  ADMITTED_STAGES,
+  Application,
+  Guardian,
+  Notification,
+  PaymentRecord,
+  Session,
+  StageTransition,
+  Student,
+  TravelRecord,
+} from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdvanceStageButton } from '@/components/pipeline/AdvanceStageButton';
 import { RevertStageButton } from '@/components/pipeline/RevertStageButton';
 import { StageTimeline } from '@/components/pipeline/StageTimeline';
 import { SentMessagesPanel } from '@/components/pipeline/SentMessagesPanel';
 import { GuardiansSection } from '@/components/pipeline/GuardiansSection';
-import { getTransitionsForStudent } from '@/lib/mock/mockStageTransitions';
-import { getGuardiansForStudent } from '@/lib/mock/mockGuardians';
-import { mockNotifications } from '@/lib/mock/mockNotifications';
+import { TravelChecklistCard } from '@/components/pipeline/TravelChecklistCard';
+import { ActivityEvent } from '@/lib/studentDetail';
+import { backendFetch } from '@/lib/backend';
 
-export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+interface DetailResponse extends Student {
+  guardians: Guardian[];
+  paymentRecord: PaymentRecord | null;
+  application: Application | null;
+  applications: Application[];
+  travelRecord: TravelRecord | null;
+  stageTransitions: StageTransition[];
+  notifications: Notification[];
+}
+
+export default async function StudentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ypit_session');
-
-  if (!sessionCookie) {
-    redirect('/login');
-  }
-
+  if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
+
   const { id } = await params;
-  const student = getStudentById(id);
 
-  if (!student) {
-    notFound();
+  const res = await backendFetch(`/students/${id}/detail`);
+  if (res.status === 404) notFound();
+  if (!res.ok) {
+    return (
+      <div className="space-y-4">
+        <Link href="/students" className="text-sm text-gray-500">
+          ← Back to Students
+        </Link>
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          Failed to load student (HTTP {res.status}).
+        </p>
+      </div>
+    );
   }
+  const data = (await res.json()) as DetailResponse;
 
-  const detail = getStudentDetail(student);
-  const { payment, application, travel, documents } = detail;
+  const { guardians, paymentRecord, application, travelRecord, stageTransitions, notifications } = data;
+  const student = data as Student;
+  const payment = paymentRecord;
+  const travel = travelRecord;
+
+  // Activity for the Activity Log tab is synthesised from stage transitions.
+  // Document / check-in feeds will be added when those modules ship.
+  const activity: ActivityEvent[] = stageTransitions.map((t) => ({
+    id: t.id,
+    kind: 'STAGE',
+    title: `${t.fromStage.replace(/_/g, ' ')} → ${t.toStage.replace(/_/g, ' ')}`.toLowerCase(),
+    description: t.notes ?? undefined,
+    actor: t.triggeredByName,
+    timestamp: t.createdAt,
+  }));
+
+  const detail = {
+    student,
+    payment,
+    application,
+    travel,
+    documents: [],
+    activity,
+  };
+
   const isAdmitted = ADMITTED_STAGES.includes(student.pipelineStage);
 
   return (
@@ -58,15 +112,12 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-white shadow-card overflow-hidden border-4 border-white ring-1 ring-gray-100 shrink-0">
-                  {student.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={student.avatar} alt={student.fullName} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary text-3xl font-bold bg-primary-muted">
-                      {student.fullName.charAt(0)}
-                    </div>
-                  )}
+                <div className="border-4 border-white ring-1 ring-gray-100 rounded-2xl shadow-card overflow-hidden">
+                  <Avatar
+                    name={student.fullName}
+                    size="xl"
+                    className="w-20 h-20 rounded-2xl text-3xl"
+                  />
                 </div>
                 {isAdmitted && (
                   <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center ring-2 ring-white" title="Admitted">
@@ -86,7 +137,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                 </div>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <AdvanceStageButton student={student} session={session} size="sm" />
+                  <AdvanceStageButton student={student} session={session} travel={travel} size="sm" />
                   <RevertStageButton student={student} session={session} />
                 </div>
 
@@ -149,35 +200,38 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      {/* Document count quick reference shown subtly below hero */}
-      {documents.length > 0 && (
-        <p className="text-xs text-gray-500 px-1">
-          {documents.length} document{documents.length === 1 ? '' : 's'} on file
-          {' · '}
-          {documents.filter(d => d.verified).length} verified
-        </p>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle>Guardians</CardTitle></CardHeader>
           <CardContent>
-            <GuardiansSection studentId={student.id} guardians={getGuardiansForStudent(student.id)} />
+            <GuardiansSection studentId={student.id} guardians={guardians} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle>Stage Timeline</CardTitle></CardHeader>
           <CardContent>
-            <StageTimeline transitions={getTransitionsForStudent(student.id)} />
+            <StageTimeline transitions={stageTransitions} />
           </CardContent>
         </Card>
       </div>
 
+      {/* Travel substep walkthrough — shown whenever a TravelRecord exists.
+          This is where the user clicks through passport → visa → flight → arrival,
+          and the TRAVEL_PLANNING → TRAVELLED transition won't unlock until all 4 are DONE. */}
+      {travel && (
+        <TravelChecklistCard
+          studentId={student.id}
+          studentName={student.fullName}
+          travel={travel}
+          session={session}
+        />
+      )}
+
       <Card>
         <CardHeader><CardTitle>Sent Messages (Simulated WhatsApp)</CardTitle></CardHeader>
         <CardContent>
-          <SentMessagesPanel notifications={mockNotifications.filter(n => n.entityId === student.id)} />
+          <SentMessagesPanel notifications={notifications} />
         </CardContent>
       </Card>
 

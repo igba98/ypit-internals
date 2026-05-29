@@ -49,6 +49,7 @@ export function TravelChecklistCard({ studentId, studentName, travel, session }:
             studentName={studentName}
             step={activeStep}
             currentStatus={status[activeStep]}
+            travel={travel}
             session={session}
             open={true}
             onClose={() => setActiveStep(null)}

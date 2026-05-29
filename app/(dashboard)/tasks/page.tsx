@@ -1,5 +1,4 @@
 import { PageHeader } from '@/components/shared/PageHeader';
-import { mockTasks } from '@/lib/mock/mockTasks';
 import { binFor } from '@/lib/tasks/permissions';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -12,6 +11,7 @@ import { TaskKanban } from './_components/TaskKanban';
 import { TaskListView } from './_components/TaskListView';
 import { Task } from '@/types';
 import { cn } from '@/lib/utils';
+import { backendFetch } from '@/lib/backend';
 
 type Filter =
   | 'my-tasks'
@@ -31,7 +31,11 @@ const TABS: { value: Filter; label: string }[] = [
   { value: 'personal', label: 'Personal' },
 ];
 
-function applyFilter(tasks: Task[], filter: Filter, session: { userId: string; department: string }): Task[] {
+function applyFilter(
+  tasks: Task[],
+  filter: Filter,
+  session: { userId: string; department: string },
+): Task[] {
   const now = new Date();
   switch (filter) {
     case 'my-tasks':
@@ -41,7 +45,9 @@ function applyFilter(tasks: Task[], filter: Filter, session: { userId: string; d
     case 'department':
       return tasks.filter((t) => t.department === session.department);
     case 'personal':
-      return tasks.filter((t) => t.isPersonal && t.assignedToIds.includes(session.userId));
+      return tasks.filter(
+        (t) => t.isPersonal && t.assignedToIds.includes(session.userId),
+      );
     case 'needs-submit':
     case 'awaiting-review':
     case 'due-today':
@@ -59,6 +65,29 @@ function formatToday(): string {
   });
 }
 
+/**
+ * Backend `GET /tasks` returns rows without the activity timeline (that's
+ * only included by /tasks/:id). MyDayStrip / TaskCard / etc. don't read the
+ * timeline at list level, but the frontend Task type insists it exists —
+ * stamp an empty array so the cast is safe.
+ */
+function hydrateForListView(rows: Omit<Task, 'activity'>[]): Task[] {
+  return rows.map((r) => ({ ...r, activity: [] } as Task));
+}
+
+async function fetchTasks(): Promise<{ tasks: Task[]; error: string | null }> {
+  try {
+    const res = await backendFetch('/tasks?limit=500');
+    if (!res.ok) {
+      return { tasks: [], error: `Failed to load tasks (HTTP ${res.status})` };
+    }
+    const body = (await res.json()) as { items: Omit<Task, 'activity'>[] };
+    return { tasks: hydrateForListView(body.items ?? []), error: null };
+  } catch {
+    return { tasks: [], error: 'Unable to reach the backend.' };
+  }
+}
+
 export default async function TasksPage({
   searchParams,
 }: {
@@ -72,9 +101,17 @@ export default async function TasksPage({
 
   const view = sp.view ?? 'grid';
   const filter = (sp.filter ?? 'my-tasks') as Filter;
-  const displayed = applyFilter(mockTasks, filter, session);
 
-  const isBinFilter = ['needs-submit', 'awaiting-review', 'due-today', 'overdue', 'blocked'].includes(filter);
+  const { tasks, error } = await fetchTasks();
+  const displayed = applyFilter(tasks, filter, session);
+
+  const isBinFilter = [
+    'needs-submit',
+    'awaiting-review',
+    'due-today',
+    'overdue',
+    'blocked',
+  ].includes(filter);
 
   return (
     <div className="space-y-6">
@@ -90,11 +127,17 @@ export default async function TasksPage({
       />
 
       <MyDayStrip
-        tasks={mockTasks}
+        tasks={tasks}
         userId={session.userId}
         activeFilter={isBinFilter ? filter : undefined}
         view={view}
       />
+
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
 
       <div className="bg-white rounded-xl shadow-card p-6">
         <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
@@ -108,7 +151,7 @@ export default async function TasksPage({
                   'pb-4 -mb-[17px] font-medium transition-colors',
                   filter === tab.value
                     ? 'text-primary border-b-2 border-primary'
-                    : 'text-gray-500 hover:text-gray-900'
+                    : 'text-gray-500 hover:text-gray-900',
                 )}
               >
                 {tab.label}
@@ -123,7 +166,9 @@ export default async function TasksPage({
                 scroll={false}
                 className={cn(
                   'p-2 rounded transition-colors capitalize',
-                  view === v ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-50'
+                  view === v
+                    ? 'bg-gray-100 text-gray-700'
+                    : 'text-gray-500 hover:bg-gray-50',
                 )}
               >
                 {v}
@@ -132,9 +177,15 @@ export default async function TasksPage({
           </div>
         </div>
 
-        {view === 'grid' && <TaskCardGrid initialTasks={displayed} currentUserId={session.userId} />}
-        {view === 'board' && <TaskKanban initialTasks={displayed} currentUserId={session.userId} />}
-        {view === 'list' && <TaskListView initialTasks={displayed} currentUserId={session.userId} />}
+        {view === 'grid' && (
+          <TaskCardGrid initialTasks={displayed} currentUserId={session.userId} />
+        )}
+        {view === 'board' && (
+          <TaskKanban initialTasks={displayed} currentUserId={session.userId} />
+        )}
+        {view === 'list' && (
+          <TaskListView initialTasks={displayed} currentUserId={session.userId} />
+        )}
       </div>
     </div>
   );

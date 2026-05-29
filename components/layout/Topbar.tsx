@@ -5,6 +5,7 @@ import { Bell, Search, Menu, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { clearSession } from '@/lib/auth';
 import { useState } from 'react';
+import { Avatar } from '@/components/shared/Avatar';
 
 export function Topbar() {
   const { session } = useSession();
@@ -49,13 +50,7 @@ export function Topbar() {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-2 rounded-full transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-              {session.avatar ? (
-                <img src={session.avatar} alt={session.fullName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">{session.fullName.charAt(0)}</div>
-              )}
-            </div>
+            <Avatar name={session.fullName} size="md" />
             <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>
 

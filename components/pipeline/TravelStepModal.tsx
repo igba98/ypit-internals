@@ -2,7 +2,13 @@
 
 import { useState, useTransition, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Session, StageTransitionPayload, TravelSubStep, TravelSubStepStatus } from '@/types';
+import {
+  Session,
+  StageTransitionPayload,
+  TravelRecord,
+  TravelSubStep,
+  TravelSubStepStatus,
+} from '@/types';
 import { getTravelStepDef } from '@/lib/pipeline/travelSteps';
 import { advanceTravelStep } from '@/lib/actions/pipelineActions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -16,14 +22,66 @@ interface Props {
   studentName: string;
   step: TravelSubStep;
   currentStatus: TravelSubStepStatus;
+  /** Existing record — used to pre-populate the form for edit mode. */
+  travel?: TravelRecord | null;
   session: Session;
   open: boolean;
   onClose: () => void;
 }
 
-export function TravelStepModal({ studentId, studentName, step, currentStatus, session, open, onClose }: Props) {
+/** TravelRecord stores ISO timestamps; <input type="date"> wants YYYY-MM-DD. */
+function toDateInput(v: unknown): string {
+  if (!v) return '';
+  return String(v).slice(0, 10);
+}
+
+function initialValuesForStep(
+  step: TravelSubStep,
+  travel: TravelRecord | null | undefined,
+): StageTransitionPayload {
+  if (!travel) return {};
+  switch (step) {
+    case 'passport':
+      return {
+        passportNumber: travel.passportNumber ?? '',
+        passportExpiry: toDateInput(travel.passportExpiry),
+      };
+    case 'visa':
+      return {
+        visaType: travel.visaType ?? '',
+        visaApplicationDate: toDateInput(travel.visaApplicationDate),
+        visaAppointmentDate: toDateInput(travel.visaAppointmentDate),
+        visaApprovalDate: toDateInput(travel.visaApprovalDate),
+        visaExpiryDate: toDateInput(travel.visaExpiryDate),
+      };
+    case 'flight':
+      return {
+        flightDate: toDateInput(travel.flightDate),
+        flightNumber: travel.flightNumber ?? '',
+        airline: travel.airline ?? '',
+        departureCity: travel.departureCity ?? '',
+        destinationCity: travel.destinationCity ?? '',
+        destinationAirport: travel.destinationAirport ?? '',
+      };
+    case 'arrival':
+      return {
+        // arrivalConfirmedDate isn't its own column — only captured in the
+        // transition payload. Pre-fill with today so the user doesn't have
+        // to retype it when adjusting other fields.
+        arrivalConfirmedDate: toDateInput(new Date().toISOString()),
+        airportPickupArranged: Boolean(travel.airportPickupArranged),
+        pickupContactName: travel.pickupContactName ?? '',
+        pickupContactPhone: travel.pickupContactPhone ?? '',
+        accommodationAddress: travel.accommodationAddress ?? '',
+      };
+  }
+}
+
+export function TravelStepModal({ studentId, studentName, step, currentStatus, travel, session, open, onClose }: Props) {
   const def = getTravelStepDef(step);
-  const [values, setValues] = useState<StageTransitionPayload>({});
+  const [values, setValues] = useState<StageTransitionPayload>(() =>
+    initialValuesForStep(step, travel),
+  );
   const [isPending, startTransition] = useTransition();
   const [targetStatus, setTargetStatus] = useState<TravelSubStepStatus>(currentStatus === 'NOT_STARTED' ? 'IN_PROGRESS' : 'DONE');
 

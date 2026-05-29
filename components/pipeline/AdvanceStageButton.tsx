@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Student, Session } from '@/types';
+import { Student, Session, TravelRecord } from '@/types';
 import { getTransition } from '@/lib/pipeline/transitions';
 import { canAdvance } from '@/lib/pipeline/permissions';
 import { allTravelStepsDone } from '@/lib/pipeline/travelSteps';
-import { mockTravelRecords } from '@/lib/mock/mockTravel';
 import { AdvanceStageModal } from './AdvanceStageModal';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Lock } from 'lucide-react';
@@ -13,10 +12,12 @@ import { ChevronRight, Lock } from 'lucide-react';
 interface Props {
   student: Student;
   session: Session;
+  /** Travel record for this student, used to check the TRAVEL_PLANNING → TRAVELLED gate. */
+  travel?: TravelRecord | null;
   size?: 'sm' | 'default';
 }
 
-export function AdvanceStageButton({ student, session, size = 'default' }: Props) {
+export function AdvanceStageButton({ student, session, travel, size = 'default' }: Props) {
   const [open, setOpen] = useState(false);
   const transition = getTransition(student.pipelineStage);
 
@@ -28,8 +29,7 @@ export function AdvanceStageButton({ student, session, size = 'default' }: Props
 
   let gatedReason: string | null = null;
   if (transition.to === 'TRAVELLED') {
-    const trv = mockTravelRecords.find(t => t.studentId === student.id);
-    if (!trv || !allTravelStepsDone(trv.travelStepStatus)) {
+    if (!travel || !travel.travelStepStatus || !allTravelStepsDone(travel.travelStepStatus)) {
       gatedReason = 'Complete all 4 travel sub-steps first';
     }
   }

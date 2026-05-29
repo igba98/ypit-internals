@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { RoleBadge } from '@/components/shared/RoleBadge';
+import { Avatar } from '@/components/shared/Avatar';
 import { clearSession } from '@/lib/auth';
 import {
   LayoutDashboard,
@@ -91,13 +92,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
       <div className="p-4 border-b border-gray-800">
         <div className={cn("flex items-center gap-3", collapsed ? "justify-center" : "")}>
-          <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden shrink-0">
-            {session.avatar ? (
-              <img src={session.avatar} alt={session.fullName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">{session.fullName.charAt(0)}</div>
-            )}
-          </div>
+          <Avatar name={session.fullName} size="lg" className="w-10 h-10" />
           {!collapsed && (
             <div className="flex flex-col overflow-hidden">
               <span className="text-sm font-medium truncate">{session.fullName}</span>

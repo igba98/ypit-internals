@@ -108,12 +108,14 @@ export interface Student {
   pipelineStage: PipelineStage;
   leadSource: LeadSource;
   assignedAgentId?: string;
-  assignedAgentName?: string;
+  assignedAgentName?: string | null;
   marketingStaffId?: string;
+  marketingStaffName?: string | null;
   createdAt: string;
   updatedAt: string;
   notes?: string;
   stageOwnerId?: string;
+  stageOwnerName?: string | null;
   stageEnteredAt?: string;
 }
 

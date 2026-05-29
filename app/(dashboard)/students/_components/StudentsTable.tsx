@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { useState, useMemo } from 'react';
+import { Avatar } from '@/components/shared/Avatar';
 import { Student, ROLES, Role } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -9,7 +9,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
 import { Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { mockUsers } from '@/lib/mock/mockUsers';
 import { getStageOwners } from '@/lib/pipeline/stageOwnership';
 
 interface StudentsTableProps {
@@ -34,15 +33,7 @@ export function StudentsTable({ data }: StudentsTableProps) {
         const student = row.original;
         return (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
-              {student.avatar ? (
-                <Image src={student.avatar} alt={student.fullName} width={32} height={32} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm font-medium">
-                  {student.fullName.charAt(0)}
-                </div>
-              )}
-            </div>
+            <Avatar name={student.fullName} size="md" />
             <div className="flex flex-col">
               <span className="font-medium text-gray-900">{student.fullName}</span>
               <span className="text-xs text-gray-500">{student.registrationNumber}</span>
@@ -79,8 +70,7 @@ export function StudentsTable({ data }: StudentsTableProps) {
       cell: ({ row }) => {
         const s = row.original;
         if (!s.stageOwnerId) return <span className="text-gray-400 text-sm">Unassigned</span>;
-        const u = mockUsers.find(u => u.id === s.stageOwnerId);
-        return <span className="text-sm text-gray-700">{u?.fullName ?? 'Unknown'}</span>;
+        return <span className="text-sm text-gray-700">{s.stageOwnerName ?? 'Unknown'}</span>;
       },
     },
     {

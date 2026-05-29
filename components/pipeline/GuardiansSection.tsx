@@ -32,7 +32,7 @@ export function GuardiansSection({ studentId, guardians }: Props) {
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      const result = await deleteGuardian(id);
+      const result = await deleteGuardian(studentId, id);
       if (result.success) toast.success(result.message);
       else toast.error(result.message);
     });
@@ -40,7 +40,7 @@ export function GuardiansSection({ studentId, guardians }: Props) {
 
   function handleMakePrimary(id: string) {
     startTransition(async () => {
-      const result = await setPrimaryGuardian(id);
+      const result = await setPrimaryGuardian(studentId, id);
       if (result.success) toast.success(result.message);
       else toast.error(result.message);
     });

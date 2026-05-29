@@ -1,68 +1,90 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
-import { ActionResult, Guardian } from '@/types';
-import { mockGuardians } from '@/lib/mock/mockGuardians';
-import { guardianSchema } from '@/lib/validations/guardian';
+import { ActionResult } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-function coerceIsPrimary(v: unknown): boolean {
+function coerceBool(v: unknown): boolean {
   return v === true || v === 'on' || v === 'true';
 }
 
-export async function addGuardian(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const data = Object.fromEntries(formData.entries());
-  const parsed = guardianSchema.safeParse(data);
-  if (!parsed.success) {
-    return { success: false, message: 'Please fix the errors.', errors: z.flattenError(parsed.error).fieldErrors };
-  }
-  const isPrimary = coerceIsPrimary(parsed.data.isPrimary);
-
-  if (isPrimary) {
-    for (const g of mockGuardians) {
-      if (g.studentId === parsed.data.studentId) g.isPrimary = false;
-    }
-  }
-
-  const forcedPrimary = isPrimary || !mockGuardians.some(g => g.studentId === parsed.data.studentId);
-
-  const guardian: Guardian = {
-    id: `gdn_${Math.random().toString(36).slice(2, 11)}`,
-    studentId: parsed.data.studentId,
-    fullName: parsed.data.fullName,
-    relation: parsed.data.relation,
-    phone: parsed.data.phone,
-    whatsapp: parsed.data.whatsapp || undefined,
-    email: parsed.data.email || undefined,
-    isPrimary: forcedPrimary,
-    createdAt: new Date().toISOString(),
+async function readError(res: Response): Promise<{
+  message: string;
+  errors?: Record<string, string[]>;
+}> {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
   };
-  mockGuardians.unshift(guardian);
+}
 
-  revalidatePath(`/students/${parsed.data.studentId}`);
+export async function addGuardian(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const studentId = formData.get('studentId');
+  if (typeof studentId !== 'string' || !studentId) {
+    return { success: false, message: 'Missing studentId.' };
+  }
+
+  const body: Record<string, unknown> = {};
+  for (const [k, v] of formData.entries()) {
+    if (k === 'studentId') continue;
+    if (typeof v === 'string' && v !== '') body[k] = v;
+  }
+  if ('isPrimary' in body) body.isPrimary = coerceBool(body.isPrimary);
+
+  const res = await backendFetch(`/students/${studentId}/guardians`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await readError(res);
+    return { success: false, ...err };
+  }
+
+  revalidatePath(`/students/${studentId}`);
   return { success: true, message: 'Guardian added.' };
 }
 
-export async function deleteGuardian(guardianId: string): Promise<ActionResult> {
-  const idx = mockGuardians.findIndex(g => g.id === guardianId);
-  if (idx === -1) return { success: false, message: 'Guardian not found.' };
-  const [removed] = mockGuardians.splice(idx, 1);
-
-  if (removed.isPrimary) {
-    const next = mockGuardians.find(g => g.studentId === removed.studentId);
-    if (next) next.isPrimary = true;
+export async function deleteGuardian(
+  studentId: string,
+  guardianId: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(
+    `/students/${studentId}/guardians/${guardianId}`,
+    { method: 'DELETE' },
+  );
+  if (!res.ok) {
+    const err = await readError(res);
+    return { success: false, ...err };
   }
-
-  revalidatePath(`/students/${removed.studentId}`);
+  revalidatePath(`/students/${studentId}`);
   return { success: true, message: 'Guardian removed.' };
 }
 
-export async function setPrimaryGuardian(guardianId: string): Promise<ActionResult> {
-  const target = mockGuardians.find(g => g.id === guardianId);
-  if (!target) return { success: false, message: 'Guardian not found.' };
-  for (const g of mockGuardians) {
-    if (g.studentId === target.studentId) g.isPrimary = g.id === guardianId;
+export async function setPrimaryGuardian(
+  studentId: string,
+  guardianId: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(
+    `/students/${studentId}/guardians/${guardianId}/primary`,
+    { method: 'PATCH' },
+  );
+  if (!res.ok) {
+    const err = await readError(res);
+    return { success: false, ...err };
   }
-  revalidatePath(`/students/${target.studentId}`);
-  return { success: true, message: `${target.fullName} is now the primary contact.` };
+  const body = (await res.json().catch(() => null)) as {
+    fullName?: string;
+  } | null;
+  revalidatePath(`/students/${studentId}`);
+  return {
+    success: true,
+    message: `${body?.fullName ?? 'Guardian'} is now the primary contact.`,
+  };
 }
