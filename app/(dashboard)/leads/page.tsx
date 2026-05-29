@@ -215,7 +215,7 @@ export default async function LeadsPage() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar name={lead.fullName} userId={lead.id} size={40} />
+                      <Avatar name={lead.fullName} size="lg" />
                       <div>
                         <p className="font-medium text-gray-900">{lead.fullName}</p>
                         <p className="text-xs text-gray-500">{lead.email}</p>
