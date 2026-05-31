@@ -129,7 +129,7 @@ export default async function PettyCashPage() {
             <p className="text-4xl md:text-5xl font-bold mt-2">{formatCurrency(balance, { compact: true })}</p>
             {lowBalance ? (
               <p className="mt-2 inline-flex items-center gap-1.5 text-sm bg-red-500/30 border border-red-300/40 px-3 py-1 rounded-full">
-                <AlertTriangle className="w-3.5 h-3.5" /> Below safe threshold — replenish soon
+                <AlertTriangle className="w-3.5 h-3.5" /> Below safe threshold - replenish soon
               </p>
             ) : (
               <p className="text-xs text-white/70 mt-2">Healthy float · safe threshold {formatCurrency(100000)}</p>
@@ -248,10 +248,10 @@ export default async function PettyCashPage() {
                           {CATEGORY_LABEL[tx.category]}
                         </span>
                       ) : (
-                        <span className="text-gray-300">—</span>
+                        <span className="text-gray-300">-</span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-gray-700">{tx.recipient ?? <span className="text-gray-300">—</span>}</td>
+                    <td className="px-5 py-3.5 text-gray-700">{tx.recipient ?? <span className="text-gray-300">-</span>}</td>
                     <td className={`px-5 py-3.5 text-right font-bold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
                       {isExpense ? '−' : '+'}{formatCurrency(tx.amount, { currency: tx.currency })}
                     </td>

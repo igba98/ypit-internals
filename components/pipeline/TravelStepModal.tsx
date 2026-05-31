@@ -22,7 +22,7 @@ interface Props {
   studentName: string;
   step: TravelSubStep;
   currentStatus: TravelSubStepStatus;
-  /** Existing record — used to pre-populate the form for edit mode. */
+  /** Existing record - used to pre-populate the form for edit mode. */
   travel?: TravelRecord | null;
   session: Session;
   open: boolean;
@@ -65,7 +65,7 @@ function initialValuesForStep(
       };
     case 'arrival':
       return {
-        // arrivalConfirmedDate isn't its own column — only captured in the
+        // arrivalConfirmedDate isn't its own column - only captured in the
         // transition payload. Pre-fill with today so the user doesn't have
         // to retype it when adjusting other fields.
         arrivalConfirmedDate: toDateInput(new Date().toISOString()),

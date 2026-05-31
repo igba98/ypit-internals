@@ -38,7 +38,7 @@ const STATUS_META: Record<Application['status'], { label: string; bg: string; te
 const STAGES = ['PREPARING', 'SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED'] as const;
 
 function StageTrack({ current }: { current: Application['status'] }) {
-  // Special handling for rejected/waitlisted — show their own segment.
+  // Special handling for rejected/waitlisted - show their own segment.
   const currentIdx = STAGES.includes(current as typeof STAGES[number])
     ? STAGES.indexOf(current as typeof STAGES[number])
     : current === 'REJECTED' || current === 'WAITLISTED' || current === 'DEFERRED'
@@ -133,7 +133,7 @@ export function ApplicationTab({ application, userRole }: ApplicationTabProps) {
         </div>
         <div className="rounded-lg border border-gray-100 p-4">
           <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">Submitted</p>
-          <p className="text-sm font-semibold text-gray-900 mt-1">{application.submissionDate ? formatDate(application.submissionDate) : '—'}</p>
+          <p className="text-sm font-semibold text-gray-900 mt-1">{application.submissionDate ? formatDate(application.submissionDate) : '-'}</p>
         </div>
         <div className="rounded-lg border border-gray-100 p-4">
           <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">Decision</p>

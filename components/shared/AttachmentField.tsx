@@ -31,7 +31,7 @@ function formatSize(bytes: number) {
 }
 
 interface Props {
-  /** name prefix for hidden inputs — produces `${name}Url`, `${name}Filename`, `${name}ContentType` */
+  /** name prefix for hidden inputs - produces `${name}Url`, `${name}Filename`, `${name}ContentType` */
   name?: string;
   label?: string;
 }
@@ -56,7 +56,7 @@ export function AttachmentField({ name = 'receipt', label = 'Receipt / proof of 
 
   const handleFile = async (file: File) => {
     if (file.size > MAX_BYTES) {
-      toast.error(`File too large — max ${formatSize(MAX_BYTES)}. Compress and try again.`);
+      toast.error(`File too large - max ${formatSize(MAX_BYTES)}. Compress and try again.`);
       reset();
       return;
     }

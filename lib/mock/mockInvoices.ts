@@ -6,7 +6,7 @@ export const mockInvoices: Invoice[] = [
     recipientType: 'STUDENT',
     recipientId: 'std_003',
     recipientName: 'Ali Hassan',
-    description: 'Agency Fee — University of Sydney application',
+    description: 'Agency Fee - University of Sydney application',
     lineItems: [
       { description: 'Agency Fee', quantity: 1, unitPrice: 1000000, total: 1000000 },
     ],
@@ -30,7 +30,7 @@ export const mockInvoices: Invoice[] = [
     recipientType: 'STUDENT',
     recipientId: 'std_006',
     recipientName: 'Sarah Connor',
-    description: 'Tuition deposit — University of Melbourne (50%)',
+    description: 'Tuition deposit - University of Melbourne (50%)',
     lineItems: [
       { description: 'Tuition Deposit (50%)', quantity: 1, unitPrice: 12500000, total: 12500000 },
     ],
@@ -52,9 +52,9 @@ export const mockInvoices: Invoice[] = [
     id: 'INV-2026-0003',
     recipientType: 'VENDOR',
     recipientName: 'Cloud Office Park (Landlord)',
-    description: 'Office rent — March 2026',
+    description: 'Office rent - March 2026',
     lineItems: [
-      { description: 'Office Rent — March 2026', quantity: 1, unitPrice: 4500000, total: 4500000 },
+      { description: 'Office Rent - March 2026', quantity: 1, unitPrice: 4500000, total: 4500000 },
     ],
     subtotal: 4500000,
     tax: 810000,
@@ -75,7 +75,7 @@ export const mockInvoices: Invoice[] = [
     recipientType: 'STUDENT',
     recipientId: 'std_005',
     recipientName: 'Michael Johnson',
-    description: 'Agency Fee — University of Toronto application',
+    description: 'Agency Fee - University of Toronto application',
     lineItems: [
       { description: 'Agency Fee', quantity: 1, unitPrice: 1200000, total: 1200000 },
       { description: 'Document handling', quantity: 1, unitPrice: 100000, total: 100000 },
@@ -97,7 +97,7 @@ export const mockInvoices: Invoice[] = [
     id: 'INV-2026-0005',
     recipientType: 'VENDOR',
     recipientName: 'Tigo Tanzania (Telco)',
-    description: 'Internet + phone — March 2026',
+    description: 'Internet + phone - March 2026',
     lineItems: [
       { description: 'Fibre internet (50Mbps)', quantity: 1, unitPrice: 350000, total: 350000 },
       { description: 'Office phone lines', quantity: 4, unitPrice: 25000, total: 100000 },
@@ -119,7 +119,7 @@ export const mockInvoices: Invoice[] = [
     recipientType: 'STUDENT',
     recipientId: 'std_010',
     recipientName: 'Aisha Mwale',
-    description: 'Application Fee — University of Birmingham',
+    description: 'Application Fee - University of Birmingham',
     lineItems: [
       { description: 'Application Fee', quantity: 1, unitPrice: 700000, total: 700000 },
     ],
@@ -141,7 +141,7 @@ export const mockInvoices: Invoice[] = [
     id: 'INV-2026-0007',
     recipientType: 'VENDOR',
     recipientName: 'Brilliant Cleaning Services',
-    description: 'Office cleaning — March 2026',
+    description: 'Office cleaning - March 2026',
     lineItems: [
       { description: 'Weekly office cleaning (4 visits)', quantity: 4, unitPrice: 75000, total: 300000 },
     ],

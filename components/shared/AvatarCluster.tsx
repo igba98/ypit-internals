@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Avatar } from './Avatar';
 
 interface AvatarClusterProps {
-  // `avatar` is kept in the type for backwards compatibility but is ignored —
+  // `avatar` is kept in the type for backwards compatibility but is ignored -
   // we always render initials now.
   users: Array<{ name: string; avatar?: string }>;
   max?: number;

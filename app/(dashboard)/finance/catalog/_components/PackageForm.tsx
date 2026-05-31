@@ -78,7 +78,7 @@ export function PackageForm({ mode, universityId, pkg, studentCount = 0, onClose
           <form action={submit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" name="name" defaultValue={pkg?.name} placeholder="Bachelor — Business Management" />
+              <Input id="name" name="name" defaultValue={pkg?.name} placeholder="Bachelor - Business Management" />
               {errors?.name && <p className="text-red-500 text-xs">{errors.name[0]}</p>}
             </div>
 

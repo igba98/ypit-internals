@@ -1,4 +1,4 @@
-# Finance Phase 1 — Fee Structures & Packages Implementation Plan
+# Finance Phase 1 - Fee Structures & Packages Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -10,7 +10,7 @@
 
 **Tech Stack:** Next.js 15 (App Router) · React 19 · TypeScript · Tailwind · zod · react-hook-form · sonner toasts · lucide-react icons · existing mock-data layer (in-memory arrays in `lib/mock/`)
 
-**TDD note:** This codebase has no unit-test runner. The TDD signal here is `npm run typecheck` — write the consumer first (so typecheck fails with a specific "X does not exist" error), then implement the producer to make typecheck pass. Commands shown use `npm`; use `yarn` if `yarn.lock` is the only lockfile present.
+**TDD note:** This codebase has no unit-test runner. The TDD signal here is `npm run typecheck` - write the consumer first (so typecheck fails with a specific "X does not exist" error), then implement the producer to make typecheck pass. Commands shown use `npm`; use `yarn` if `yarn.lock` is the only lockfile present.
 
 ---
 
@@ -74,7 +74,7 @@ lib/actions/paymentActions.ts        (renamed to feeLineActions.ts in Task 6, co
 **Files:**
 - Modify: `types/index.ts` (append below the existing FINANCE MODULE section)
 
-- [ ] **Step 1: Snapshot baseline — typecheck must currently pass**
+- [ ] **Step 1: Snapshot baseline - typecheck must currently pass**
 
 Run: `npm run typecheck`
 Expected: exits 0 with no errors.
@@ -87,7 +87,7 @@ Add this block at the end of [types/index.ts](types/index.ts):
 
 ```ts
 // ============================================================
-// FINANCE PHASE 1 — Catalog & per-student fee ledger
+// FINANCE PHASE 1 - Catalog & per-student fee ledger
 // ============================================================
 
 export type Currency = 'TZS' | 'USD' | 'GBP' | 'EUR';
@@ -183,7 +183,7 @@ DO NOT remove `PaymentRecord`, `PaymentStatus`, or any other existing type in th
 - [ ] **Step 3: Typecheck**
 
 Run: `npm run typecheck`
-Expected: exits 0. Pure additions — no consumer is affected yet.
+Expected: exits 0. Pure additions - no consumer is affected yet.
 
 - [ ] **Step 4: Commit**
 
@@ -333,7 +333,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_bachelor_business',
     universityId: 'uni_coventry_london',
-    name: 'Bachelor — Business Management',
+    name: 'Bachelor - Business Management',
     studyLevel: 'BACHELOR',
     program: 'Business Management',
     description: '3-year undergraduate program in London.',
@@ -351,7 +351,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_bachelor_cs',
     universityId: 'uni_coventry_london',
-    name: 'Bachelor — Computer Science',
+    name: 'Bachelor - Computer Science',
     studyLevel: 'BACHELOR',
     program: 'Computer Science',
     status: 'ACTIVE',
@@ -368,7 +368,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_masters_mba',
     universityId: 'uni_coventry_london',
-    name: 'Masters — MBA',
+    name: 'Masters - MBA',
     studyLevel: 'MASTERS',
     program: 'Master of Business Administration',
     status: 'ACTIVE',
@@ -384,7 +384,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_pharma',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Pharmacology',
+    name: 'Foundation - Pharmacology',
     studyLevel: 'FOUNDATION',
     program: 'Pharmacology',
     status: 'ACTIVE',
@@ -401,7 +401,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_mech',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Mechanical Engineering',
+    name: 'Foundation - Mechanical Engineering',
     studyLevel: 'FOUNDATION',
     program: 'Mechanical Engineering',
     status: 'ACTIVE',
@@ -418,7 +418,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_compeng',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Computer Engineering',
+    name: 'Foundation - Computer Engineering',
     studyLevel: 'FOUNDATION',
     program: 'Computer Engineering',
     status: 'ACTIVE',
@@ -465,7 +465,7 @@ git commit -m "feat(finance): seed mock packages with multi-currency fee default
 - Create: `lib/mock/mockFeeLedgers.ts`
 - Create (temporary, deleted at end of task): `scripts/generate-fee-ledgers.ts`
 
-**Important:** Do NOT delete `lib/mock/mockPayments.ts` yet — that happens in the final cleanup task (Task 21). We keep both files temporarily so the codebase keeps compiling while we migrate consumers one at a time.
+**Important:** Do NOT delete `lib/mock/mockPayments.ts` yet - that happens in the final cleanup task (Task 21). We keep both files temporarily so the codebase keeps compiling while we migrate consumers one at a time.
 
 - [ ] **Step 1: Read the existing `mockPayments.ts`**
 
@@ -565,7 +565,7 @@ export const mockFeeLedgers: StudentFeeLedger[] = [
 
   // ---- Fresh ledger 1: brand new enrollment via the Coventry Business package ----
   {
-    studentId: 'std_001', // existing first student — link them to the package
+    studentId: 'std_001', // existing first student - link them to the package
     packageId: 'pkg_coventry_bachelor_business',
     currencyDisplay: 'TZS',
     createdAt: '2026-04-10T09:00:00Z',
@@ -601,11 +601,11 @@ export const mockFeeLedgers: StudentFeeLedger[] = [
     lines: [
       { id: 'fl_pkg_003_app',     type: 'APPLICATION', label: 'Application Fee', amount: 500,       currency: 'USD', dueDate: '2026-04-01T08:00:00Z', paidAmount: 500, status: 'PAID',   sourceFeeDefaultIndex: 0 },
       { id: 'fl_pkg_003_agency',  type: 'AGENCY',      label: 'Agency Fee',      amount: 1_200_000, currency: 'TZS', dueDate: '2026-05-01T08:00:00Z', paidAmount: 0,   status: 'UNPAID', sourceFeeDefaultIndex: 1 },
-      // overridden — scholarship 10%
+      // overridden - scholarship 10%
       {
         id: 'fl_pkg_003_tuition', type: 'TUITION', label: 'Tuition', amount: 11_700, currency: 'GBP',
         dueDate: '2026-09-01T00:00:00Z', paidAmount: 0, status: 'UNPAID', sourceFeeDefaultIndex: 2,
-        overrideReason: '10% scholarship — academic merit',
+        overrideReason: '10% scholarship - academic merit',
         overriddenById: 'usr_004',
         overriddenByName: 'Esther (Finance)',
         overriddenAt: '2026-04-15T10:00:00Z',
@@ -623,7 +623,7 @@ export function getFeeLedgerForStudent(studentId: string): StudentFeeLedger | un
 
 - [ ] **Step 3: Write the one-off generator script**
 
-Create a TEMPORARY script that reads `mockPayments.ts` at runtime and prints the migrated ledger array. It SKIPS 3 specific records (`pay_005`, `pay_006`, `pay_007` — students `std_005`, `std_001`, `std_002` — which have no payment history yet and will get fresh package-driven ledgers instead). This will be run once, its output pasted into `mockFeeLedgers.ts`, then deleted.
+Create a TEMPORARY script that reads `mockPayments.ts` at runtime and prints the migrated ledger array. It SKIPS 3 specific records (`pay_005`, `pay_006`, `pay_007` - students `std_005`, `std_001`, `std_002` - which have no payment history yet and will get fresh package-driven ledgers instead). This will be run once, its output pasted into `mockFeeLedgers.ts`, then deleted.
 
 Create `scripts/generate-fee-ledgers.ts`:
 
@@ -631,7 +631,7 @@ Create `scripts/generate-fee-ledgers.ts`:
 import { mockPayments } from '../lib/mock/mockPayments';
 import { StudentFeeLedger, FeeLine, FeeType } from '../types';
 
-// Students that will receive fresh package-driven ledgers — skip in migration.
+// Students that will receive fresh package-driven ledgers - skip in migration.
 const SKIP_STUDENT_IDS = new Set(['std_001', 'std_002', 'std_005']);
 
 const ADD_DAYS = (iso: string | undefined, days: number): string => {
@@ -724,7 +724,7 @@ Run: `grep -c '"studentId"' lib/mock/mockFeeLedgers.ts`
 Expected: `15` (12 migrated + 3 fresh).
 
 Run: `grep -c 'packageId:' lib/mock/mockFeeLedgers.ts`
-Expected: at least `15` (every entry has a packageId field — 12 undefined, 3 with a value).
+Expected: at least `15` (every entry has a packageId field - 12 undefined, 3 with a value).
 
 - [ ] **Step 9: Commit**
 
@@ -997,7 +997,7 @@ export async function setUniversityStatus(id: string, status: CatalogStatus): Pr
     if (activePackages.length > 0) {
       return {
         success: false,
-        message: `Cannot archive — ${activePackages.length} active package(s) exist. Archive packages first.`,
+        message: `Cannot archive - ${activePackages.length} active package(s) exist. Archive packages first.`,
       };
     }
   }
@@ -1264,7 +1264,7 @@ export async function overrideFeeLine(_prev: unknown, formData: FormData): Promi
   line.overriddenByName = 'Finance';
   line.overriddenAt = new Date().toISOString();
   ledger.updatedAt = new Date().toISOString();
-  logFeeLedger('UPDATE', `Fee line overridden — reason: ${reason}`, studentId, before, JSON.stringify(line));
+  logFeeLedger('UPDATE', `Fee line overridden - reason: ${reason}`, studentId, before, JSON.stringify(line));
 
   revalidatePath('/payments');
   revalidatePath(`/students/${studentId}`);
@@ -1563,7 +1563,7 @@ export function DuplicatePackageButton({ id }: { id: string }) {
 }
 ```
 
-- [ ] **Step 4: Typecheck (will fail on UniversityForm + PackageList — that's expected; next task creates them)**
+- [ ] **Step 4: Typecheck (will fail on UniversityForm + PackageList - that's expected; next task creates them)**
 
 Run: `npm run typecheck`
 Expected: errors mentioning `UniversityForm` and `PackageList` cannot be found. These are produced in Tasks 11 and 12 below.
@@ -1682,7 +1682,7 @@ Expected: errors mentioning `PackageList`.
 
 ## Task 12: PackageList + PackageForm + FeeDefaultsEditor + PackageEditConfirmDialog
 
-**Goal:** The right pane of the catalog page — list packages for selected university, with create/edit flows.
+**Goal:** The right pane of the catalog page - list packages for selected university, with create/edit flows.
 
 **Files:**
 - Create: `app/(dashboard)/finance/catalog/_components/PackageList.tsx`
@@ -1959,7 +1959,7 @@ export function PackageForm({ mode, universityId, pkg, studentCount = 0, onClose
           >
             <div className="space-y-1.5">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" name="name" defaultValue={pkg?.name} placeholder="Bachelor — Business Management" />
+              <Input id="name" name="name" defaultValue={pkg?.name} placeholder="Bachelor - Business Management" />
               {errors?.name && <p className="text-red-500 text-xs">{errors.name[0]}</p>}
             </div>
 
@@ -2198,7 +2198,7 @@ export default async function PackageDetailPage({ params }: Props) {
             {pkg.feeDefaults.map((d, i) => (
               <tr key={i}>
                 <td className="px-2 py-2.5 font-semibold text-gray-900">{d.type}</td>
-                <td className="px-2 py-2.5 text-gray-700">{d.label ?? '—'}</td>
+                <td className="px-2 py-2.5 text-gray-700">{d.label ?? '-'}</td>
                 <td className="px-2 py-2.5 text-right font-bold text-gray-900">{formatCurrency(d.amount, { currency: d.currency })}</td>
                 <td className="px-2 py-2.5 text-gray-700">
                   {d.dueRule.kind === 'ON_ENROLLMENT' && 'On enrollment'}
@@ -2247,7 +2247,7 @@ git commit -m "feat(finance): add package detail page"
 
 ---
 
-## Task 14: AddStudentForm — package picker
+## Task 14: AddStudentForm - package picker
 
 **Goal:** Marketing can pick a package while enrolling a student; the form previews fee defaults below.
 
@@ -2323,7 +2323,7 @@ Find the existing "Target Information" section heading (search for `target` in t
         setSelectedPackageId('');
       }}
     >
-      <option value="">— Don't link to a package —</option>
+      <option value="">- Don't link to a package -</option>
       {activeUniversities.map(u => (
         <option key={u.id} value={u.id}>{u.name}</option>
       ))}
@@ -2338,7 +2338,7 @@ Find the existing "Target Information" section heading (search for `target` in t
       onChange={e => setSelectedPackageId(e.target.value)}
       disabled={!selectedUniId}
     >
-      <option value="">— Select package —</option>
+      <option value="">- Select package -</option>
       {packagesForUni.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -2413,7 +2413,7 @@ export interface StudentDetail {
 Replace the `buildActivity` Payments block (lines ~102–144 in the original):
 
 ```ts
-  // Payments — synthesized from concrete FeeLines
+  // Payments - synthesized from concrete FeeLines
   if (ledger) {
     for (const line of ledger.lines) {
       if (line.paidAmount > 0) {
@@ -2557,7 +2557,7 @@ function FeeLineRow({
             <p className="text-sm font-semibold text-gray-900">{line.label}</p>
             {isOverridden && (
               <span
-                title={`${line.overrideReason} — by ${line.overriddenByName ?? 'Finance'} on ${line.overriddenAt ? formatDate(line.overriddenAt) : 'unknown date'}`}
+                title={`${line.overrideReason} - by ${line.overriddenByName ?? 'Finance'} on ${line.overriddenAt ? formatDate(line.overriddenAt) : 'unknown date'}`}
                 className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded"
               >
                 <AlertTriangle className="w-3 h-3" /> Adjusted
@@ -2622,7 +2622,7 @@ Expected: error on `FEE_LINE_STATUS_OPTIONS` import. That's expected; next task 
 
 ---
 
-## Task 16: statusOptions — add FEE_LINE_STATUS_OPTIONS, remove PAYMENT_STATUS_OPTIONS
+## Task 16: statusOptions - add FEE_LINE_STATUS_OPTIONS, remove PAYMENT_STATUS_OPTIONS
 
 **Goal:** Status pill options for `FeeLineStatus`, and remove the now-unused `PAYMENT_STATUS_OPTIONS`.
 
@@ -2661,7 +2661,7 @@ git commit -m "feat(finance): render student fee ledger as line-based PaymentsTa
 
 ## Task 16b: FeeLine override dialog + row action
 
-**Goal:** Spec Flow C — Finance opens student detail → Payments tab → clicks ⋯ on an open fee row → fills in amount/currency/dueDate/reason → save.
+**Goal:** Spec Flow C - Finance opens student detail → Payments tab → clicks ⋯ on an open fee row → fills in amount/currency/dueDate/reason → save.
 
 **Files:**
 - Create: `app/(dashboard)/students/[id]/_components/FeeLineOverrideDialog.tsx`
@@ -2716,7 +2716,7 @@ export function FeeLineOverrideDialog({ studentId, line, onClose }: Props) {
     <Dialog open onOpenChange={o => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Override fee line — {line.label}</DialogTitle>
+          <DialogTitle>Override fee line - {line.label}</DialogTitle>
         </DialogHeader>
         <form action={formAction} className="space-y-3 pt-2">
           <input type="hidden" name="studentId" value={studentId} />
@@ -2744,7 +2744,7 @@ export function FeeLineOverrideDialog({ studentId, line, onClose }: Props) {
 
           <div className="space-y-1.5">
             <Label htmlFor="reason">Reason *</Label>
-            <Textarea id="reason" name="reason" placeholder="e.g. 10% scholarship — academic merit" />
+            <Textarea id="reason" name="reason" placeholder="e.g. 10% scholarship - academic merit" />
             {state?.errors?.reason && <p className="text-red-500 text-xs">{state.errors.reason[0]}</p>}
           </div>
 
@@ -2894,7 +2894,7 @@ export default async function PaymentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Student Payments"
-        description="Per-fee ledger across all students. Phase 1: tracking only — Phase 2 adds receiving."
+        description="Per-fee ledger across all students. Phase 1: tracking only - Phase 2 adds receiving."
         actions={['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role) && <RecordPaymentButton />}
       />
 
@@ -3050,7 +3050,7 @@ export default async function FeeLedgerDetailPage({ params }: { params: Promise<
 Run: `npm run typecheck`
 Expected: exits 0 (PaymentsTab, payments/page, payments/[id] are all clean now).
 
-There may still be errors from `RecordPaymentForm` (uses old `recordPayment` action) and `genericActions.ts` (mentions `payments` collection) — those are next.
+There may still be errors from `RecordPaymentForm` (uses old `recordPayment` action) and `genericActions.ts` (mentions `payments` collection) - those are next.
 
 ---
 
@@ -3061,7 +3061,7 @@ There may still be errors from `RecordPaymentForm` (uses old `recordPayment` act
 **Files:**
 - Modify: `lib/validations/payment.ts`
 - Modify: `app/(dashboard)/payments/_components/RecordPaymentForm.tsx`
-- Modify: `lib/actions/paymentActions.ts` (temporary patch — file is deleted in the final cleanup)
+- Modify: `lib/actions/paymentActions.ts` (temporary patch - file is deleted in the final cleanup)
 
 - [ ] **Step 1: Update validation schema**
 
@@ -3162,9 +3162,9 @@ Expected: any remaining errors are from `genericActions.ts` and `finance/page.ts
 
 ---
 
-## Task 19: genericActions — drop payments collection
+## Task 19: genericActions - drop payments collection
 
-**Goal:** The legacy `genericActions.ts` exposed `payments` as a generic-editable collection with fields like `agencyFee`. Drop it — Finance edits via the catalog/override flows now.
+**Goal:** The legacy `genericActions.ts` exposed `payments` as a generic-editable collection with fields like `agencyFee`. Drop it - Finance edits via the catalog/override flows now.
 
 **Files:**
 - Modify: `lib/actions/genericActions.ts`
@@ -3189,7 +3189,7 @@ Expected: exits 0.
 
 ---
 
-## Task 20: finance/page.tsx — receivables math
+## Task 20: finance/page.tsx - receivables math
 
 **Goal:** Finance Hub KPIs now read from `mockFeeLedgers` instead of `mockPayments`.
 
@@ -3264,7 +3264,7 @@ git commit -m "feat(finance): migrate payments page, table, finance hub to fee l
 
 ---
 
-## Task 21: Final cleanup — delete legacy types and mocks
+## Task 21: Final cleanup - delete legacy types and mocks
 
 **Goal:** Now that all consumers point at the new model, delete the legacy `PaymentRecord` type, `mockPayments.ts`, and the `paymentActions.ts` shim (renaming `feeLineActions.ts` references where needed).
 
@@ -3292,7 +3292,7 @@ Since `feeLineActions.ts` now owns the fee-line actions, and the `RecordPaymentF
 
 Run: `grep -n "from '@/lib/actions/paymentActions'\|from '../actions/paymentActions'\|from './paymentActions'" -r app/ lib/`
 
-For each hit, update the import to point at `@/lib/actions/feeLineActions` (or, for `recordPayment` specifically, leave it in `paymentActions.ts` for now if it's still in use — actually `recordPayment` is also defined there now after Task 18, so just keep `paymentActions.ts` for that single function).
+For each hit, update the import to point at `@/lib/actions/feeLineActions` (or, for `recordPayment` specifically, leave it in `paymentActions.ts` for now if it's still in use - actually `recordPayment` is also defined there now after Task 18, so just keep `paymentActions.ts` for that single function).
 
 **Resolution:** Keep `paymentActions.ts` (it only contains `recordPayment` and a re-export of `updateFeeLineStatus`). Don't delete it. Delete only `mockPayments.ts`.
 
@@ -3343,7 +3343,7 @@ Open `http://localhost:3000`. Log in.
 - [ ] Click "Duplicate" on a package → see "(Copy)" entry appear.
 - [ ] Click "View" on a package → `/finance/catalog/[id]` shows fee table and assigned students list.
 
-- [ ] **Step 4: Marketing flow — add a student with a package**
+- [ ] **Step 4: Marketing flow - add a student with a package**
 
 - [ ] Go to `/students` → "Add Student".
 - [ ] Fill required fields. Scroll to "Enrollment Package (optional)". Pick University → Package dropdown filters. Pick a package → fee preview shows.

@@ -117,7 +117,7 @@ export function TaskKanban({ initialTasks, currentUserId }: TaskKanbanProps) {
     }
 
     if (!allowed || !mutator) {
-      toast.error('That move is not allowed from the kanban — open the task to act on it.');
+      toast.error('That move is not allowed from the kanban - open the task to act on it.');
       return;
     }
 

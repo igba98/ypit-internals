@@ -187,7 +187,7 @@ export default async function ExpensesPage() {
                       </div>
                       {e.notes && <p className="text-[11px] text-gray-500 mt-0.5 truncate" title={e.notes}>{e.notes}</p>}
                     </td>
-                    <td className="px-5 py-3.5 text-gray-700">{e.vendor ?? <span className="text-gray-300">—</span>}</td>
+                    <td className="px-5 py-3.5 text-gray-700">{e.vendor ?? <span className="text-gray-300">-</span>}</td>
                     <td className="px-5 py-3.5 text-gray-700 text-xs">
                       {formatDate(e.date)}
                       {e.paidDate && (

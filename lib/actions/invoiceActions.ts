@@ -94,7 +94,7 @@ export async function updateInvoiceStatus(
   } else {
     return {
       success: false,
-      message: `Status ${newStatus} can't be set directly — use the payment dialog or backend transition endpoints.`,
+      message: `Status ${newStatus} can't be set directly - use the payment dialog or backend transition endpoints.`,
     };
   }
   revalidatePath('/finance/invoices');

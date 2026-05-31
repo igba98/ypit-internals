@@ -110,7 +110,7 @@ export const TRANSITIONS: TransitionDef[] = [
     ],
     notify: ['STUDENT', 'PARENT_PRIMARY', 'NEW_OWNER'],
     messageTemplate: (ctx) =>
-      `Hi ${ctx.studentName}, we're starting travel planning for you. Passport, visa, flight and arrival will be tracked one by one — you'll get a message at every step.`,
+      `Hi ${ctx.studentName}, we're starting travel planning for you. Passport, visa, flight and arrival will be tracked one by one - you'll get a message at every step.`,
   },
   {
     from: 'TRAVEL_PLANNING',

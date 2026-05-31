@@ -93,7 +93,7 @@ export function CreateTaskForm({ onSuccess, currentUserId }: { onSuccess: () => 
         <input type="hidden" name="assignedToId" value={isPersonal ? '' : assignee} />
         <p className="text-[11px] text-gray-500">
           {isPersonal
-            ? 'Personal tasks close on submit — no review.'
+            ? 'Personal tasks close on submit - no review.'
             : 'The assignee will be notified. You will review their submission.'}
         </p>
       </div>

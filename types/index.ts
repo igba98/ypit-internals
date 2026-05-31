@@ -525,7 +525,7 @@ export interface Expense {
 }
 
 // ============================================================
-// FINANCE PHASE 1 — Catalog & per-student fee ledger
+// FINANCE PHASE 1 - Catalog & per-student fee ledger
 // ============================================================
 
 export type Currency = 'TZS' | 'USD' | 'GBP' | 'EUR';

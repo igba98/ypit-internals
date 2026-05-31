@@ -1,9 +1,9 @@
-# Finance Phase 1 — Fee Structures & Packages
+# Finance Phase 1 - Fee Structures & Packages
 
 **Status:** Design approved · awaiting implementation plan
 **Date:** 2026-05-26
 **Owner:** Finance + Marketing (consumers); Finance + Managing Director (authors)
-**Phase:** 1 of 4 — see "Roadmap context" below
+**Phase:** 1 of 4 - see "Roadmap context" below
 
 ---
 
@@ -19,10 +19,10 @@ We decomposed the work into four phases. **This spec covers Phase 1 only.**
 
 | Phase | Scope | Why this order |
 |---|---|---|
-| **1 — Fee Structures & Packages** (this spec) | Per-university "packages" with multi-currency fee defaults; per-student fee ledger materialized from a package | Foundation — every other phase reads from this data model |
-| 2 — Receiving Payments + Receipts + Channels | Record-Payment flow, channel tracking (NMB/NBC/M-Pesa/cash), receipt issuance, statement of account | Day-to-day money work; depends on Phase 1's ledger shape |
-| 3 — Master Enrollment Finance Ledger | Composite view: every student × marketing rep × admission status × travel status × fees | Composes Phases 1 + 2 + existing modules |
-| 4 — Annual Budget vs. Actual | Annual budget for payroll, allowances, recurring expenses; month-by-month variance | Orthogonal to 2/3; can land any time after 1 |
+| **1 - Fee Structures & Packages** (this spec) | Per-university "packages" with multi-currency fee defaults; per-student fee ledger materialized from a package | Foundation - every other phase reads from this data model |
+| 2 - Receiving Payments + Receipts + Channels | Record-Payment flow, channel tracking (NMB/NBC/M-Pesa/cash), receipt issuance, statement of account | Day-to-day money work; depends on Phase 1's ledger shape |
+| 3 - Master Enrollment Finance Ledger | Composite view: every student × marketing rep × admission status × travel status × fees | Composes Phases 1 + 2 + existing modules |
+| 4 - Annual Budget vs. Actual | Annual budget for payroll, allowances, recurring expenses; month-by-month variance | Orthogonal to 2/3; can land any time after 1 |
 
 Phases 2–4 will each get their own spec.
 
@@ -32,7 +32,7 @@ Phases 2–4 will each get their own spec.
 
 1. Replace the rigid single-currency `PaymentRecord` shape with a flexible
    per-student fee ledger that supports mixed-currency fees (TZS application
-   fee, USD agency fee, GBP tuition) — matching how the office actually invoices.
+   fee, USD agency fee, GBP tuition) - matching how the office actually invoices.
 2. Let Finance/MD define a catalog of **Universities** and **Packages**
    (a sellable program offer) with default fee components.
 3. Let Marketing/Admissions assign a package to a student during enrollment;
@@ -40,18 +40,18 @@ Phases 2–4 will each get their own spec.
 4. Allow Finance to override individual fee lines (scholarships, sibling
    discounts) with an audit trail.
 5. Keep the existing Finance Hub, Petty Cash, Invoices, Payroll, and Expenses
-   modules untouched in behavior — only the Student Payments path changes.
+   modules untouched in behavior - only the Student Payments path changes.
 
 ## Non-goals (Phase 1)
 
-- Recording actual payments against fee lines — payment recording UX comes in Phase 2.
-- Receipt generation (HTML/PDF) — Phase 2.
-- Bank/channel tracking on payments — Phase 2.
-- Installment schedules within a single fee (a fee line has one due date) — later.
-- Commission tracking for sub-agents — later.
-- FX rate management UI — rates live in a config file in Phase 1.
-- Statement-of-account PDF — Phase 2.
-- Read-only catalog mirror page for non-Finance roles — out of scope; non-Finance
+- Recording actual payments against fee lines - payment recording UX comes in Phase 2.
+- Receipt generation (HTML/PDF) - Phase 2.
+- Bank/channel tracking on payments - Phase 2.
+- Installment schedules within a single fee (a fee line has one due date) - later.
+- Commission tracking for sub-agents - later.
+- FX rate management UI - rates live in a config file in Phase 1.
+- Statement-of-account PDF - Phase 2.
+- Read-only catalog mirror page for non-Finance roles - out of scope; non-Finance
   roles see fee defaults inline in the Add Student form.
 
 ---
@@ -97,19 +97,19 @@ export interface University {
   createdAt: string;
 }
 
-// NEW — fee type enum (system-level, extensible by code)
+// NEW - fee type enum (system-level, extensible by code)
 export type FeeType =
   | 'APPLICATION' | 'TUITION' | 'HOSTEL' | 'AGENCY'
   | 'DEPOSIT' | 'INSURANCE' | 'VISA' | 'AIRPORT_PICKUP' | 'OTHER';
 
-// NEW — currency union (start narrow, expand by code)
+// NEW - currency union (start narrow, expand by code)
 export type Currency = 'TZS' | 'USD' | 'GBP' | 'EUR';
 
-// NEW — package = a sellable offer
+// NEW - package = a sellable offer
 export interface Package {
   id: string;                       // pkg_coventry_london_bachelor_business
   universityId: string;
-  name: string;                     // "Bachelor — Business Management"
+  name: string;                     // "Bachelor - Business Management"
   studyLevel: 'FOUNDATION' | 'BACHELOR' | 'MASTERS' | 'PHD' | 'DIPLOMA';
   program: string;                  // "Business Management"
   description?: string;
@@ -168,7 +168,7 @@ export interface FeeLine {
 **Removals:** `PaymentRecord` and `PaymentStatus` are deleted from
 `types/index.ts`. Every importer must be updated in the same PR.
 
-### 2. FX rates (lib/finance/fxRates.ts — new)
+### 2. FX rates (lib/finance/fxRates.ts - new)
 
 ```ts
 export const FX_RATES_TO_TZS: Record<Currency, number> = {
@@ -201,7 +201,7 @@ Overview · Catalog ⭐ · Petty Cash · Invoices · Payroll · Expenses · Stud
 
 ```
 app/(dashboard)/finance/catalog/
-├── page.tsx                          # Catalog hub — split view
+├── page.tsx                          # Catalog hub - split view
 ├── _components/
 │   ├── UniversityList.tsx            # searchable, status filter, archive toggle
 │   ├── UniversityForm.tsx            # sheet
@@ -229,14 +229,14 @@ app/(dashboard)/finance/catalog/
 | [lib/validations/payment.ts](lib/validations/payment.ts) | Replace hardcoded `["AGENCY","APPLICATION","TUITION","HOSTEL"]` enum with `FeeType` import. Schema becomes payment-allocation-aware for Phase 2 hand-off, but stays minimal in Phase 1. |
 | [lib/statusOptions.ts](lib/statusOptions.ts) | Add `FEE_LINE_STATUS_OPTIONS`. Remove or repurpose `PAYMENT_STATUS_OPTIONS`. |
 
-**New server actions** (`lib/actions/catalogActions.ts` — new file):
+**New server actions** (`lib/actions/catalogActions.ts` - new file):
 
 - `createUniversity`, `updateUniversity`, `archiveUniversity`, `restoreUniversity`
 - `createPackage`, `updatePackage`, `archivePackage`, `restorePackage`, `duplicatePackage`
-- `assignPackageToStudent(studentId, packageId)` — materializes FeeLines using
+- `assignPackageToStudent(studentId, packageId)` - materializes FeeLines using
   the package's `feeDefaults` + each one's `dueRule`, resolved against the
   student's `targetIntake` and current date
-- `reassignPackageToStudent(studentId, newPackageId)` — clears old lines (with
+- `reassignPackageToStudent(studentId, newPackageId)` - clears old lines (with
   confirmation), re-materializes
 - `overrideFeeLine(studentId, lineId, { amount?, currency?, dueDate?, reason })`
 
@@ -259,34 +259,34 @@ app/(dashboard)/finance/catalog/
 
 ## Key flows
 
-### Flow A — Create a package
+### Flow A - Create a package
 Finance opens Catalog → selects a university → "+ New Package" → fills name,
 level, program → adds fee defaults (type, amount, currency, dueRule,
 required) → save. `createPackage` runs server-side validation, writes audit
 log entry. Existing students are not affected.
 
-### Flow B — Enroll a student with a package
+### Flow B - Enroll a student with a package
 Marketing fills the Add Student form → selects University → Package dropdown
 filters to that uni → live preview shows fee defaults → save. `createStudent`
 + `assignPackageToStudent` run together; the student's `StudentFeeLedger` is
 created with one `FeeLine` per `FeeDefault`, due dates resolved via dueRule.
 
-### Flow C — Override a fee for a student
+### Flow C - Override a fee for a student
 Finance opens student detail → Payments tab → clicks "⋯" on a fee row →
 "Override" → edits amount/currency/dueDate + types reason → save. The line is
 marked with `overrideReason`, `overriddenById`, `overriddenByName`,
 `overriddenAt`. Display shows "Adjusted" badge; hover reveals reason and who.
 
-### Flow D — Archive a package
+### Flow D - Archive a package
 Finance archives a package. Confirmation modal lists the count of students
 currently using it. Their existing FeeLines are unaffected. Add-Student form
 no longer shows the package as selectable.
 
-### Flow E — Edit a package after students exist (the subtle one)
+### Flow E - Edit a package after students exist (the subtle one)
 Finance changes tuition from £12,500 → £13,000 on a package used by 4
 students. Confirmation modal offers three options:
 
-- **Apply to new enrollments only** (default — safest): package update saved;
+- **Apply to new enrollments only** (default - safest): package update saved;
   existing students' FeeLines untouched.
 - **Apply to existing UNPAID lines too**: package update saved; FeeLines for
   the affected students with `status ∈ {UNPAID, PARTIAL}` and matching
@@ -312,14 +312,14 @@ outstanding · TZS 45M equivalent".
 
 | Action | MD | FINANCE | MARKETING_MGR | MARKETING_STAFF | ADMISSIONS | TRAVEL | OPERATIONS |
 |---|---|---|---|---|---|---|---|
-| View catalog (Finance route) | ✅ | ✅ | — | — | — | — | — |
-| Create/edit/archive University | ✅ | ✅ | — | — | — | — | — |
-| Create/edit/archive Package | ✅ | ✅ | — | — | — | — | — |
-| Edit package after students assigned (Flow E) | ✅ | ✅ | — | — | — | — | — |
-| Assign package to student | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
-| Reassign student's package | ✅ | ✅ | — | — | — | — | — |
-| Override a FeeLine | ✅ | ✅ | — | — | — | — | — |
-| Change FeeLine status manually (e.g. WAIVED) | ✅ | ✅ | — | — | — | — | — |
+| View catalog (Finance route) | ✅ | ✅ | - | - | - | - | - |
+| Create/edit/archive University | ✅ | ✅ | - | - | - | - | - |
+| Create/edit/archive Package | ✅ | ✅ | - | - | - | - | - |
+| Edit package after students assigned (Flow E) | ✅ | ✅ | - | - | - | - | - |
+| Assign package to student | ✅ | ✅ | ✅ | ✅ | ✅ | - | - |
+| Reassign student's package | ✅ | ✅ | - | - | - | - | - |
+| Override a FeeLine | ✅ | ✅ | - | - | - | - | - |
+| Change FeeLine status manually (e.g. WAIVED) | ✅ | ✅ | - | - | - | - | - |
 | View FeeLines on student detail | ✅ | ✅ | ✅ | ✅ | ✅ | 👁 read | 👁 read |
 
 The catalog inherits the existing Finance layout's role guard. Marketing and
@@ -460,20 +460,20 @@ catch any new references that landed between spec-time and plan-time.
 ## Mock data plan
 
 **Universities** (at least three to exercise the active/archived states):
-- `uni_coventry_london` — Coventry University London, UK, London, ACTIVE
-- `uni_intl_college_dundee` — International College Dundee, UK, Dundee, ACTIVE
-- `uni_oxford` — Oxford, UK, ARCHIVED (no packages)
+- `uni_coventry_london` - Coventry University London, UK, London, ACTIVE
+- `uni_intl_college_dundee` - International College Dundee, UK, Dundee, ACTIVE
+- `uni_oxford` - Oxford, UK, ARCHIVED (no packages)
 
 **Packages** (six to cover the variety in the CSV):
 
 | Package | Uni | Level | Fee defaults (sketch) |
 |---|---|---|---|
-| Bachelor — Business Management | Coventry London | BACHELOR | TUITION £12,500 GBP · APPLICATION $500 USD · AGENCY TZS 1,200,000 · HOSTEL £6,000 GBP optional |
-| Bachelor — Computer Science | Coventry London | BACHELOR | similar mix |
-| Masters — MBA | Coventry London | MASTERS | TUITION £15,000 GBP · APPLICATION $500 USD · AGENCY TZS 1,500,000 |
-| Foundation — Pharmacology | Intl College Dundee | FOUNDATION | TUITION £8,500 GBP · APPLICATION $500 USD · AGENCY TZS 1,000,000 · DEPOSIT £500 GBP |
-| Foundation — Mechanical Engineering | Intl College Dundee | FOUNDATION | similar |
-| Foundation — Computer Engineering | Intl College Dundee | FOUNDATION | similar |
+| Bachelor - Business Management | Coventry London | BACHELOR | TUITION £12,500 GBP · APPLICATION $500 USD · AGENCY TZS 1,200,000 · HOSTEL £6,000 GBP optional |
+| Bachelor - Computer Science | Coventry London | BACHELOR | similar mix |
+| Masters - MBA | Coventry London | MASTERS | TUITION £15,000 GBP · APPLICATION $500 USD · AGENCY TZS 1,500,000 |
+| Foundation - Pharmacology | Intl College Dundee | FOUNDATION | TUITION £8,500 GBP · APPLICATION $500 USD · AGENCY TZS 1,000,000 · DEPOSIT £500 GBP |
+| Foundation - Mechanical Engineering | Intl College Dundee | FOUNDATION | similar |
+| Foundation - Computer Engineering | Intl College Dundee | FOUNDATION | similar |
 
 **Fee ledgers:**
 - 15 ledgers migrated 1:1 from existing `mockPayments.ts` (TZS-only legacy lines, no `packageId`)
@@ -490,9 +490,9 @@ Together this seeds every state the UI can render.
 
 Per the project's verification-before-completion practice:
 
-1. `pnpm tsc --noEmit` (or project equivalent) — zero errors
-2. `pnpm lint` — zero new warnings/errors
-3. `pnpm build` — passes
+1. `pnpm tsc --noEmit` (or project equivalent) - zero errors
+2. `pnpm lint` - zero new warnings/errors
+3. `pnpm build` - passes
 4. **Manual browser walkthrough** on `pnpm dev`:
    - [ ] Catalog page loads; lists 2 active + 1 archived university
    - [ ] Create new university; appears in list

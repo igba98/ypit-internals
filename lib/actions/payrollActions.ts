@@ -29,7 +29,7 @@ interface StaffMember {
 }
 
 /**
- * "Generate payroll" — fetches all ACTIVE staff and creates one DRAFT row per
+ * "Generate payroll" - fetches all ACTIVE staff and creates one DRAFT row per
  * person at a placeholder base salary. Finance then edits each entry before
  * approving. Duplicates (same staff + period) silently skip thanks to the
  * unique constraint on the backend.
@@ -72,7 +72,7 @@ export async function generatePayroll(
   return {
     success: true,
     message: `Generated ${created} payroll row${created === 1 ? '' : 's'} for ${period}${
-      skipped > 0 ? ` (${skipped} skipped — likely duplicates)` : ''
+      skipped > 0 ? ` (${skipped} skipped - likely duplicates)` : ''
     }.`,
   };
 }
@@ -98,7 +98,7 @@ export async function updatePayrollStatus(
     default:
       return {
         success: false,
-        message: `Status ${newStatus} can't be set directly — only APPROVED / PAID / CANCELLED are transition targets.`,
+        message: `Status ${newStatus} can't be set directly - only APPROVED / PAID / CANCELLED are transition targets.`,
       };
   }
   const res = await backendFetch(path, { method: 'POST', body });

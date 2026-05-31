@@ -173,7 +173,7 @@ export async function setPackageStatus(
   return { success: true, message: `Package ${status.toLowerCase()}.` };
 }
 
-/** Duplicate via fetch-then-create — backend has no single-shot duplicate. */
+/** Duplicate via fetch-then-create - backend has no single-shot duplicate. */
 export async function duplicatePackage(id: string): Promise<ActionResult> {
   const getRes = await backendFetch(`/finance/packages/${id}`);
   if (!getRes.ok) return { success: false, ...(await readError(getRes)) };

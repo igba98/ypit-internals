@@ -45,7 +45,7 @@ const VIEWPORT_PADDING = 8;
  * Returns true once the component is mounted on the client. Used to gate the
  * portal render so the server's HTML matches the client's first paint.
  *
- * `useSyncExternalStore` is the idiomatic way to express "is hydrated" — the
+ * `useSyncExternalStore` is the idiomatic way to express "is hydrated" - the
  * server snapshot is `false`, the client snapshot is `true`, and React swaps
  * them after hydration without a cascading setState (which is what Next.js
  * 16's `react-hooks/set-state-in-effect` rule rightly flags).

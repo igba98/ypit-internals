@@ -50,7 +50,7 @@ function getInitials(name: string): string {
 }
 
 /**
- * Avatar — initials on a colour derived from the name. No network image fetch.
+ * Avatar - initials on a colour derived from the name. No network image fetch.
  * Use everywhere instead of <Image src={user.avatar} ... />.
  */
 export function Avatar({ name, size = 'md', className }: AvatarProps) {

@@ -93,7 +93,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <Label htmlFor="description">Description *</Label>
-        <Input id="description" name="description" placeholder="e.g. Office rent — March 2026" required />
+        <Input id="description" name="description" placeholder="e.g. Office rent - March 2026" required />
         {errors.description && <p className="text-xs text-red-600">{errors.description[0]}</p>}
       </div>
 

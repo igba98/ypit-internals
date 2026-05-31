@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 async function loadHubData() {
-  // Bundle every finance fetch in parallel — six round-trips in one tick.
+  // Bundle every finance fetch in parallel - six round-trips in one tick.
   const [invRes, payrollRes, pettyRes, balRes, expRes, paymentsRes] = await Promise.all([
     backendFetch('/finance/invoices?limit=500'),
     backendFetch('/finance/payroll?limit=500'),
@@ -144,7 +144,7 @@ export default async function FinanceOverviewPage() {
     <>
       <PageHeader
         title="Finance Hub"
-        description="Cash position, receivables, payables, payroll and petty cash — all in one place."
+        description="Cash position, receivables, payables, payroll and petty cash - all in one place."
       />
 
       {error && (
@@ -158,7 +158,7 @@ export default async function FinanceOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Receivables" value={formatCurrency(receivablesTotal, { compact: true })} sublabel={`${formatCurrency(invoicesOutstanding)} on open invoices`} icon={ArrowDownCircle} tone="success" />
         <KpiCard label="Payables" value={formatCurrency(payablesTotal, { compact: true })} sublabel={`${expenses.filter((e) => e.status !== 'PAID' && e.status !== 'REJECTED').length} expenses · ${draftPayroll.length} draft payslips`} icon={ArrowUpCircle} tone="warning" />
-        <KpiCard label="Petty Cash Float" value={formatCurrency(pettyBalance, { compact: true })} sublabel={pettyBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'} icon={Wallet} tone={pettyBalance < 100000 ? 'danger' : 'primary'} />
+        <KpiCard label="Petty Cash Float" value={formatCurrency(pettyBalance, { compact: true })} sublabel={pettyBalance < 100000 ? 'Below safe threshold - replenish soon' : 'Healthy float'} icon={Wallet} tone={pettyBalance < 100000 ? 'danger' : 'primary'} />
         <KpiCard label="Net This Month" value={formatCurrency(revenueThisMonth - expensesThisMonth, { compact: true })} sublabel={`+${formatCurrency(revenueThisMonth)} · −${formatCurrency(expensesThisMonth)}`} icon={TrendingUp} tone="default" />
       </div>
 

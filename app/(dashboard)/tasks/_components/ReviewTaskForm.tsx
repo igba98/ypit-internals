@@ -30,7 +30,7 @@ const OPTIONS: { value: Decision; label: string; description: string; icon: type
   {
     value: 'REJECT',
     label: 'Reject',
-    description: 'Terminal — task closes without completion. Reason required.',
+    description: 'Terminal - task closes without completion. Reason required.',
     icon: XCircle,
     tone: 'text-red-700 border-red-200 bg-red-50',
   },

@@ -220,7 +220,7 @@ export const mockApplications: Application[] = [
     status: "PREPARING",
     submittedBy: "usr_005",
     updatedAt: "2026-02-22T00:00:00Z",
-    decisionNotes: "Application paused — pending initial payment from student."
+    decisionNotes: "Application paused - pending initial payment from student."
   },
   {
     id: "app_015",

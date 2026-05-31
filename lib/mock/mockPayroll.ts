@@ -65,7 +65,7 @@ const make = (
 };
 
 export const mockPayroll: PayrollEntry[] = [
-  // February 2026 — fully processed
+  // February 2026 - fully processed
   make('PR-2026-FEB-001', 'usr_001', 'Shedrack Masine', 'MANAGING_DIRECTOR', 'Executive', 'February 2026', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 5000000, 'PAID', '2026-02-28T00:00:00Z'),
   make('PR-2026-FEB-002', 'usr_002', 'Lilian Masine', 'MARKETING_MANAGER', 'Marketing', 'February 2026', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 3500000, 'PAID', '2026-02-28T00:00:00Z'),
   make('PR-2026-FEB-003', 'usr_003', 'Noel Godson', 'IT_ADMIN', 'IT', 'February 2026', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 2800000, 'PAID', '2026-02-28T00:00:00Z'),
@@ -77,7 +77,7 @@ export const mockPayroll: PayrollEntry[] = [
   make('PR-2026-FEB-009', 'usr_010', 'Michael Osei', 'MARKETING_STAFF', 'Marketing', 'February 2026', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 1500000, 'PAID', '2026-02-28T00:00:00Z'),
   make('PR-2026-FEB-010', 'usr_012', 'James Kamau', 'MARKETING_STAFF', 'Marketing', 'February 2026', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 1500000, 'PAID', '2026-02-28T00:00:00Z'),
 
-  // March 2026 — approved, partially paid
+  // March 2026 - approved, partially paid
   make('PR-2026-MAR-001', 'usr_001', 'Shedrack Masine', 'MANAGING_DIRECTOR', 'Executive', 'March 2026', '2026-03-01T00:00:00Z', '2026-03-31T00:00:00Z', 5000000, 'PAID', '2026-03-28T00:00:00Z'),
   make('PR-2026-MAR-002', 'usr_002', 'Lilian Masine', 'MARKETING_MANAGER', 'Marketing', 'March 2026', '2026-03-01T00:00:00Z', '2026-03-31T00:00:00Z', 3500000, 'PAID', '2026-03-28T00:00:00Z'),
   make('PR-2026-MAR-003', 'usr_003', 'Noel Godson', 'IT_ADMIN', 'IT', 'March 2026', '2026-03-01T00:00:00Z', '2026-03-31T00:00:00Z', 2800000, 'APPROVED'),

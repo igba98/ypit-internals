@@ -1,8 +1,8 @@
-# Task Management Overhaul — Design
+# Task Management Overhaul - Design
 
 **Date:** 2026-05-26
 **Module:** `/tasks` (app/(dashboard)/tasks)
-**Scope:** Focused additions on top of the existing tasks module — no rebuild.
+**Scope:** Focused additions on top of the existing tasks module - no rebuild.
 
 ---
 
@@ -10,11 +10,11 @@
 
 The `/tasks` module is the closest thing the YPIT internals app has to a daily-operations entry point, but today it has gaps that prevent it from being trusted for real day-to-day work:
 
-- No way to create a **personal task** — the create form forces an assignee.
+- No way to create a **personal task** - the create form forces an assignee.
 - No way to **attach reference materials** when assigning (the `Task` type has `attachmentUrls?: string[]` but no UI surfaces it).
-- The "report" flow ends the task with a single embedded `endOfDayReport` — there is **no reviewer gate, no clarification, no rejection**, no way for the assigner to push back.
+- The "report" flow ends the task with a single embedded `endOfDayReport` - there is **no reviewer gate, no clarification, no rejection**, no way for the assigner to push back.
 - No deliverable attachments on the report.
-- The page has a blank-on-first-load empty state (per UX_AUDIT), an unlabelled status dot, and a no-op card click — the surface doesn't feel like a primary work tool.
+- The page has a blank-on-first-load empty state (per UX_AUDIT), an unlabelled status dot, and a no-op card click - the surface doesn't feel like a primary work tool.
 
 **Goal:** make `/tasks` the trustworthy daily-operations entry point. A staff member should open it first thing in the morning and immediately see *what's mine to do today, what's waiting for my review, what's overdue*. A manager should be able to assign work with reference material, get a real submission back with deliverables, and approve / request changes / reject with a reason.
 
@@ -23,7 +23,7 @@ The `/tasks` module is the closest thing the YPIT internals app has to a daily-o
 | Decision | Choice |
 |---|---|
 | Scope | Focused additions on top of existing module |
-| Review gate | Strict — `SUBMITTED` is a distinct status; reviewer must explicitly act |
+| Review gate | Strict - `SUBMITTED` is a distinct status; reviewer must explicitly act |
 | Reviewer | Only the assigner |
 | Conversation model | Activity timeline + structured rounds (no free chat) |
 | Day-to-day entry point | "My Day" strip at top of `/tasks` (no new route, no homepage tile) |
@@ -38,7 +38,7 @@ Extend the existing `/tasks` module rather than create a parallel one:
 - Reuse `AttachmentField`'s base64 data-URL pattern but build a numbered multi-file variant (`MultiAttachmentField`).
 - Reuse `SlideInPanel`, `Sonner`, `mockNotifications`, the existing kanban, tabs, and `StatusBadge`.
 
-This preserves URL filters, the kanban, the list view, and every existing assumption — the new behaviour is delivered as additions.
+This preserves URL filters, the kanban, the list view, and every existing assumption - the new behaviour is delivered as additions.
 
 ## 4. Information Architecture
 
@@ -101,7 +101,7 @@ TODO  IN_PROGRESS  SUBMITTED  CHANGES_REQUESTED  REJECTED  COMPLETED  BLOCKED
 
 - Personal tasks skip review entirely: `submit` goes directly to `COMPLETED`.
 - Assigned tasks always pass through `SUBMITTED`. Only the assigner sees Approve / Request changes / Reject.
-- `CHANGES_REQUESTED` reopens the task semantically — the assignee resubmits to create a new round. No round limit.
+- `CHANGES_REQUESTED` reopens the task semantically - the assignee resubmits to create a new round. No round limit.
 - `REJECTED` is terminal. The card stays in the list (greyed, filtered out of active views) for audit.
 - `BLOCKED` is orthogonal: settable from `TODO` or `IN_PROGRESS`, requires a reason. Unblocking returns to `IN_PROGRESS`.
 
@@ -109,11 +109,11 @@ TODO  IN_PROGRESS  SUBMITTED  CHANGES_REQUESTED  REJECTED  COMPLETED  BLOCKED
 
 | Action | Personal | Assignee (assigned) | Assigner | Anyone else |
 |---|---|---|---|---|
-| Start (TODO → IN_PROGRESS) | ✓ | ✓ | — | — |
-| Submit | ✓ (→ COMPLETED) | ✓ (→ SUBMITTED) | — | — |
-| Approve / Request changes / Reject | — | — | ✓ | — |
-| Block / Unblock | ✓ | ✓ | ✓ | — |
-| Edit task fields | ✓ | — | ✓ (until SUBMITTED) | — |
+| Start (TODO → IN_PROGRESS) | ✓ | ✓ | - | - |
+| Submit | ✓ (→ COMPLETED) | ✓ (→ SUBMITTED) | - | - |
+| Approve / Request changes / Reject | - | - | ✓ | - |
+| Block / Unblock | ✓ | ✓ | ✓ | - |
+| Edit task fields | ✓ | - | ✓ (until SUBMITTED) | - |
 
 ## 6. Data Model
 
@@ -178,7 +178,7 @@ export interface Task {
 }
 ```
 
-The legacy `endOfDayReport` and `attachmentUrls` fields are removed. Existing mock seeds are migrated on import — see `lib/mock/mockTasks.ts` migration helper in Section 9.
+The legacy `endOfDayReport` and `attachmentUrls` fields are removed. Existing mock seeds are migrated on import - see `lib/mock/mockTasks.ts` migration helper in Section 9.
 
 ## 7. Validation (`lib/validations/task.ts`)
 
@@ -303,24 +303,24 @@ New `filter` values: `needs-submit | awaiting-review | due-today | overdue | blo
 
 ### 10.2 New components
 
-- **`MyDayStrip`** — 5 KPI-style tiles, each a filter link. Counts from `permissions.binFor`. Active tile crimson, empty tiles muted. Never collapses.
-- **`QuickPersonalTaskInput`** — single-line input pinned in the page header. Enter to create personal task with defaults (priority MEDIUM, dueDate today EOD, assignedTo = me). Calls `addTask`.
-- **`MultiAttachmentField`** — numbered wrapper around `AttachmentField`'s logic. Up to 5 files. Same MIME whitelist, same 3MB cap, same hidden-input pattern.
-- **`TaskDetailPanel`** — slide-in detail (replaces the no-op card click). Sections:
-  1. Header — title, priority, status badge, due date, assignee/assigner avatars, context-aware primary action.
+- **`MyDayStrip`** - 5 KPI-style tiles, each a filter link. Counts from `permissions.binFor`. Active tile crimson, empty tiles muted. Never collapses.
+- **`QuickPersonalTaskInput`** - single-line input pinned in the page header. Enter to create personal task with defaults (priority MEDIUM, dueDate today EOD, assignedTo = me). Calls `addTask`.
+- **`MultiAttachmentField`** - numbered wrapper around `AttachmentField`'s logic. Up to 5 files. Same MIME whitelist, same 3MB cap, same hidden-input pattern.
+- **`TaskDetailPanel`** - slide-in detail (replaces the no-op card click). Sections:
+  1. Header - title, priority, status badge, due date, assignee/assigner avatars, context-aware primary action.
   2. Description + Reference materials (download chips).
-  3. Activity timeline — chronological `TaskActivityEntry` feed; submission entries expand to show report fields and deliverable attachments.
+  3. Activity timeline - chronological `TaskActivityEntry` feed; submission entries expand to show report fields and deliverable attachments.
   Folds the current `ReportTaskPanel` into a nested step on this panel.
-- **`SubmitTaskForm`** — replaces `ReportTaskForm`, adds `MultiAttachmentField` for deliverables.
-- **`ReviewTaskForm`** — visible to assigner on `SUBMITTED` tasks. Radio: Approve / Request changes / Reject. Note textarea (required for the latter two).
+- **`SubmitTaskForm`** - replaces `ReportTaskForm`, adds `MultiAttachmentField` for deliverables.
+- **`ReviewTaskForm`** - visible to assigner on `SUBMITTED` tasks. Radio: Approve / Request changes / Reject. Note textarea (required for the latter two).
 
 ### 10.3 Updated components
 
-- **`CreateTaskForm`** — assignee dropdown gains pinned "Me (personal task)" option at top; selecting it hides department and changes the submit button label. New tags input. New reference materials section using `MultiAttachmentField`.
-- **`TaskCard`** — unlabelled status dot replaced by `StatusBadge`; per-card "Write Report" button replaced by single context-aware primary action driven by `permissions.ts`; paperclip + count affordance when attachments present; whole card opens `TaskDetailPanel`.
-- **`StatusBadge`** (shared) — extended with `SUBMITTED` (purple), `CHANGES_REQUESTED` (amber), `REJECTED` (rose).
-- **`TaskKanban`** — adds columns for `SUBMITTED`, `CHANGES_REQUESTED`, `REJECTED` (collapsed by default). Drag-to-column now triggers server actions (`startTask` / `blockTask` / etc.) with permission guards; today it only mutates local state.
-- **`TaskListView`** — adds an Action column rendering the same context-aware primary action; existing search now also matches tags and assignee names.
+- **`CreateTaskForm`** - assignee dropdown gains pinned "Me (personal task)" option at top; selecting it hides department and changes the submit button label. New tags input. New reference materials section using `MultiAttachmentField`.
+- **`TaskCard`** - unlabelled status dot replaced by `StatusBadge`; per-card "Write Report" button replaced by single context-aware primary action driven by `permissions.ts`; paperclip + count affordance when attachments present; whole card opens `TaskDetailPanel`.
+- **`StatusBadge`** (shared) - extended with `SUBMITTED` (purple), `CHANGES_REQUESTED` (amber), `REJECTED` (rose).
+- **`TaskKanban`** - adds columns for `SUBMITTED`, `CHANGES_REQUESTED`, `REJECTED` (collapsed by default). Drag-to-column now triggers server actions (`startTask` / `blockTask` / etc.) with permission guards; today it only mutates local state.
+- **`TaskListView`** - adds an Action column rendering the same context-aware primary action; existing search now also matches tags and assignee names.
 
 ### 10.4 Empty states (fixes UX_AUDIT finding)
 
@@ -340,9 +340,9 @@ Replace the current blank rectangle with:
 - `blockTask` requires reason and appends `BLOCKED`.
 - Notifications and audit log entries fire on each action.
 
-`lib/tasks/permissions.test.ts` — pure-function table tests for every helper across the new statuses, both task kinds, and both actor roles.
+`lib/tasks/permissions.test.ts` - pure-function table tests for every helper across the new statuses, both task kinds, and both actor roles.
 
-No React-component tests planned (matches existing project conventions — none of the other modules ship them).
+No React-component tests planned (matches existing project conventions - none of the other modules ship them).
 
 ## 12. Manual Verification
 

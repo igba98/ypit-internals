@@ -58,11 +58,11 @@ export function SubmitTaskForm({ task, onSuccess }: { task: Task; onSuccess: () 
             required
             defaultValue="100"
             options={[
-              { label: '0% — Just started', value: '0' },
+              { label: '0% - Just started', value: '0' },
               { label: '25%', value: '25' },
               { label: '50%', value: '50' },
               { label: '75%', value: '75' },
-              { label: '100% — Done', value: '100' },
+              { label: '100% - Done', value: '100' },
             ]}
           />
         </div>

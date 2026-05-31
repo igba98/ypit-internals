@@ -1,4 +1,4 @@
-# Student Pipeline Workflow — Design Spec
+# Student Pipeline Workflow - Design Spec
 
 **Date:** 2026-05-26
 **Status:** Approved (brainstorming phase)
@@ -12,10 +12,10 @@
 The student record has a 9-stage pipeline (`LEAD → COUNSELING → PAYMENT_PENDING → PAYMENT_CONFIRMED → APPLICATION_SUBMITTED → UNIVERSITY_ACCEPTED → TRAVEL_PLANNING → TRAVELLED → MONITORING`), but no workflow is enforced around it. The current `updateStudentStage` action ([lib/actions/studentActions.ts:48](lib/actions/studentActions.ts#L48)) lets anyone move a student to any stage with no validation, no captured data, no handoff to a new owner, and no notifications.
 
 We need:
-- **Owner-based handoffs** — each stage has a responsible role (Marketing, Finance, Admissions, Travel, Operations); when a stage advances, the student appears in the next owner's queue.
-- **Explicit triggers with gating data** — every transition is an explicit action that requires specific fields (counseling notes, receipt number, offer letter URL, etc.) before it can fire.
-- **Notifications to student + parent(s)** — every transition sends a simulated WhatsApp message to the student and the relevant guardians, plus an in-app notification to the new owner.
-- **Travel sub-pipeline** — within `TRAVEL_PLANNING`, four sub-steps (Passport / Visa / Flight / Arrival) each have their own gated triggers and notifications. `TRAVEL_PLANNING → TRAVELLED` is gated on all four completing.
+- **Owner-based handoffs** - each stage has a responsible role (Marketing, Finance, Admissions, Travel, Operations); when a stage advances, the student appears in the next owner's queue.
+- **Explicit triggers with gating data** - every transition is an explicit action that requires specific fields (counseling notes, receipt number, offer letter URL, etc.) before it can fire.
+- **Notifications to student + parent(s)** - every transition sends a simulated WhatsApp message to the student and the relevant guardians, plus an in-app notification to the new owner.
+- **Travel sub-pipeline** - within `TRAVEL_PLANNING`, four sub-steps (Passport / Visa / Flight / Arrival) each have their own gated triggers and notifications. `TRAVEL_PLANNING → TRAVELLED` is gated on all four completing.
 
 ## 2. Goals & Non-Goals
 
@@ -29,11 +29,11 @@ We need:
 - MD override (`MANAGING_DIRECTOR` can advance any stage; can also revert backwards with a reason).
 
 **Non-goals**
-- Real WhatsApp/Twilio integration — notifications are simulated (Notification record + toast + visible "Sent Messages" panel). A real provider can be wired in later by replacing the `sendSimulated` helper.
-- Real file uploads for offer letters, receipts, tickets — accept URL strings for now.
-- SLA timers / reminder bots — easy to add later by querying `stageEnteredAt`.
-- Bulk advance — one student at a time.
-- Backend/database — this stays a mock-data prototype.
+- Real WhatsApp/Twilio integration - notifications are simulated (Notification record + toast + visible "Sent Messages" panel). A real provider can be wired in later by replacing the `sendSimulated` helper.
+- Real file uploads for offer letters, receipts, tickets - accept URL strings for now.
+- SLA timers / reminder bots - easy to add later by querying `stageEnteredAt`.
+- Bulk advance - one student at a time.
+- Backend/database - this stays a mock-data prototype.
 
 ## 3. Architecture
 
@@ -87,8 +87,8 @@ Stored in `lib/mock/mockGuardians.ts`. CRUD via `lib/actions/guardianActions.ts`
 
 ### 4.2 `Student` additions
 
-- `stageOwnerId?: string` — user currently responsible for this stage (set when stage advances; nullable when "Assign later" was selected).
-- `stageEnteredAt: string` — ISO timestamp when the student entered the current stage; used for "days in stage" reporting and queue ordering.
+- `stageOwnerId?: string` - user currently responsible for this stage (set when stage advances; nullable when "Assign later" was selected).
+- `stageEnteredAt: string` - ISO timestamp when the student entered the current stage; used for "days in stage" reporting and queue ordering.
 
 ### 4.3 New: `StageTransition`
 
@@ -129,9 +129,9 @@ Existing detail fields (`passportNumber`, `visaStatus`, `flightDate`, etc.) rema
 
 - `audience: 'STUDENT' | 'PARENT_PRIMARY' | 'ALL_PARENTS' | 'NEW_OWNER' | 'TEAM'`
 - `channel: 'WHATSAPP' | 'IN_APP'`
-- `messageBody: string` — the exact simulated WhatsApp text
-- `recipientName?: string`, `recipientPhone?: string` — for parents/students (not in-app)
-- `simulated: true` — flag so UI can render a "(simulated)" badge until real send is wired
+- `messageBody: string` - the exact simulated WhatsApp text
+- `recipientName?: string`, `recipientPhone?: string` - for parents/students (not in-app)
+- `simulated: true` - flag so UI can render a "(simulated)" badge until real send is wired
 
 ## 5. Main Transition Table
 
@@ -145,10 +145,10 @@ Existing detail fields (`passportNumber`, `visaStatus`, `flightDate`, etc.) rema
 | 4 | `PAYMENT_CONFIRMED → APPLICATION_SUBMITTED` | ADMISSIONS | `submissionDate` (date), `universityConfirmed: true`, optional `applicationId` (link to existing Application). Side-effect: if no `applicationId` provided, auto-creates an `Application{status:'SUBMITTED', submissionDate}` from the student's target university/program. | STUDENT, PARENT_PRIMARY |
 | 5 | `APPLICATION_SUBMITTED → UNIVERSITY_ACCEPTED` | ADMISSIONS | `offerLetterUrl` (URL), `offerAccepted: true`, `decisionDate` (date) | STUDENT, ALL_PARENTS, NEW_OWNER (TEAM=TRAVEL). Template: *"🎓 Congratulations! Offer letter from {university} attached: {offerLetterUrl}"* |
 | 6 | `UNIVERSITY_ACCEPTED → TRAVEL_PLANNING` | TRAVEL, ADMISSIONS | `travelRecordCreated: true` (auto-creates a `TravelRecord` if absent) | STUDENT, PARENT_PRIMARY, NEW_OWNER |
-| 7 | `TRAVEL_PLANNING → TRAVELLED` | TRAVEL | Gated by `travelStepStatus.{passport,visa,flight,arrival} === 'DONE'`. Modal is read-only checklist confirmation — Advance disabled until all four pass. | STUDENT, ALL_PARENTS, NEW_OWNER (TEAM=OPERATIONS) |
+| 7 | `TRAVEL_PLANNING → TRAVELLED` | TRAVEL | Gated by `travelStepStatus.{passport,visa,flight,arrival} === 'DONE'`. Modal is read-only checklist confirmation - Advance disabled until all four pass. | STUDENT, ALL_PARENTS, NEW_OWNER (TEAM=OPERATIONS) |
 | 8 | `TRAVELLED → MONITORING` | OPERATIONS, TRAVEL | `arrivalConfirmedDate` (date), `localContactName` (text), `localContactPhone` (text), `accommodationAddress` (text) | STUDENT, ALL_PARENTS |
 
-**MD revert action:** `revertStage(studentId, toStage, reason)` allowed for `MANAGING_DIRECTOR` only. Writes a `StageTransition` with `fromStage > toStage` in pipeline order, requires `reason`, notifies NEW_OWNER only (no student/parent message — avoids alarming on internal reversals).
+**MD revert action:** `revertStage(studentId, toStage, reason)` allowed for `MANAGING_DIRECTOR` only. Writes a `StageTransition` with `fromStage > toStage` in pipeline order, requires `reason`, notifies NEW_OWNER only (no student/parent message - avoids alarming on internal reversals).
 
 **Ownership assignment after advance:**
 - If the transition captured an explicit owner (e.g., `counselorAssigneeId`), `stageOwnerId = capturedData.<field>`.
@@ -162,10 +162,10 @@ Four sub-step transitions in `lib/pipeline/travelSteps.ts`. All triggered by `TR
 
 | Sub-step | Mark IN_PROGRESS when | Required to mark DONE | Notify on DONE |
 |---|---|---|---|
-| **Passport** | `passportStatus = APPLYING` recorded | `passportNumber` + `passportExpiry` recorded, OR `passportStatus = HAS_PASSPORT` (auto-DONE on entry to TRAVEL_PLANNING if already on file) | STUDENT, PARENT_PRIMARY — *"Passport ready ✓"* |
-| **Visa** | `visaType` confirmed + `visaStatus ∈ {DOCUMENTS_GATHERING, APPLIED}` | `visaStatus = APPROVED` + `visaApprovalDate` + `visaExpiryDate` | STUDENT, ALL_PARENTS — *"Visa approved ✓"* |
-| **Flight** | Flag set in modal: "Booking in progress" | `flightDate` + `flightNumber` + `airline` + `departureCity` + `destinationCity` set; `ticketUrl` optional | STUDENT, ALL_PARENTS — *"Flight booked: {airline} {flightNumber} on {date}"* |
-| **Arrival** | Auto IN_PROGRESS once Flight is DONE | `arrivalConfirmedDate` + `airportPickupArranged` (boolean) + `pickupContactName`/`pickupContactPhone` (required if pickup arranged) | STUDENT, ALL_PARENTS — *"Arrival confirmed at {destinationCity} ✓"* |
+| **Passport** | `passportStatus = APPLYING` recorded | `passportNumber` + `passportExpiry` recorded, OR `passportStatus = HAS_PASSPORT` (auto-DONE on entry to TRAVEL_PLANNING if already on file) | STUDENT, PARENT_PRIMARY - *"Passport ready ✓"* |
+| **Visa** | `visaType` confirmed + `visaStatus ∈ {DOCUMENTS_GATHERING, APPLIED}` | `visaStatus = APPROVED` + `visaApprovalDate` + `visaExpiryDate` | STUDENT, ALL_PARENTS - *"Visa approved ✓"* |
+| **Flight** | Flag set in modal: "Booking in progress" | `flightDate` + `flightNumber` + `airline` + `departureCity` + `destinationCity` set; `ticketUrl` optional | STUDENT, ALL_PARENTS - *"Flight booked: {airline} {flightNumber} on {date}"* |
+| **Arrival** | Auto IN_PROGRESS once Flight is DONE | `arrivalConfirmedDate` + `airportPickupArranged` (boolean) + `pickupContactName`/`pickupContactPhone` (required if pickup arranged) | STUDENT, ALL_PARENTS - *"Arrival confirmed at {destinationCity} ✓"* |
 
 Sub-step modal opens from the `<TravelChecklistCard>` (one row per sub-step). The card displays a 0/4 → 4/4 progress indicator. When the card hits 4/4, the main `<AdvanceStageButton>` for transition #7 unlocks.
 
@@ -181,7 +181,7 @@ Sub-step modal opens from the `<TravelChecklistCard>` (one row per sub-step). Th
 
 ### 7.2 `<AdvanceStageModal>`
 - Renders form dynamically from `transition.requiredFields[]` (FieldSpec types: `text`, `number`, `date`, `boolean`, `select`, `userSelect`, `paymentSelect`, `url`).
-- Bottom panel: **Notification preview** — renders the resolved WhatsApp template per recipient (with phone numbers), so the user sees exactly what gets sent before confirming.
+- Bottom panel: **Notification preview** - renders the resolved WhatsApp template per recipient (with phone numbers), so the user sees exactly what gets sent before confirming.
 - "Assign next owner" select shows all users in `newOwnerRole`, plus "Assign later" option.
 - Submit calls `advanceStudent(studentId, capturedData, assigneeId)`.
 
@@ -194,9 +194,9 @@ Sub-step modal opens from the `<TravelChecklistCard>` (one row per sub-step). Th
 
 ### 7.4 Student detail page additions
 [app/(dashboard)/students/[id]/page.tsx](app/(dashboard)/students/[id]/page.tsx) gains:
-- **Guardians** section — list of guardians with add/edit/delete; primary toggle.
-- **Stage Timeline** — `<StageTimeline>` rendering `StageTransition[]` for the student. Each row: from→to, who, when, expandable to show captured data + notifications sent.
-- **Sent Messages** — `<SentMessagesPanel>` listing `Notification` records (audience STUDENT or PARENT_*), showing recipient, channel, message body, timestamp, 🟢 *(simulated)* badge.
+- **Guardians** section - list of guardians with add/edit/delete; primary toggle.
+- **Stage Timeline** - `<StageTimeline>` rendering `StageTransition[]` for the student. Each row: from→to, who, when, expandable to show captured data + notifications sent.
+- **Sent Messages** - `<SentMessagesPanel>` listing `Notification` records (audience STUDENT or PARENT_*), showing recipient, channel, message body, timestamp, 🟢 *(simulated)* badge.
 - Existing "Change stage" dropdown is **removed**, replaced by `<AdvanceStageButton>`.
 
 ### 7.5 Students table additions
@@ -209,8 +209,8 @@ Sub-step modal opens from the `<TravelChecklistCard>` (one row per sub-step). Th
 - `<TravelChecklistCard>` showing 4 sub-step rows with status pill + "Update" button → opens sub-step modal.
 
 ### 7.7 Deprecations
-- Remove `updateStudentStage` ([lib/actions/studentActions.ts:48](lib/actions/studentActions.ts#L48)) — replaced by `advanceStudent` / `revertStage`.
-- Remove `admitStudent` ([lib/actions/studentActions.ts:69](lib/actions/studentActions.ts#L69)) — superseded by transition #5.
+- Remove `updateStudentStage` ([lib/actions/studentActions.ts:48](lib/actions/studentActions.ts#L48)) - replaced by `advanceStudent` / `revertStage`.
+- Remove `admitStudent` ([lib/actions/studentActions.ts:69](lib/actions/studentActions.ts#L69)) - superseded by transition #5.
 
 ## 8. Notification Simulation
 
@@ -236,17 +236,17 @@ For each recipient resolved from `audience`:
 Each created Notification gets pushed as a `sonner` toast on the triggering user's screen: *"WhatsApp sent (simulated) to {recipient name} (+255…)"*.
 
 **Pre-send guards (in modal):**
-- If audience includes a parent and student has no guardians → yellow warning *"No parent contacts on file — only the student will be notified"*; user can proceed or cancel to add a guardian first.
+- If audience includes a parent and student has no guardians → yellow warning *"No parent contacts on file - only the student will be notified"*; user can proceed or cancel to add a guardian first.
 - Hard-block only if `audience === ['ALL_PARENTS']` is the *only* audience (rare, currently no transition is parent-only).
 
-## 9. Audit Trail — Two Layers
+## 9. Audit Trail - Two Layers
 
 | Layer | Source of truth for | Written when |
 |---|---|---|
 | `StageTransition` | Product-level student journey (timeline UI) | On every advance + revert + travel sub-step |
 | `AuditLog` (existing, [types/index.ts:295](types/index.ts#L295)) | System-level audit (audit logs page) | Same, with `action: 'STAGE_CHANGE'`, `previousValue: fromStage`, `newValue: toStage` |
 
-`advanceStudent` write order: **mutate student → write StageTransition → send notifications → write AuditLog**. Notification failures don't roll back the transition — they're logged with a "Retry send" button on the timeline row.
+`advanceStudent` write order: **mutate student → write StageTransition → send notifications → write AuditLog**. Notification failures don't roll back the transition - they're logged with a "Retry send" button on the timeline row.
 
 ## 10. Edge Cases
 
@@ -277,8 +277,8 @@ Each created Notification gets pushed as a `sonner` toast on the triggering user
 
 ## 12. Out of Scope (Deferred)
 
-- Real WhatsApp send (Meta Cloud API / Twilio) — replace `sendSimulated` later
-- Real file upload for documents — URL strings for now
+- Real WhatsApp send (Meta Cloud API / Twilio) - replace `sendSimulated` later
+- Real file upload for documents - URL strings for now
 - SLA timers / overdue reminders
 - Bulk advance (multi-student)
 - Editing/deleting `StageTransition` records (append-only by design)

@@ -4,7 +4,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_bachelor_business',
     universityId: 'uni_coventry_london',
-    name: 'Bachelor — Business Management',
+    name: 'Bachelor - Business Management',
     studyLevel: 'BACHELOR',
     program: 'Business Management',
     description: '3-year undergraduate program in London.',
@@ -22,7 +22,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_bachelor_cs',
     universityId: 'uni_coventry_london',
-    name: 'Bachelor — Computer Science',
+    name: 'Bachelor - Computer Science',
     studyLevel: 'BACHELOR',
     program: 'Computer Science',
     status: 'ACTIVE',
@@ -39,7 +39,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_coventry_masters_mba',
     universityId: 'uni_coventry_london',
-    name: 'Masters — MBA',
+    name: 'Masters - MBA',
     studyLevel: 'MASTERS',
     program: 'Master of Business Administration',
     status: 'ACTIVE',
@@ -55,7 +55,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_pharma',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Pharmacology',
+    name: 'Foundation - Pharmacology',
     studyLevel: 'FOUNDATION',
     program: 'Pharmacology',
     status: 'ACTIVE',
@@ -72,7 +72,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_mech',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Mechanical Engineering',
+    name: 'Foundation - Mechanical Engineering',
     studyLevel: 'FOUNDATION',
     program: 'Mechanical Engineering',
     status: 'ACTIVE',
@@ -89,7 +89,7 @@ export const mockPackages: Package[] = [
   {
     id: 'pkg_dundee_foundation_compeng',
     universityId: 'uni_intl_college_dundee',
-    name: 'Foundation — Computer Engineering',
+    name: 'Foundation - Computer Engineering',
     studyLevel: 'FOUNDATION',
     program: 'Computer Engineering',
     status: 'ACTIVE',

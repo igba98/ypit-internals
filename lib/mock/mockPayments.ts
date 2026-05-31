@@ -355,7 +355,7 @@ export const mockPayments: PaymentRecord[] = [
     currency: "TZS",
     receiptNumbers: [],
     recordedBy: "usr_004",
-    notes: "Fresh inquiry — invoice prepared, awaiting first counseling."
+    notes: "Fresh inquiry - invoice prepared, awaiting first counseling."
   }
 ];
 

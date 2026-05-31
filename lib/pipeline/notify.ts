@@ -97,7 +97,7 @@ export function sendSimulated(input: SendSimulatedInput): string[] {
   for (const r of recipients) {
     const notification: Notification = {
       id: `ntf_${Math.random().toString(36).slice(2, 11)}`,
-      // For WHATSAPP recipients (student/parent), no app user exists — link the
+      // For WHATSAPP recipients (student/parent), no app user exists - link the
       // notification record back to the student so the student's profile can
       // show "messages sent about you". For IN_APP recipients (NEW_OWNER/TEAM),
       // userId is the receiving app user so the bell-icon inbox can filter.

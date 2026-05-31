@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `/tasks` the trustworthy day-to-day operations entry point — adding personal tasks, reference & deliverable attachments, a strict review gate (Approve / Request changes / Reject), an activity timeline, and a personalised "My Day" strip on top of the existing module.
+**Goal:** Make `/tasks` the trustworthy day-to-day operations entry point - adding personal tasks, reference & deliverable attachments, a strict review gate (Approve / Request changes / Reject), an activity timeline, and a personalised "My Day" strip on top of the existing module.
 
-**Architecture:** Extend the existing `/tasks` module — do not rebuild. Extend `TaskStatus`, replace the single `endOfDayReport` with an append-only `activity[]` timeline, reuse `AttachmentField`'s base64 data-URL pattern as a numbered multi-file variant, reuse `SlideInPanel`/`StatusBadge`/`mockNotifications`. Migration helper rewrites existing seeds on import.
+**Architecture:** Extend the existing `/tasks` module - do not rebuild. Extend `TaskStatus`, replace the single `endOfDayReport` with an append-only `activity[]` timeline, reuse `AttachmentField`'s base64 data-URL pattern as a numbered multi-file variant, reuse `SlideInPanel`/`StatusBadge`/`mockNotifications`. Migration helper rewrites existing seeds on import.
 
 **Tech Stack:** Next.js 15 (App Router) · React 19 · TypeScript 5.9 · Tailwind v4 · Zod 4 · React Hook Form 7 · Sonner · dnd-kit · @tanstack/react-table · Vitest 2.
 
@@ -111,7 +111,7 @@ export interface Task {
 ```bash
 yarn typecheck 2>&1 | tee /tmp/typecheck.log | head -60
 ```
-Expected: errors in `lib/mock/mockTasks.ts`, `lib/actions/taskActions.ts`, `components/shared/TaskCard.tsx`, `app/(dashboard)/tasks/_components/*`. These get fixed by later tasks — don't fix them here.
+Expected: errors in `lib/mock/mockTasks.ts`, `lib/actions/taskActions.ts`, `components/shared/TaskCard.tsx`, `app/(dashboard)/tasks/_components/*`. These get fixed by later tasks - don't fix them here.
 
 - [ ] **Step 4: Commit**
 
@@ -465,7 +465,7 @@ export function getPendingReportTasks(userId: string): Task[] {
 ```bash
 yarn typecheck 2>&1 | grep -E "mockTasks\.ts|EndOfDayReport"
 ```
-Expected: no errors *originating in* `mockTasks.ts` (downstream callers in `taskActions.ts` and components will still fail — fixed in later tasks).
+Expected: no errors *originating in* `mockTasks.ts` (downstream callers in `taskActions.ts` and components will still fail - fixed in later tasks).
 
 - [ ] **Step 3: Commit**
 
@@ -771,7 +771,7 @@ export function binFor(task: Task, userId: string, now: Date): DayBin | null {
 ```bash
 yarn test lib/tasks/permissions.test.ts
 ```
-Expected: PASS — all suites green.
+Expected: PASS - all suites green.
 
 - [ ] **Step 5: Commit**
 
@@ -782,7 +782,7 @@ git commit -m "feat(tasks): permission + day-bin helpers with vitest coverage"
 
 ---
 
-## Task 5: Server action — `addTask` (personal + assigned + reference attachments)
+## Task 5: Server action - `addTask` (personal + assigned + reference attachments)
 
 **Files:**
 - Modify: `lib/actions/taskActions.ts`
@@ -1141,7 +1141,7 @@ describe('addTask', () => {
 ```bash
 yarn test lib/actions/taskActions.test.ts
 ```
-Expected: PASS — all six `addTask` cases green.
+Expected: PASS - all six `addTask` cases green.
 
 - [ ] **Step 4: Commit**
 
@@ -1152,7 +1152,7 @@ git commit -m "feat(tasks): addTask supports personal, assigned, attachments, ta
 
 ---
 
-## Task 6: Server actions — `startTask`, `blockTask`, `unblockTask`
+## Task 6: Server actions - `startTask`, `blockTask`, `unblockTask`
 
 **Files:**
 - Modify: `lib/actions/taskActions.ts`
@@ -1256,7 +1256,7 @@ describe('unblockTask', () => {
 ```bash
 yarn test lib/actions/taskActions.test.ts
 ```
-Expected: FAIL — the three new `describe` blocks fail because the stubs return `Not implemented yet`.
+Expected: FAIL - the three new `describe` blocks fail because the stubs return `Not implemented yet`.
 
 - [ ] **Step 3: Implement the actions**
 
@@ -1357,7 +1357,7 @@ export async function unblockTask(_prev: unknown, formData: FormData): Promise<A
 ```bash
 yarn test lib/actions/taskActions.test.ts
 ```
-Expected: PASS — all `startTask` / `blockTask` / `unblockTask` cases green.
+Expected: PASS - all `startTask` / `blockTask` / `unblockTask` cases green.
 
 - [ ] **Step 5: Commit**
 
@@ -1368,7 +1368,7 @@ git commit -m "feat(tasks): start, block, unblock lifecycle actions"
 
 ---
 
-## Task 7: Server action — `submitTaskReport` (personal closes, assigned → SUBMITTED)
+## Task 7: Server action - `submitTaskReport` (personal closes, assigned → SUBMITTED)
 
 **Files:**
 - Modify: `lib/actions/taskActions.ts`
@@ -1540,7 +1540,7 @@ export async function submitTaskReport(_prev: unknown, formData: FormData): Prom
     pushNotification(
       task.assignedById,
       `Report submitted: ${task.title}`,
-      `From ${actor.fullName} — ${parsed.data.summary}`,
+      `From ${actor.fullName} - ${parsed.data.summary}`,
       'REPORT_SUBMITTED',
       task.id
     );
@@ -1556,7 +1556,7 @@ export async function submitTaskReport(_prev: unknown, formData: FormData): Prom
 ```bash
 yarn test lib/actions/taskActions.test.ts
 ```
-Expected: PASS — all `submitTaskReport` cases green.
+Expected: PASS - all `submitTaskReport` cases green.
 
 - [ ] **Step 5: Commit**
 
@@ -1567,7 +1567,7 @@ git commit -m "feat(tasks): submitTaskReport (personal closes, assigned → SUBM
 
 ---
 
-## Task 8: Server action — `reviewTask` (Approve / Request changes / Reject)
+## Task 8: Server action - `reviewTask` (Approve / Request changes / Reject)
 
 **Files:**
 - Modify: `lib/actions/taskActions.ts`
@@ -1730,7 +1730,7 @@ export async function reviewTask(_prev: unknown, formData: FormData): Promise<Ac
 ```bash
 yarn test lib/actions/taskActions.test.ts
 ```
-Expected: PASS — all `reviewTask` cases green.
+Expected: PASS - all `reviewTask` cases green.
 
 - [ ] **Step 5: Commit**
 
@@ -1741,7 +1741,7 @@ git commit -m "feat(tasks): reviewTask handles approve, request changes, reject"
 
 ---
 
-## Task 9: Server action — `editTask` (pre-SUBMITTED light edits)
+## Task 9: Server action - `editTask` (pre-SUBMITTED light edits)
 
 **Files:**
 - Modify: `lib/actions/taskActions.ts`
@@ -1950,7 +1950,7 @@ export function MultiAttachmentField({ name, label, helperText }: Props) {
           break;
         }
         if (file.size > MAX_BYTES) {
-          toast.error(`${file.name} is too large — max ${formatSize(MAX_BYTES)}.`);
+          toast.error(`${file.name} is too large - max ${formatSize(MAX_BYTES)}.`);
           continue;
         }
         const url = await readAsDataUrl(file);
@@ -2096,7 +2096,7 @@ git commit -m "feat(shared): StatusBadge task variant with new statuses"
 
 ---
 
-## Task 12: `CreateTaskForm` — personal toggle, tags, reference attachments
+## Task 12: `CreateTaskForm` - personal toggle, tags, reference attachments
 
 **Files:**
 - Modify: `app/(dashboard)/tasks/_components/CreateTaskForm.tsx`
@@ -2192,7 +2192,7 @@ export function CreateTaskForm({ onSuccess, currentUserId }: { onSuccess: () => 
         />
         <p className="text-[11px] text-gray-500">
           {isPersonal
-            ? 'Personal tasks close on submit — no review.'
+            ? 'Personal tasks close on submit - no review.'
             : 'The assignee will be notified. You will review their submission.'}
         </p>
       </div>
@@ -2244,7 +2244,7 @@ export function CreateTaskButton({ currentUserId }: { currentUserId: string }) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Create Task"
-        description="Personal reminder or work for a teammate — same form, both supported."
+        description="Personal reminder or work for a teammate - same form, both supported."
       >
         <CreateTaskForm onSuccess={() => setIsOpen(false)} currentUserId={currentUserId} />
       </SlideInPanel>
@@ -2258,7 +2258,7 @@ export function CreateTaskButton({ currentUserId }: { currentUserId: string }) {
 ```bash
 yarn typecheck
 ```
-Expected: errors *only* in `app/(dashboard)/tasks/page.tsx` (because the new prop is unprovided) — fixed in Task 19.
+Expected: errors *only* in `app/(dashboard)/tasks/page.tsx` (because the new prop is unprovided) - fixed in Task 19.
 
 - [ ] **Step 4: Commit**
 
@@ -2340,11 +2340,11 @@ export function SubmitTaskForm({ task, onSuccess }: { task: Task; onSuccess: () 
             required
             defaultValue="100"
             options={[
-              { label: '0% — Just started', value: '0' },
+              { label: '0% - Just started', value: '0' },
               { label: '25%', value: '25' },
               { label: '50%', value: '50' },
               { label: '75%', value: '75' },
-              { label: '100% — Done', value: '100' },
+              { label: '100% - Done', value: '100' },
             ]}
           />
         </div>
@@ -2381,7 +2381,7 @@ export function SubmitTaskForm({ task, onSuccess }: { task: Task; onSuccess: () 
 rm app/\(dashboard\)/tasks/_components/ReportTaskForm.tsx
 ```
 
-- [ ] **Step 3: Typecheck (will fail in `ReportTaskPanel` — fixed in Task 16)**
+- [ ] **Step 3: Typecheck (will fail in `ReportTaskPanel` - fixed in Task 16)**
 
 ```bash
 yarn typecheck 2>&1 | grep -E "ReportTaskForm|ReportTaskPanel"
@@ -2440,7 +2440,7 @@ const OPTIONS: { value: Decision; label: string; description: string; icon: type
   {
     value: 'REJECT',
     label: 'Reject',
-    description: 'Terminal — task closes without completion. Reason required.',
+    description: 'Terminal - task closes without completion. Reason required.',
     icon: XCircle,
     tone: 'text-red-700 border-red-200 bg-red-50',
   },
@@ -2882,7 +2882,7 @@ rm app/\(dashboard\)/tasks/_components/ReportTaskPanel.tsx
 ```bash
 yarn typecheck 2>&1 | grep -E "ReportTaskPanel|TaskDetailPanel"
 ```
-Expected: errors *only* in callers of the deleted `ReportTaskPanel` (`TaskCard.tsx`, `TaskListView.tsx`) — fixed in Tasks 16 and 17.
+Expected: errors *only* in callers of the deleted `ReportTaskPanel` (`TaskCard.tsx`, `TaskListView.tsx`) - fixed in Tasks 16 and 17.
 
 - [ ] **Step 6: Commit**
 
@@ -2894,7 +2894,7 @@ git commit -m "feat(tasks): TaskDetailPanel with timeline, action bar, submit/re
 
 ---
 
-## Task 16: `TaskCard` — badge + context action + opens detail panel
+## Task 16: `TaskCard` - badge + context action + opens detail panel
 
 **Files:**
 - Modify: `components/shared/TaskCard.tsx`
@@ -3225,7 +3225,7 @@ export function TaskListView({
 ```bash
 yarn typecheck 2>&1 | grep -E "TaskCardGrid|TaskListView"
 ```
-Expected: errors only in `app/(dashboard)/tasks/page.tsx` (missing `currentUserId` prop) — fixed in Task 19.
+Expected: errors only in `app/(dashboard)/tasks/page.tsx` (missing `currentUserId` prop) - fixed in Task 19.
 
 - [ ] **Step 4: Commit**
 
@@ -3236,7 +3236,7 @@ git commit -m "feat(tasks): grid and list views open TaskDetailPanel on click"
 
 ---
 
-## Task 18: `TaskKanban` — new columns + permission-checked drag
+## Task 18: `TaskKanban` - new columns + permission-checked drag
 
 **Files:**
 - Modify: `app/(dashboard)/tasks/_components/TaskKanban.tsx`
@@ -3362,7 +3362,7 @@ export function TaskKanban({ initialTasks, currentUserId }: TaskKanbanProps) {
     }
 
     if (!allowed || !mutator) {
-      toast.error('That move is not allowed from the kanban — open the task to act on it.');
+      toast.error('That move is not allowed from the kanban - open the task to act on it.');
       return;
     }
 
@@ -3413,7 +3413,7 @@ export function TaskKanban({ initialTasks, currentUserId }: TaskKanbanProps) {
 ```bash
 yarn typecheck 2>&1 | grep TaskKanban
 ```
-Expected: no errors from `TaskKanban.tsx`. (Errors in `page.tsx` for the new prop — Task 19.)
+Expected: no errors from `TaskKanban.tsx`. (Errors in `page.tsx` for the new prop - Task 19.)
 
 - [ ] **Step 3: Commit**
 
@@ -3593,7 +3593,7 @@ git commit -m "feat(tasks): MyDayStrip with bin tiles + QuickPersonalTaskInput"
 
 ---
 
-## Task 20: Page wiring — `/tasks` page with new filters, Personal tab, and strip
+## Task 20: Page wiring - `/tasks` page with new filters, Personal tab, and strip
 
 **Files:**
 - Modify: `app/(dashboard)/tasks/page.tsx`
@@ -3756,7 +3756,7 @@ rm app/\(dashboard\)/tasks/_components/SubmitReportForm.tsx
 ```
 (The detail panel now hosts submission per-task, which is the intended model.)
 
-- [ ] **Step 3: Typecheck — should now be clean**
+- [ ] **Step 3: Typecheck - should now be clean**
 
 ```bash
 yarn typecheck
@@ -3768,7 +3768,7 @@ Expected: zero errors.
 ```bash
 yarn test
 ```
-Expected: PASS — all suites green (existing pipeline tests + new permissions + taskActions).
+Expected: PASS - all suites green (existing pipeline tests + new permissions + taskActions).
 
 - [ ] **Step 5: Commit**
 
@@ -3809,7 +3809,7 @@ In a separate terminal/window, open `http://localhost:3000/login`, sign in as `m
    - Log out, back in as MD. **Awaiting my review** tile is ≥ 1. Open task → **Review** → Request changes with note "Add a budget table".
    - Log out, back in as Sarah. Status `CHANGES REQUESTED` on the card. Open → **Resubmit** with updated report → submitted again (round 2 in timeline).
    - Back as MD → **Review** → Approve. Status flips to COMPLETED. Activity timeline shows both rounds.
-3. **Reject path** — Repeat steps from #2 up to first submit, then MD rejects with reason → status REJECTED → does not appear in non-rejected bin filters; appears greyed in `My Tasks` tab.
+3. **Reject path** - Repeat steps from #2 up to first submit, then MD rejects with reason → status REJECTED → does not appear in non-rejected bin filters; appears greyed in `My Tasks` tab.
 4. **Block / unblock**
    - On an IN_PROGRESS task, click **Block** → enter reason → status BLOCKED, appears in Blocked tile and Blocked kanban column.
    - Drag from Blocked → In Progress on kanban → toast confirms.
@@ -3817,7 +3817,7 @@ In a separate terminal/window, open `http://localhost:3000/login`, sign in as `m
    - As a non-assignee, try to drag someone else's task between columns → toast warning "That move is not allowed from the kanban".
 6. **Empty state**
    - Navigate to `?filter=overdue&view=grid` when overdue is 0 → "Nothing here" empty card visible.
-7. **Console & network** — DevTools console should show zero red errors across all flows.
+7. **Console & network** - DevTools console should show zero red errors across all flows.
 
 - [ ] **Step 3: If any flow fails, fix and commit before completing**
 

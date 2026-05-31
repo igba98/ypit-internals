@@ -72,14 +72,14 @@ export async function validateLogin(formData: FormData): Promise<ActionResult> {
 
   const cookieStore = await cookies();
 
-  // Session shape — read by middleware + SessionContext (existing contract).
+  // Session shape - read by middleware + SessionContext (existing contract).
   cookieStore.set('ypit_session', JSON.stringify(session), {
     path: '/',
     maxAge: 86400,
     sameSite: 'lax',
   });
 
-  // JWT — HttpOnly so it never reaches client JS. Server actions read it
+  // JWT - HttpOnly so it never reaches client JS. Server actions read it
   // and forward as `Authorization: Bearer <token>` to the backend.
   cookieStore.set('ypit_token', body.accessToken, {
     path: '/',
@@ -108,7 +108,7 @@ export async function logoutUser(): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get('ypit_token')?.value;
 
-  // Fire-and-forget — failure here mustn't prevent the local cookie cleanup.
+  // Fire-and-forget - failure here mustn't prevent the local cookie cleanup.
   if (token) {
     fetch(`${BACKEND_API_URL}/auth/logout`, {
       method: 'POST',

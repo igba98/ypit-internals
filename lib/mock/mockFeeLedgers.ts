@@ -4,7 +4,7 @@ import { StudentFeeLedger } from '@/types';
  * Phase 1 seed data.
  *
  * Entries 1-12 are 1:1 migrations of the legacy `mockPayments.ts` records,
- * EXCEPT for records belonging to std_001, std_002, std_005 — those get fresh
+ * EXCEPT for records belonging to std_001, std_002, std_005 - those get fresh
  * package-driven ledgers below. Migration follows rules captured in
  * docs/superpowers/specs/2026-05-26-finance-phase-1-fee-structures-and-packages-design.md
  *
@@ -616,7 +616,7 @@ export const mockFeeLedgers: StudentFeeLedger[] = [
       { id: 'fl_pkg_002_tuition', type: 'TUITION',     label: 'Tuition',         amount: 8_500,     currency: 'GBP', dueDate: '2026-09-01T00:00:00Z', paidAmount: 2_000,     status: 'PARTIAL', sourceFeeDefaultIndex: 3 },
     ],
   },
-  // ---- Fresh ledger 3: OVERRIDE applied — scholarship (std_005) ----
+  // ---- Fresh ledger 3: OVERRIDE applied - scholarship (std_005) ----
   {
     studentId: 'std_005',
     packageId: 'pkg_coventry_bachelor_cs',
@@ -629,7 +629,7 @@ export const mockFeeLedgers: StudentFeeLedger[] = [
       {
         id: 'fl_pkg_003_tuition', type: 'TUITION', label: 'Tuition', amount: 11_700, currency: 'GBP',
         dueDate: '2026-09-01T00:00:00Z', paidAmount: 0, status: 'UNPAID', sourceFeeDefaultIndex: 2,
-        overrideReason: '10% scholarship — academic merit',
+        overrideReason: '10% scholarship - academic merit',
         overriddenById: 'usr_004',
         overriddenByName: 'Esther (Finance)',
         overriddenAt: '2026-04-15T10:00:00Z',

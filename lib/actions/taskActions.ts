@@ -22,7 +22,7 @@ async function readError(res: Response): Promise<{
  *   <prefix>_<i>_Url / _Filename / _ContentType / _Size
  *
  * Server-side metadata (uploadedAt/uploadedById/uploadedByName) is stamped by
- * the backend — we don't send it from here.
+ * the backend - we don't send it from here.
  */
 function collectAttachments(
   formData: FormData,

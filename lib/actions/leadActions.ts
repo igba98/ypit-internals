@@ -5,7 +5,7 @@ import { ActionResult } from '@/types';
 import { backendFetch } from '@/lib/backend';
 
 /**
- * The /leads page in this app tracks employee performance — marketing staff &
+ * The /leads page in this app tracks employee performance - marketing staff &
  * sub-agents whose conversion of students is measured.  So "Add Lead" here
  * means "add a marketing employee", which routes to the Staff endpoint (with
  * the temp-password + welcome-email flow that lives there).

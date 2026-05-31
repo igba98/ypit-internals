@@ -20,7 +20,7 @@ export function CreateTaskButton({ currentUserId }: { currentUserId: string }) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Create Task"
-        description="Personal reminder or work for a teammate — same form, both supported."
+        description="Personal reminder or work for a teammate - same form, both supported."
       >
         <CreateTaskForm onSuccess={() => setIsOpen(false)} currentUserId={currentUserId} />
       </SlideInPanel>

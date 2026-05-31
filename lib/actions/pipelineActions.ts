@@ -71,7 +71,7 @@ export async function advanceStudent(
     student: { pipelineStage: string; fullName: string };
   };
 
-  // The pipeline can have downstream side effects in many places —
+  // The pipeline can have downstream side effects in many places -
   // revalidate broadly so dashboards reflect the new state.
   revalidatePath('/students');
   revalidatePath(`/students/${input.studentId}`);

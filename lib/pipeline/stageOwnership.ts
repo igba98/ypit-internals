@@ -1,7 +1,7 @@
 import { PipelineStage, Role, ROLES } from '@/types';
 
 /**
- * For each pipeline stage, the roles that "own" that stage —
+ * For each pipeline stage, the roles that "own" that stage -
  * meaning: the student appears in their MyQueue, and they have
  * the right to advance the student to the next stage.
  *

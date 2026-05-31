@@ -107,7 +107,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
           {showNoGuardianWarning && (
             <div className="flex gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
-              <span>No parent contacts on file — only the student will be notified. Consider adding a guardian first.</span>
+              <span>No parent contacts on file - only the student will be notified. Consider adding a guardian first.</span>
             </div>
           )}
 
@@ -118,7 +118,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
             <ul className="text-xs text-gray-700 mt-1 list-disc list-inside">
               {recipients.length === 0 && <li>No recipients resolved</li>}
               {recipients.map((r, i) => (
-                <li key={i}>{r.kind === 'WHATSAPP' ? '📱' : '🔔'} {r.name}{r.phone ? ` — ${r.phone}` : ''} ({r.kind.toLowerCase()})</li>
+                <li key={i}>{r.kind === 'WHATSAPP' ? '📱' : '🔔'} {r.name}{r.phone ? ` - ${r.phone}` : ''} ({r.kind.toLowerCase()})</li>
               ))}
             </ul>
           </div>
@@ -175,7 +175,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {field.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -186,7 +186,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {candidates.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role.replace(/_/g, ' ').toLowerCase()})</option>)}
           </select>
         </div>
@@ -197,7 +197,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {['BANK_TRANSFER', 'CASH', 'CHEQUE', 'CARD', 'MOBILE_MONEY', 'PETTY_CASH'].map(m => <option key={m} value={m}>{m.replace(/_/g, ' ').toLowerCase()}</option>)}
           </select>
         </div>

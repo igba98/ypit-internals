@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fix the audit's "first 60 seconds" issues — currency chaos, broken /audit route, missing branded 404, weak /tasks empty state, Finance KPI truncation — and establish the canonical `lib/format.ts` utility CLAUDE.md mandates.
+**Goal:** Fix the audit's "first 60 seconds" issues - currency chaos, broken /audit route, missing branded 404, weak /tasks empty state, Finance KPI truncation - and establish the canonical `lib/format.ts` utility CLAUDE.md mandates.
 
 **Architecture:** Centralize all currency display in a single `lib/format.ts` with a `formatCurrency(amount, opts?)` API. Migrate the existing call sites away from the legacy `lib/utils.ts` implementation (which produces `TZS X` via `Intl.NumberFormat`) to the new one (which always prefixes `TSh`). Replace remaining hardcoded currency strings (`TZS 45M`, `TZS 100,000`, `$1.2M`). Then fix the four standalone critical bugs: sidebar `/audit` link, missing `not-found.tsx`, sub-par tasks empty state, Finance KPI value truncation at 1280px.
 
-**Tech Stack:** Next.js 15 App Router, React 19, TypeScript, Tailwind v4 (CSS-based `@theme`), Lucide icons. No test framework — verification is `npm run lint`, `npx tsc --noEmit`, and visual check in `npm run dev`.
+**Tech Stack:** Next.js 15 App Router, React 19, TypeScript, Tailwind v4 (CSS-based `@theme`), Lucide icons. No test framework - verification is `npm run lint`, `npx tsc --noEmit`, and visual check in `npm run dev`.
 
 **Audit cross-reference:**
 - Issue 1 (currency chaos) → Tasks 1–4
@@ -14,36 +14,36 @@
 - Issue 3 (branded 404) → Task 6
 - Issue 4 (tasks empty state) → Task 7
 - Issue 5 (Finance KPI truncation) → Task 4
-- Issue 6 (login bypass) → Task 8 (verification only — middleware already correct)
+- Issue 6 (login bypass) → Task 8 (verification only - middleware already correct)
 
 ---
 
 ## File Structure
 
 **Files to create:**
-- `lib/format.ts` — canonical currency/number formatter
-- `app/not-found.tsx` — branded 404 page
+- `lib/format.ts` - canonical currency/number formatter
+- `app/not-found.tsx` - branded 404 page
 
 **Files to modify:**
-- `package.json` — add `typecheck` script
-- `lib/utils.ts` — remove old `formatCurrency` (callers migrate to `lib/format.ts`)
-- `components/layout/Sidebar.tsx` — fix audit-logs href
-- `app/(dashboard)/tasks/_components/TaskCardGrid.tsx` — proper empty state
-- `app/(dashboard)/dashboard/page.tsx` — replace hardcoded `TZS 45M`
-- `app/(dashboard)/payments/page.tsx` — replace hardcoded `TZS X.XM`
-- `app/(dashboard)/payments/_components/PaymentsTable.tsx` — import path
-- `app/(dashboard)/payments/_components/RecordPaymentForm.tsx` — label `(TZS)` → `(TSh)`
-- `app/(dashboard)/students/[id]/page.tsx` — import path + opts API
-- `app/(dashboard)/students/[id]/_components/PaymentsTab.tsx` — import path + opts API
-- `app/(dashboard)/finance/page.tsx` — KPI compact mode + import path
-- `app/(dashboard)/finance/invoices/page.tsx` — KPI compact mode + import path
-- `app/(dashboard)/finance/invoices/_components/NewInvoiceButton.tsx` — labels
-- `app/(dashboard)/finance/expenses/page.tsx` — KPI compact mode + import path
-- `app/(dashboard)/finance/expenses/_components/ExpenseActions.tsx` — label
-- `app/(dashboard)/finance/payroll/page.tsx` — hero compact mode + import path
-- `app/(dashboard)/finance/petty-cash/page.tsx` — hero compact + line 103 + import path
-- `app/(dashboard)/finance/petty-cash/_components/PettyCashActions.tsx` — labels + helper text
-- `app/(dashboard)/reports/_components/ReportsDashboard.tsx` — replace `$1.2M`
+- `package.json` - add `typecheck` script
+- `lib/utils.ts` - remove old `formatCurrency` (callers migrate to `lib/format.ts`)
+- `components/layout/Sidebar.tsx` - fix audit-logs href
+- `app/(dashboard)/tasks/_components/TaskCardGrid.tsx` - proper empty state
+- `app/(dashboard)/dashboard/page.tsx` - replace hardcoded `TZS 45M`
+- `app/(dashboard)/payments/page.tsx` - replace hardcoded `TZS X.XM`
+- `app/(dashboard)/payments/_components/PaymentsTable.tsx` - import path
+- `app/(dashboard)/payments/_components/RecordPaymentForm.tsx` - label `(TZS)` → `(TSh)`
+- `app/(dashboard)/students/[id]/page.tsx` - import path + opts API
+- `app/(dashboard)/students/[id]/_components/PaymentsTab.tsx` - import path + opts API
+- `app/(dashboard)/finance/page.tsx` - KPI compact mode + import path
+- `app/(dashboard)/finance/invoices/page.tsx` - KPI compact mode + import path
+- `app/(dashboard)/finance/invoices/_components/NewInvoiceButton.tsx` - labels
+- `app/(dashboard)/finance/expenses/page.tsx` - KPI compact mode + import path
+- `app/(dashboard)/finance/expenses/_components/ExpenseActions.tsx` - label
+- `app/(dashboard)/finance/payroll/page.tsx` - hero compact mode + import path
+- `app/(dashboard)/finance/petty-cash/page.tsx` - hero compact + line 103 + import path
+- `app/(dashboard)/finance/petty-cash/_components/PettyCashActions.tsx` - labels + helper text
+- `app/(dashboard)/reports/_components/ReportsDashboard.tsx` - replace `$1.2M`
 
 ---
 
@@ -156,7 +156,7 @@ Run:
 node -e "const { formatCurrency } = require('./lib/format.ts'); console.log(formatCurrency(1234567));"
 ```
 
-This will likely fail because Node can't import TS — that's fine, skip it. Instead, just visually re-check `lib/format.ts` against these expectations:
+This will likely fail because Node can't import TS - that's fine, skip it. Instead, just visually re-check `lib/format.ts` against these expectations:
 - `formatCurrency(1234567)` → `"TSh 1,234,567"`
 - `formatCurrency(1234567, { compact: true })` → `"TSh 1.2M"`
 - `formatCurrency(45000000, { compact: true })` → `"TSh 45M"` (no trailing `.0`)
@@ -271,7 +271,7 @@ import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 ```
 
-Lines 36, 37, 38, 39 use `formatCurrency(x, 'TZS')` — drop the `'TZS'`. Lines 85, 95, 99 use `formatCurrency(x, inv.currency)` where `inv.currency` is a data field. Change those to `formatCurrency(x, { currency: inv.currency })`.
+Lines 36, 37, 38, 39 use `formatCurrency(x, 'TZS')` - drop the `'TZS'`. Lines 85, 95, 99 use `formatCurrency(x, inv.currency)` where `inv.currency` is a data field. Change those to `formatCurrency(x, { currency: inv.currency })`.
 
 - [ ] **Step 4: Update `app/(dashboard)/finance/expenses/page.tsx`**
 
@@ -279,11 +279,11 @@ Same pattern: split the import, change `, 'TZS')` → `)`, and change `formatCur
 
 - [ ] **Step 5: Update `app/(dashboard)/finance/payroll/page.tsx`**
 
-Split the import; lines 65, 70, 71, 120, 160, 161, 162, 163, 164 all use `, 'TZS')` — drop it.
+Split the import; lines 65, 70, 71, 120, 160, 161, 162, 163, 164 all use `, 'TZS')` - drop it.
 
 - [ ] **Step 6: Update `app/(dashboard)/finance/petty-cash/page.tsx`**
 
-Split the import. Lines 97, 108, 113, 138 use `, 'TZS')` — drop it. Lines 211, 214 use `formatCurrency(tx.amount, tx.currency)` and `formatCurrency(tx.balanceAfter, tx.currency)` — change to `formatCurrency(tx.amount, { currency: tx.currency })` and `formatCurrency(tx.balanceAfter, { currency: tx.currency })`.
+Split the import. Lines 97, 108, 113, 138 use `, 'TZS')` - drop it. Lines 211, 214 use `formatCurrency(tx.amount, tx.currency)` and `formatCurrency(tx.balanceAfter, tx.currency)` - change to `formatCurrency(tx.amount, { currency: tx.currency })` and `formatCurrency(tx.balanceAfter, { currency: tx.currency })`.
 
 - [ ] **Step 7: Update `app/(dashboard)/payments/_components/PaymentsTable.tsx`**
 
@@ -300,7 +300,7 @@ import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 ```
 
-All `formatCurrency` calls in this file (lines 51, 52, 64, 65, 73, 78) are single-argument — no signature change needed.
+All `formatCurrency` calls in this file (lines 51, 52, 64, 65, 73, 78) are single-argument - no signature change needed.
 
 - [ ] **Step 8: Update `app/(dashboard)/students/[id]/page.tsx`**
 
@@ -334,7 +334,7 @@ import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 ```
 
-Lines 53, 54, 94, 109, 113 all use `formatCurrency(x, currency)` — change to `formatCurrency(x, { currency })`.
+Lines 53, 54, 94, 109, 113 all use `formatCurrency(x, currency)` - change to `formatCurrency(x, { currency })`.
 
 - [ ] **Step 10: Verify lint + typecheck pass**
 
@@ -345,7 +345,7 @@ npx tsc --noEmit
 
 Both must exit 0. If typecheck fails with "Cannot find module '@/lib/format'" anywhere, double-check that file was created in Task 1.
 
-If lint fails on `import { formatCurrency } from '@/lib/utils';` anywhere, you missed a file — `grep -rn "formatCurrency.*from.*lib/utils" app components` to find it.
+If lint fails on `import { formatCurrency } from '@/lib/utils';` anywhere, you missed a file - `grep -rn "formatCurrency.*from.*lib/utils" app components` to find it.
 
 - [ ] **Step 11: Visual smoke test**
 
@@ -354,10 +354,10 @@ npm run dev
 ```
 
 Visit:
-- http://localhost:3000/finance — top KPIs should now show `TSh ...` (still possibly truncated; that's fixed in Task 4)
-- http://localhost:3000/finance/petty-cash — voucher amounts in `TSh`
-- http://localhost:3000/students/std_001 — payment tab amounts in `TSh`
-- http://localhost:3000/payments — table amounts in `TSh`
+- http://localhost:3000/finance - top KPIs should now show `TSh ...` (still possibly truncated; that's fixed in Task 4)
+- http://localhost:3000/finance/petty-cash - voucher amounts in `TSh`
+- http://localhost:3000/students/std_001 - payment tab amounts in `TSh`
+- http://localhost:3000/payments - table amounts in `TSh`
 
 Stop the dev server.
 
@@ -382,13 +382,13 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Modify: `app/(dashboard)/dashboard/page.tsx`
 - Modify: `app/(dashboard)/payments/page.tsx`
 - Modify: `app/(dashboard)/payments/_components/RecordPaymentForm.tsx`
-- Modify: `app/(dashboard)/finance/petty-cash/page.tsx` (line 103 only — the rest was Task 2)
+- Modify: `app/(dashboard)/finance/petty-cash/page.tsx` (line 103 only - the rest was Task 2)
 - Modify: `app/(dashboard)/finance/petty-cash/_components/PettyCashActions.tsx`
 - Modify: `app/(dashboard)/finance/invoices/_components/NewInvoiceButton.tsx`
 - Modify: `app/(dashboard)/finance/expenses/_components/ExpenseActions.tsx`
 - Modify: `app/(dashboard)/reports/_components/ReportsDashboard.tsx`
 
-- [ ] **Step 1: Dashboard — replace `TZS 45M`**
+- [ ] **Step 1: Dashboard - replace `TZS 45M`**
 
 `app/(dashboard)/dashboard/page.tsx` line 1 currently imports:
 
@@ -416,7 +416,7 @@ to:
 
 This will render `TSh 45M`.
 
-- [ ] **Step 2: Payments page — replace `TZS X.XM`**
+- [ ] **Step 2: Payments page - replace `TZS X.XM`**
 
 `app/(dashboard)/payments/page.tsx`. Add to the imports (after the existing `RecordPaymentButton` import on line 8):
 
@@ -450,7 +450,7 @@ Change to:
           <Label htmlFor="amount">Amount (TSh) *</Label>
 ```
 
-- [ ] **Step 4: Petty cash hero — line 103 hardcoded threshold**
+- [ ] **Step 4: Petty cash hero - line 103 hardcoded threshold**
 
 `app/(dashboard)/finance/petty-cash/page.tsx` line 103 (this was deliberately left for Task 3):
 
@@ -466,7 +466,7 @@ Change to (use template literal):
 
 (`formatCurrency` should already be imported in this file from Task 2; if not, add it.)
 
-- [ ] **Step 5: PettyCashActions — labels and helper text**
+- [ ] **Step 5: PettyCashActions - labels and helper text**
 
 `app/(dashboard)/finance/petty-cash/_components/PettyCashActions.tsx`. First inspect the file to know what's at the top of imports (this task's executor must `Read` the file first to find the correct import insertion point).
 
@@ -520,7 +520,7 @@ Change to:
         <Label htmlFor="amount">Amount (TSh) *</Label>
 ```
 
-- [ ] **Step 6: NewInvoiceButton — labels**
+- [ ] **Step 6: NewInvoiceButton - labels**
 
 `app/(dashboard)/finance/invoices/_components/NewInvoiceButton.tsx`:
 
@@ -548,9 +548,9 @@ Line 98:
           <Label htmlFor="tax">Tax (TSh)</Label>
 ```
 
-**Do NOT change line 116** (`<input type="hidden" name="currency" value="TZS" />`) — that is the ISO currency code persisted with the invoice and must remain `TZS`.
+**Do NOT change line 116** (`<input type="hidden" name="currency" value="TZS" />`) - that is the ISO currency code persisted with the invoice and must remain `TZS`.
 
-- [ ] **Step 7: ExpenseActions — label**
+- [ ] **Step 7: ExpenseActions - label**
 
 `app/(dashboard)/finance/expenses/_components/ExpenseActions.tsx` line 106:
 
@@ -564,7 +564,7 @@ Line 98:
           <Label htmlFor="amount">Amount (TSh) *</Label>
 ```
 
-- [ ] **Step 8: ReportsDashboard — replace `$1.2M`**
+- [ ] **Step 8: ReportsDashboard - replace `$1.2M`**
 
 `app/(dashboard)/reports/_components/ReportsDashboard.tsx`. Add to imports at top of file (after the existing `recharts` import on line 3):
 
@@ -618,10 +618,10 @@ npm run dev
 ```
 
 Visit:
-- /dashboard — Revenue Collected shows `TSh 45M`
-- /payments — Total Collected shows `TSh X.XM` (e.g. `TSh 181.6M`)
-- /finance/petty-cash — float threshold copy reads "safe threshold TSh 100,000"
-- /reports — Key Metrics "Revenue Collected" shows `TSh 1.2M`
+- /dashboard - Revenue Collected shows `TSh 45M`
+- /payments - Total Collected shows `TSh X.XM` (e.g. `TSh 181.6M`)
+- /finance/petty-cash - float threshold copy reads "safe threshold TSh 100,000"
+- /reports - Key Metrics "Revenue Collected" shows `TSh 1.2M`
 
 Stop dev server.
 
@@ -679,7 +679,7 @@ Change:
         <KpiCard
           label="Petty Cash Float"
           value={formatCurrency(pettyCashBalance)}
-          sublabel={pettyCashBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'}
+          sublabel={pettyCashBalance < 100000 ? 'Below safe threshold - replenish soon' : 'Healthy float'}
           icon={Wallet}
           tone={pettyCashBalance < 100000 ? 'danger' : 'primary'}
         />
@@ -712,7 +712,7 @@ to:
         <KpiCard
           label="Petty Cash Float"
           value={formatCurrency(pettyCashBalance, { compact: true })}
-          sublabel={pettyCashBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'}
+          sublabel={pettyCashBalance < 100000 ? 'Below safe threshold - replenish soon' : 'Healthy float'}
           icon={Wallet}
           tone={pettyCashBalance < 100000 ? 'danger' : 'primary'}
         />
@@ -727,7 +727,7 @@ to:
 
 - [ ] **Step 2: Invoices KPIs**
 
-In `app/(dashboard)/finance/invoices/page.tsx`, lines 36-39 — the four `<KpiTile ... value={formatCurrency(x)}>` calls. Update each `value` to use `{ compact: true }`:
+In `app/(dashboard)/finance/invoices/page.tsx`, lines 36-39 - the four `<KpiTile ... value={formatCurrency(x)}>` calls. Update each `value` to use `{ compact: true }`:
 
 ```tsx
         <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued, { compact: true })} sub={`${mockInvoices.length} invoices`} />
@@ -736,11 +736,11 @@ In `app/(dashboard)/finance/invoices/page.tsx`, lines 36-39 — the four `<KpiTi
         <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount, { compact: true })} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
 ```
 
-Do not touch the table cells later in the file (lines 85, 95, 99) — those are full-precision per-row amounts.
+Do not touch the table cells later in the file (lines 85, 95, 99) - those are full-precision per-row amounts.
 
 - [ ] **Step 3: Expenses KPIs**
 
-In `app/(dashboard)/finance/expenses/page.tsx` lines 79-82 — same pattern. Update the four KPI tiles to compact:
+In `app/(dashboard)/finance/expenses/page.tsx` lines 79-82 - same pattern. Update the four KPI tiles to compact:
 
 ```tsx
         <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal, { compact: true })} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
@@ -837,11 +837,11 @@ npm run dev
 ```
 
 Open DevTools → device-toolbar → set viewport to 1280×800. Visit:
-- /finance — all four KPI values must be fully readable (no `...` truncation). Expect something like `TSh 12.5M`, `TSh 2.4M`, `TSh 420K`, `TSh 8.1M`.
-- /finance/invoices — same check on the four tiles.
-- /finance/expenses — same check.
-- /finance/petty-cash — hero shows e.g. `TSh 420K` instead of `TSh 420,000` (the full number wouldn't truncate, but compact is consistent across all KPIs).
-- /finance/payroll — hero shows compact.
+- /finance - all four KPI values must be fully readable (no `...` truncation). Expect something like `TSh 12.5M`, `TSh 2.4M`, `TSh 420K`, `TSh 8.1M`.
+- /finance/invoices - same check on the four tiles.
+- /finance/expenses - same check.
+- /finance/petty-cash - hero shows e.g. `TSh 420K` instead of `TSh 420,000` (the full number wouldn't truncate, but compact is consistent across all KPIs).
+- /finance/payroll - hero shows compact.
 
 Stop dev server.
 
@@ -962,9 +962,9 @@ npm run dev
 ```
 
 Visit:
-- http://localhost:3000/students/YP-2026-001 — should show the new branded card with crimson icon, "Page not found" headline, and "Back to Dashboard" button. NOT white-on-white text.
-- http://localhost:3000/nonexistent-route-zzz — same branded page.
-- http://localhost:3000/audit (without logging in) — middleware will redirect to /login; this is fine. With login, after Task 5 the sidebar link won't reach `/audit` anymore, but if someone types it directly, this 404 page will show.
+- http://localhost:3000/students/YP-2026-001 - should show the new branded card with crimson icon, "Page not found" headline, and "Back to Dashboard" button. NOT white-on-white text.
+- http://localhost:3000/nonexistent-route-zzz - same branded page.
+- http://localhost:3000/audit (without logging in) - middleware will redirect to /login; this is fine. With login, after Task 5 the sidebar link won't reach `/audit` anymore, but if someone types it directly, this 404 page will show.
 
 Stop dev server.
 
@@ -985,7 +985,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ### Task 7: Upgrade `/tasks` empty state
 
-The audit reports a "blank white rectangle" on first load. The actual code (`TaskCardGrid.tsx:43-47`) does render a small gray "No tasks found." but it's just text — no icon, no headline differentiation, no CTA. Replace with the icon + headline + description + CTA pattern CLAUDE.md mandates.
+The audit reports a "blank white rectangle" on first load. The actual code (`TaskCardGrid.tsx:43-47`) does render a small gray "No tasks found." but it's just text - no icon, no headline differentiation, no CTA. Replace with the icon + headline + description + CTA pattern CLAUDE.md mandates.
 
 **Files:**
 - Modify: `app/(dashboard)/tasks/_components/TaskCardGrid.tsx`
@@ -1026,7 +1026,7 @@ Replace the empty branch with:
       )}
 ```
 
-(The CTA is the existing "Create Task" button in the page header — we point at it rather than duplicate.)
+(The CTA is the existing "Create Task" button in the page header - we point at it rather than duplicate.)
 
 - [ ] **Step 3: Remove the stale `console.log` while we're here**
 
@@ -1105,11 +1105,11 @@ npm run dev
 
 In a fresh incognito window (no `ypit_session` cookie):
 
-1. Visit http://localhost:3000/dashboard — should redirect to http://localhost:3000/login. Login form should render.
-2. Visit http://localhost:3000/students — should redirect to /login.
-3. Visit http://localhost:3000/ — should redirect to /login (middleware also handles `/` → `/dashboard` only when authed).
+1. Visit http://localhost:3000/dashboard - should redirect to http://localhost:3000/login. Login form should render.
+2. Visit http://localhost:3000/students - should redirect to /login.
+3. Visit http://localhost:3000/ - should redirect to /login (middleware also handles `/` → `/dashboard` only when authed).
 
-If any of those load the protected page directly, the wall is broken — STOP and re-scope this task to investigate.
+If any of those load the protected page directly, the wall is broken - STOP and re-scope this task to investigate.
 
 If all three correctly redirect to /login, the wall is working.
 
@@ -1138,6 +1138,6 @@ After all tasks complete:
 ## Out of scope (to be picked up in later phases)
 
 - Per the audit but deferred:
-  - Free-text USD references in `lib/mock/mockApplications.ts:69` and `lib/mock/mockExpenses.ts:150` — these are narrative notes, not currency renders. Recommend rewriting copy in Phase 4 (per-page polish) rather than this foundation pass.
-  - The Dashboard's four placeholder strings ("Monthly Intake Chart Placeholder" etc.) — defer to a later phase that decides between real charts and loading skeletons.
-  - Tailwind token rename `--color-primary` → `--color-brand-primary` per CLAUDE.md — defer to Phase 3 (design system).
+  - Free-text USD references in `lib/mock/mockApplications.ts:69` and `lib/mock/mockExpenses.ts:150` - these are narrative notes, not currency renders. Recommend rewriting copy in Phase 4 (per-page polish) rather than this foundation pass.
+  - The Dashboard's four placeholder strings ("Monthly Intake Chart Placeholder" etc.) - defer to a later phase that decides between real charts and loading skeletons.
+  - Tailwind token rename `--color-primary` → `--color-brand-primary` per CLAUDE.md - defer to Phase 3 (design system).

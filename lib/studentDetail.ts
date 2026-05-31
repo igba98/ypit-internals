@@ -82,7 +82,7 @@ function buildActivity(
     timestamp: student.createdAt,
   });
 
-  // Synthetic stage transitions — distribute evenly between createdAt and updatedAt.
+  // Synthetic stage transitions - distribute evenly between createdAt and updatedAt.
   const currentIdx = STAGE_ORDER.indexOf(student.pipelineStage);
   if (currentIdx > 0 && updated > created) {
     const span = updated - created;
@@ -150,7 +150,7 @@ function buildActivity(
         id: `act_${student.id}_app_submitted`,
         kind: 'APPLICATION',
         title: `Application submitted to ${application.university}`,
-        description: `${application.program} — ${application.intake}`,
+        description: `${application.program} - ${application.intake}`,
         actor: 'Admissions',
         timestamp: application.submissionDate,
       });
@@ -204,7 +204,7 @@ function buildActivity(
         id: `act_${student.id}_visa_approved`,
         kind: 'VISA',
         title: 'Visa approved',
-        description: `${travel.visaType} — valid through ${travel.visaExpiryDate ? new Date(travel.visaExpiryDate).toLocaleDateString() : 'TBD'}`,
+        description: `${travel.visaType} - valid through ${travel.visaExpiryDate ? new Date(travel.visaExpiryDate).toLocaleDateString() : 'TBD'}`,
         actor: 'Travel',
         timestamp: travel.visaApprovalDate,
       });

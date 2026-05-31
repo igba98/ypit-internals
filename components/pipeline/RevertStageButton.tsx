@@ -60,7 +60,7 @@ export function RevertStageButton({ student, session }: Props) {
                 onChange={(e) => setTarget(e.target.value as PipelineStage)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 {earlierStages.map(s => (
                   <option key={s} value={s}>{s.replace(/_/g, ' ').toLowerCase()}</option>
                 ))}

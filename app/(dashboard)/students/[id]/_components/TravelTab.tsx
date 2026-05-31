@@ -222,12 +222,12 @@ export function TravelTab({ travel, userRole }: TravelTabProps) {
             Flight Details
           </h3>
           <dl className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-            <dt className="text-gray-500">Airline</dt><dd className="font-medium text-gray-900">{travel.airline ?? '—'}</dd>
-            <dt className="text-gray-500">Flight #</dt><dd className="font-medium text-gray-900">{travel.flightNumber ?? '—'}</dd>
+            <dt className="text-gray-500">Airline</dt><dd className="font-medium text-gray-900">{travel.airline ?? '-'}</dd>
+            <dt className="text-gray-500">Flight #</dt><dd className="font-medium text-gray-900">{travel.flightNumber ?? '-'}</dd>
             <dt className="text-gray-500">From</dt><dd className="font-medium text-gray-900">{travel.departureCity}</dd>
             <dt className="text-gray-500">To</dt><dd className="font-medium text-gray-900">{travel.destinationCity}</dd>
-            <dt className="text-gray-500">Airport</dt><dd className="font-medium text-gray-900">{travel.destinationAirport ?? '—'}</dd>
-            <dt className="text-gray-500">Date</dt><dd className="font-medium text-gray-900">{travel.flightDate ? formatDate(travel.flightDate) : '—'}</dd>
+            <dt className="text-gray-500">Airport</dt><dd className="font-medium text-gray-900">{travel.destinationAirport ?? '-'}</dd>
+            <dt className="text-gray-500">Date</dt><dd className="font-medium text-gray-900">{travel.flightDate ? formatDate(travel.flightDate) : '-'}</dd>
           </dl>
         </section>
 
@@ -246,11 +246,11 @@ export function TravelTab({ travel, userRole }: TravelTabProps) {
               )}
             </dd>
             <dt className="text-gray-500 flex items-center gap-1"><UserIcon className="w-3 h-3" /> Contact</dt>
-            <dd className="font-medium text-gray-900">{travel.pickupContactName ?? '—'}</dd>
+            <dd className="font-medium text-gray-900">{travel.pickupContactName ?? '-'}</dd>
             <dt className="text-gray-500 flex items-center gap-1"><Phone className="w-3 h-3" /> Phone</dt>
-            <dd className="font-medium text-gray-900">{travel.pickupContactPhone ?? '—'}</dd>
+            <dd className="font-medium text-gray-900">{travel.pickupContactPhone ?? '-'}</dd>
             <dt className="text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> Address</dt>
-            <dd className="font-medium text-gray-900 col-span-1 truncate">{travel.accommodationAddress ?? '—'}</dd>
+            <dd className="font-medium text-gray-900 col-span-1 truncate">{travel.accommodationAddress ?? '-'}</dd>
           </dl>
         </section>
       </div>
@@ -265,19 +265,19 @@ export function TravelTab({ travel, userRole }: TravelTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-wider text-gray-500">Applied</p>
-              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaApplicationDate ? formatDate(travel.visaApplicationDate) : '—'}</p>
+              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaApplicationDate ? formatDate(travel.visaApplicationDate) : '-'}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-gray-500">Appointment</p>
-              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaAppointmentDate ? formatDate(travel.visaAppointmentDate) : '—'}</p>
+              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaAppointmentDate ? formatDate(travel.visaAppointmentDate) : '-'}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-gray-500">Approved</p>
-              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {travel.visaApprovalDate ? formatDate(travel.visaApprovalDate) : '—'}</p>
+              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {travel.visaApprovalDate ? formatDate(travel.visaApprovalDate) : '-'}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-gray-500">Expires</p>
-              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaExpiryDate ? formatDate(travel.visaExpiryDate) : '—'}</p>
+              <p className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-gray-400" /> {travel.visaExpiryDate ? formatDate(travel.visaExpiryDate) : '-'}</p>
             </div>
           </div>
         </section>

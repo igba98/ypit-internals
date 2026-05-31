@@ -68,7 +68,7 @@ function formatToday(): string {
 /**
  * Backend `GET /tasks` returns rows without the activity timeline (that's
  * only included by /tasks/:id). MyDayStrip / TaskCard / etc. don't read the
- * timeline at list level, but the frontend Task type insists it exists —
+ * timeline at list level, but the frontend Task type insists it exists -
  * stamp an empty array so the cast is safe.
  */
 function hydrateForListView(rows: Omit<Task, 'activity'>[]): Task[] {

@@ -23,7 +23,7 @@ export async function updateFeeLineStatus(
   if (newStatus !== 'WAIVED' && newStatus !== 'OVERDUE') {
     return {
       success: false,
-      message: `Status ${newStatus} can't be set directly — use payment recording or override.`,
+      message: `Status ${newStatus} can't be set directly - use payment recording or override.`,
     };
   }
   const res = await backendFetch(

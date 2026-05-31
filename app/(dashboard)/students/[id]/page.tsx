@@ -170,7 +170,7 @@ export default async function StudentDetailPage({
             <div className="rounded-lg bg-white border border-gray-100 p-3 shadow-card">
               <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">Balance</p>
               <p className="text-sm font-bold text-gray-900 mt-1">
-                {payment ? formatCurrency(payment.balance, { currency: payment.currency }) : <span className="text-gray-400">—</span>}
+                {payment ? formatCurrency(payment.balance, { currency: payment.currency }) : <span className="text-gray-400">-</span>}
               </p>
             </div>
             <div className="rounded-lg bg-white border border-gray-100 p-3 shadow-card">
@@ -216,7 +216,7 @@ export default async function StudentDetailPage({
         </Card>
       </div>
 
-      {/* Travel substep walkthrough — shown whenever a TravelRecord exists.
+      {/* Travel substep walkthrough - shown whenever a TravelRecord exists.
           This is where the user clicks through passport → visa → flight → arrival,
           and the TRAVEL_PLANNING → TRAVELLED transition won't unlock until all 4 are DONE. */}
       {travel && (

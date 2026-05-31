@@ -41,7 +41,7 @@ function InfoRow({ icon: Icon, label, value, accent = 'default' }: InfoRowProps)
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-medium text-gray-900 mt-0.5 truncate">{value || <span className="text-gray-400">—</span>}</p>
+        <p className="text-sm font-medium text-gray-900 mt-0.5 truncate">{value || <span className="text-gray-400">-</span>}</p>
       </div>
     </div>
   );

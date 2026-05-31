@@ -34,7 +34,7 @@ export function GenericEditPanel({ title, record, collectionName, isOpen, onClos
     });
   };
 
-  // Display blacklist — the server enforces a per-collection whitelist regardless.
+  // Display blacklist - the server enforces a per-collection whitelist regardless.
   const readOnlyKeys = ['id', 'createdAt', 'updatedAt', 'avatar', 'password', 'timestamp', 'userId', 'studentId', 'studentName'];
 
   return (

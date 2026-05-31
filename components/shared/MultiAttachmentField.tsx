@@ -60,7 +60,7 @@ export function MultiAttachmentField({ name, label, helperText }: Props) {
           break;
         }
         if (file.size > MAX_BYTES) {
-          toast.error(`${file.name} is too large — max ${formatSize(MAX_BYTES)}.`);
+          toast.error(`${file.name} is too large - max ${formatSize(MAX_BYTES)}.`);
           continue;
         }
         const url = await readAsDataUrl(file);

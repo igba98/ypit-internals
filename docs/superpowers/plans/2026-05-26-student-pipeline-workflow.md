@@ -12,12 +12,12 @@
 
 **Testing approach:**
 - **Pure logic (transition table, notification routing, action core):** strict TDD with Vitest.
-- **UI components:** typecheck + lint + manual dev-server verification (no component test framework added — out of scope for a mock-data prototype).
+- **UI components:** typecheck + lint + manual dev-server verification (no component test framework added - out of scope for a mock-data prototype).
 - After every task: `npm run typecheck && npm run lint && npm test` (`npm test` once Vitest is installed in Task 1).
 
 ---
 
-## Phase A — Foundation
+## Phase A - Foundation
 
 ### Task 1: Add Vitest test infrastructure
 
@@ -167,7 +167,7 @@ export type NotifyAudience = 'STUDENT' | 'PARENT_PRIMARY' | 'ALL_PARENTS' | 'NEW
 export type NotifyChannel = 'WHATSAPP' | 'IN_APP';
 ```
 
-- [ ] **Step 2: Modify the `Student` interface — add 2 new fields**
+- [ ] **Step 2: Modify the `Student` interface - add 2 new fields**
 
 Find the `Student` interface (currently ends with `notes?: string;`). Add immediately before the closing `}`:
 
@@ -176,7 +176,7 @@ Find the `Student` interface (currently ends with `notes?: string;`). Add immedi
   stageEnteredAt?: string;  // ISO; populated by advanceStudent / backfilled to createdAt for existing students
 ```
 
-- [ ] **Step 3: Modify the `TravelRecord` interface — add `travelStepStatus` field**
+- [ ] **Step 3: Modify the `TravelRecord` interface - add `travelStepStatus` field**
 
 Find the `TravelRecord` interface (currently ends with `updatedAt: string;`). Add immediately before the closing `}`:
 
@@ -186,7 +186,7 @@ Find the `TravelRecord` interface (currently ends with `updatedAt: string;`). Ad
 
 (Optional because existing mock records won't have it on first load; helpers will treat undefined as `NOT_STARTED` for each step.)
 
-- [ ] **Step 4: Modify the `Notification` interface — add 5 new fields**
+- [ ] **Step 4: Modify the `Notification` interface - add 5 new fields**
 
 Find the `Notification` interface (currently ends with `createdAt: string;`). Add immediately before the closing `}`:
 
@@ -309,7 +309,7 @@ git commit -m "feat(mock): add Guardian and StageTransition stores"
 ### Task 4: Backfill `stageEnteredAt` and add owner helpers
 
 **Files:**
-- Modify: `lib/mock/mockStudents.ts` (add `stageEnteredAt` to each student — set to `createdAt`)
+- Modify: `lib/mock/mockStudents.ts` (add `stageEnteredAt` to each student - set to `createdAt`)
 - Create: `lib/pipeline/stageOwnership.ts`
 
 - [ ] **Step 1: Backfill `stageEnteredAt` for existing mock students**
@@ -335,7 +335,7 @@ Do this for **every** student object in the file.
 import { PipelineStage, Role, ROLES } from '@/types';
 
 /**
- * For each pipeline stage, the roles that "own" that stage —
+ * For each pipeline stage, the roles that "own" that stage -
  * meaning: the student appears in their MyQueue, and they have
  * the right to advance the student to the next stage.
  *
@@ -383,14 +383,14 @@ new MyQueue 'days waiting' calculation works out of the box."
 
 ---
 
-## Phase B — Pure pipeline logic (TDD)
+## Phase B - Pure pipeline logic (TDD)
 
 ### Task 5: Field-spec types
 
 **Files:**
 - Create: `lib/pipeline/fields.ts`
 
-(No test file — these are pure type defs with no behavior.)
+(No test file - these are pure type defs with no behavior.)
 
 - [ ] **Step 1: Create `lib/pipeline/fields.ts`**
 
@@ -545,7 +545,7 @@ describe('resolveRecipients', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests — expect all to FAIL**
+- [ ] **Step 3: Run tests - expect all to FAIL**
 
 ```bash
 npm test
@@ -679,7 +679,7 @@ export function sendSimulated(input: SendSimulatedInput): string[] {
 }
 ```
 
-- [ ] **Step 5: Run tests — expect all to PASS**
+- [ ] **Step 5: Run tests - expect all to PASS**
 
 ```bash
 npm test
@@ -785,7 +785,7 @@ describe('TRANSITIONS table', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect all to FAIL (module not found)**
+- [ ] **Step 2: Run tests - expect all to FAIL (module not found)**
 
 ```bash
 npm test
@@ -908,7 +908,7 @@ export const TRANSITIONS: TransitionDef[] = [
     ],
     notify: ['STUDENT', 'PARENT_PRIMARY', 'NEW_OWNER'],
     messageTemplate: (ctx) =>
-      `Hi ${ctx.studentName}, we're starting travel planning for you. Passport, visa, flight and arrival will be tracked one by one — you'll get a message at every step.`,
+      `Hi ${ctx.studentName}, we're starting travel planning for you. Passport, visa, flight and arrival will be tracked one by one - you'll get a message at every step.`,
   },
   {
     from: 'TRAVEL_PLANNING',
@@ -917,7 +917,7 @@ export const TRANSITIONS: TransitionDef[] = [
     allowedRoles: [ROLES.TRAVEL],
     newOwnerRole: ROLES.OPERATIONS,
     requiredFields: [
-      // No fields — gating happens via travelStepStatus check in advanceStudent
+      // No fields - gating happens via travelStepStatus check in advanceStudent
     ],
     notify: ['STUDENT', 'ALL_PARENTS', 'NEW_OWNER'],
     notifyTeams: [ROLES.OPERATIONS],
@@ -951,7 +951,7 @@ export function listTransitionsFrom(from: PipelineStage): TransitionDef[] {
 }
 ```
 
-- [ ] **Step 4: Run tests — expect all to PASS**
+- [ ] **Step 4: Run tests - expect all to PASS**
 
 ```bash
 npm test
@@ -965,7 +965,7 @@ Expected: 9 + previous (6 + 1) = 16 tests pass.
 git add lib/pipeline/transitions.ts lib/pipeline/transitions.test.ts
 git commit -m "feat(pipeline): main 8-transition table
 
-Defines every forward stage move in one declarative table —
+Defines every forward stage move in one declarative table -
 source, target, allowed roles, required fields, notification
 recipients, WhatsApp message template. See spec section 5."
 ```
@@ -1026,7 +1026,7 @@ describe('TRAVEL_STEP_DEFS', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect FAIL**
+- [ ] **Step 2: Run tests - expect FAIL**
 
 ```bash
 npm test
@@ -1133,7 +1133,7 @@ export function emptyTravelStepStatus(): TravelStepStatusMap {
 }
 ```
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [ ] **Step 4: Run tests - expect PASS**
 
 ```bash
 npm test
@@ -1199,7 +1199,7 @@ describe('canRevert', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect FAIL**
+- [ ] **Step 2: Run tests - expect FAIL**
 
 ```bash
 npm test
@@ -1223,7 +1223,7 @@ export function canRevert(role: Role): boolean {
 }
 ```
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [ ] **Step 4: Run tests - expect PASS**
 
 ```bash
 npm test
@@ -1244,7 +1244,7 @@ transition table."
 
 ---
 
-## Phase C — Server actions (TDD)
+## Phase C - Server actions (TDD)
 
 ### Task 10: `advanceStudent` server action (TDD)
 
@@ -1375,7 +1375,7 @@ describe('advanceStudent', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect FAIL**
+- [ ] **Step 2: Run tests - expect FAIL**
 
 ```bash
 npm test
@@ -1409,7 +1409,7 @@ import { canAdvance, canRevert } from '@/lib/pipeline/permissions';
 import { sendSimulated } from '@/lib/pipeline/notify';
 import { allTravelStepsDone, emptyTravelStepStatus } from '@/lib/pipeline/travelSteps';
 
-// Minimal session type — the test passes a plain object; the real callers pass a full Session.
+// Minimal session type - the test passes a plain object; the real callers pass a full Session.
 type ActionSession = Pick<Session, 'userId' | 'fullName' | 'role'>;
 
 export interface AdvanceStudentInput {
@@ -1561,7 +1561,7 @@ function applyPaymentSideEffect(studentId: string, data: StageTransitionPayload)
     payment.receiptNumbers = [...(payment.receiptNumbers ?? []), receipt].filter(Boolean);
     payment.lastPaymentDate = new Date().toISOString();
   }
-  // If no payment record exists, skip — finance can backfill in a follow-up.
+  // If no payment record exists, skip - finance can backfill in a follow-up.
 }
 
 function applyApplicationSideEffect(student: typeof mockStudents[number], data: StageTransitionPayload): void {
@@ -1613,7 +1613,7 @@ function applyTravelRecordSideEffect(student: typeof mockStudents[number]): void
 }
 ```
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [ ] **Step 4: Run tests - expect PASS**
 
 ```bash
 npm test
@@ -1770,7 +1770,7 @@ describe('revertStage', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect FAIL**
+- [ ] **Step 2: Run tests - expect FAIL**
 
 ```bash
 npm test
@@ -1980,7 +1980,7 @@ export async function revertStage(input: RevertStageInput): Promise<ActionResult
 ```
 
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [ ] **Step 4: Run tests - expect PASS**
 
 ```bash
 npm test
@@ -2014,7 +2014,7 @@ role's team only (no student/parent message)."
 - Create: `lib/validations/guardian.ts`
 - Create: `lib/actions/guardianActions.ts`
 
-(No test file — these are thin CRUD wrappers around mock arrays.)
+(No test file - these are thin CRUD wrappers around mock arrays.)
 
 - [ ] **Step 1: Create `lib/validations/guardian.ts`**
 
@@ -2063,7 +2063,7 @@ export async function addGuardian(_prev: unknown, formData: FormData): Promise<A
       if (g.studentId === parsed.data.studentId) g.isPrimary = false;
     }
   } else if (!mockGuardians.some(g => g.studentId === parsed.data.studentId)) {
-    // First guardian — force primary
+    // First guardian - force primary
     // (will set below)
   }
 
@@ -2127,9 +2127,9 @@ git commit -m "feat(actions): guardian CRUD with primary-uniqueness enforcement"
 
 ---
 
-## Phase D — UI primitives
+## Phase D - UI primitives
 
-### Task 13: `<AdvanceStageModal>` — generic dynamic form
+### Task 13: `<AdvanceStageModal>` - generic dynamic form
 
 **Files:**
 - Create: `components/pipeline/AdvanceStageModal.tsx`
@@ -2248,7 +2248,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
           {showNoGuardianWarning && (
             <div className="flex gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
-              <span>No parent contacts on file — only the student will be notified. Consider adding a guardian first.</span>
+              <span>No parent contacts on file - only the student will be notified. Consider adding a guardian first.</span>
             </div>
           )}
 
@@ -2259,7 +2259,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
             <ul className="text-xs text-gray-700 mt-1 list-disc list-inside">
               {recipients.length === 0 && <li>No recipients resolved</li>}
               {recipients.map((r, i) => (
-                <li key={i}>{r.kind === 'WHATSAPP' ? '📱' : '🔔'} {r.name}{r.phone ? ` — ${r.phone}` : ''} ({r.kind.toLowerCase()})</li>
+                <li key={i}>{r.kind === 'WHATSAPP' ? '📱' : '🔔'} {r.name}{r.phone ? ` - ${r.phone}` : ''} ({r.kind.toLowerCase()})</li>
               ))}
             </ul>
           </div>
@@ -2316,7 +2316,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {field.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -2327,7 +2327,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {candidates.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role.replace(/_/g, ' ').toLowerCase()})</option>)}
           </select>
         </div>
@@ -2338,7 +2338,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <select id={field.key} className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)}>
-            <option value="">—</option>
+            <option value="">-</option>
             {['BANK_TRANSFER', 'CASH', 'CHEQUE', 'CARD', 'MOBILE_MONEY', 'PETTY_CASH'].map(m => <option key={m} value={m}>{m.replace(/_/g, ' ').toLowerCase()}</option>)}
           </select>
         </div>
@@ -2359,7 +2359,7 @@ Expected: no errors.
 
 ```bash
 git add components/pipeline/AdvanceStageModal.tsx
-git commit -m "feat(ui): AdvanceStageModal — generic dynamic form driven by transition table
+git commit -m "feat(ui): AdvanceStageModal - generic dynamic form driven by transition table
 
 Renders the right inputs per FieldSpec, previews the WhatsApp message
 and recipients before sending, warns when parent contacts are missing,
@@ -2544,7 +2544,7 @@ npm run typecheck && npm run lint
 
 ```bash
 git add components/pipeline/MyQueue.tsx
-git commit -m "feat(ui): MyQueue widget — role-based inbox of students awaiting action"
+git commit -m "feat(ui): MyQueue widget - role-based inbox of students awaiting action"
 ```
 
 ---
@@ -2608,7 +2608,7 @@ npm run typecheck && npm run lint
 
 ```bash
 git add components/pipeline/StageTimeline.tsx
-git commit -m "feat(ui): StageTimeline — vertical timeline of stage transitions"
+git commit -m "feat(ui): StageTimeline - vertical timeline of stage transitions"
 ```
 
 ---
@@ -2969,7 +2969,7 @@ git commit -m "feat(ui): TravelChecklistCard + TravelStepModal for the 4-step su
 
 ---
 
-## Phase E — Page integrations & cleanup
+## Phase E - Page integrations & cleanup
 
 ### Task 19: Integrate components into the student detail page
 
@@ -3098,7 +3098,7 @@ export function RevertStageButton({ student, session }: Props) {
                 onChange={(e) => setTarget(e.target.value as PipelineStage)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 {earlierStages.map(s => (
                   <option key={s} value={s}>{s.replace(/_/g, ' ').toLowerCase()}</option>
                 ))}
@@ -3152,7 +3152,7 @@ Then in a separate terminal: `npm run dev`. Visit `/students/std_001` while logg
 - Guardians section lists the 2 seeded guardians for std_001
 - Stage Timeline is empty initially; after one advance, shows the row
 
-Log out and log in as `md@ypit.com` (MD) — confirm RevertStageButton appears.
+Log out and log in as `md@ypit.com` (MD) - confirm RevertStageButton appears.
 
 Stop the dev server.
 
@@ -3279,7 +3279,7 @@ Inside the rendered JSX (the travel record's main content), add:
 })()}
 ```
 
-(Place it prominently — near the top of the main content area.)
+(Place it prominently - near the top of the main content area.)
 
 - [ ] **Step 3: Typecheck, lint, manual verify**
 
@@ -3382,7 +3382,7 @@ grep -rn "updateStudentStage\|admitStudent" --include="*.ts" --include="*.tsx" -
 
 - [ ] **Step 3: Delete the two functions from `lib/actions/studentActions.ts`**
 
-Open the file and delete the entire `updateStudentStage` function (currently lines 48–67) and the entire `admitStudent` function (currently lines 69–91). Also remove the now-unused `ADMITTED_STAGES` import if `studentActions.ts` no longer references it (but other files may — check `grep`).
+Open the file and delete the entire `updateStudentStage` function (currently lines 48–67) and the entire `admitStudent` function (currently lines 69–91). Also remove the now-unused `ADMITTED_STAGES` import if `studentActions.ts` no longer references it (but other files may - check `grep`).
 
 - [ ] **Step 4: Typecheck & lint**
 
@@ -3411,7 +3411,7 @@ git add lib/actions/studentActions.ts
 git commit -m "refactor(students): remove legacy updateStudentStage and admitStudent
 
 Both superseded by the transition-engine action (advanceStudent).
-Free-form stage movement is no longer possible — every move
+Free-form stage movement is no longer possible - every move
 goes through the gated, audited, notification-emitting flow."
 ```
 
@@ -3419,7 +3419,7 @@ goes through the gated, audited, notification-emitting flow."
 
 ### Task 24: Final integration check
 
-**Files:** none modified — verification only.
+**Files:** none modified - verification only.
 
 - [ ] **Step 1: Run full test + typecheck + lint + build**
 
