@@ -1,100 +1,92 @@
 'use server';
 
-import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { mockExpenses } from '../mock/mockExpenses';
-import { expenseSchema } from '../validations/finance';
-import { ActionResult, Expense, ExpenseStatus } from '@/types';
+import { ActionResult, ExpenseStatus } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-const EXPENSE_STATUSES: ExpenseStatus[] = ['PENDING', 'APPROVED', 'PAID', 'REJECTED'];
-
-function nextExpenseId(): string {
-  const year = new Date().getFullYear();
-  const max = mockExpenses
-    .filter(e => e.id.startsWith(`EXP-${year}-`))
-    .reduce((m, e) => {
-      const n = parseInt(e.id.split('-')[2] ?? '0', 10);
-      return Number.isFinite(n) && n > m ? n : m;
-    }, 0);
-  return `EXP-${year}-${String(max + 1).padStart(4, '0')}`;
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
-async function currentUser() {
-  const c = await cookies();
-  const cookie = c.get('ypit_session');
-  if (!cookie) return null;
-  try {
-    return JSON.parse(cookie.value) as { userId: string; fullName: string };
-  } catch {
-    return null;
-  }
+function formStr(formData: FormData, key: string): string | undefined {
+  const v = formData.get(key);
+  if (typeof v !== 'string') return undefined;
+  const t = v.trim();
+  return t.length > 0 ? t : undefined;
 }
 
-export async function logExpense(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const data = Object.fromEntries(formData.entries());
-  const parsed = expenseSchema.safeParse(data);
-  if (!parsed.success) {
+export async function logExpense(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const category = formStr(formData, 'category');
+  const description = formStr(formData, 'description');
+  const amountRaw = formStr(formData, 'amount');
+  const date = formStr(formData, 'date');
+  const paymentMethod = formStr(formData, 'paymentMethod');
+
+  if (!category || !description || !amountRaw || !date || !paymentMethod) {
     return {
       success: false,
-      message: 'Please fix the validation errors.',
-      errors: z.flattenError(parsed.error).fieldErrors,
+      message: 'category, description, amount, date, and paymentMethod are required.',
     };
   }
-  const v = parsed.data;
-  const user = await currentUser();
 
-  const expense: Expense = {
-    id: nextExpenseId(),
-    category: v.category,
-    vendor: v.vendor,
-    description: v.description,
-    amount: v.amount,
-    currency: 'TZS',
-    date: new Date(v.date).toISOString(),
-    paymentMethod: v.paymentMethod,
-    status: 'PENDING',
-    notes: v.notes,
-    receiptUrl: v.receiptUrl || undefined,
-    receiptFilename: v.receiptFilename || undefined,
-    receiptContentType: v.receiptContentType || undefined,
-    recordedById: user?.userId,
-    recordedByName: user?.fullName,
-    createdAt: new Date().toISOString(),
+  const body: Record<string, unknown> = {
+    category,
+    vendor: formStr(formData, 'vendor'),
+    description,
+    amount: Number(amountRaw),
+    currency: formStr(formData, 'currency') ?? 'TZS',
+    date,
+    paymentMethod,
+    notes: formStr(formData, 'notes'),
+    receiptUrl: formStr(formData, 'receiptUrl'),
+    receiptFilename: formStr(formData, 'receiptFilename'),
+    receiptContentType: formStr(formData, 'receiptContentType'),
   };
 
-  mockExpenses.unshift(expense);
-
-  revalidatePath('/finance');
+  const res = await backendFetch('/finance/expenses', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/expenses');
-
-  return { success: true, message: `Expense ${expense.id} logged for approval.` };
+  return { success: true, message: 'Expense logged (PENDING).' };
 }
 
-export async function updateExpenseStatus(expenseId: string, newStatus: string): Promise<ActionResult> {
-  if (!EXPENSE_STATUSES.includes(newStatus as ExpenseStatus)) {
-    return { success: false, message: 'Invalid expense status.' };
+export async function updateExpenseStatus(
+  expenseId: string,
+  newStatus: ExpenseStatus | string,
+): Promise<ActionResult> {
+  let path: string;
+  let body: string | undefined;
+  switch (newStatus) {
+    case 'APPROVED':
+      path = `/finance/expenses/${expenseId}/approve`;
+      break;
+    case 'REJECTED':
+      path = `/finance/expenses/${expenseId}/reject`;
+      body = JSON.stringify({ reason: 'Manually rejected' });
+      break;
+    case 'PAID':
+      path = `/finance/expenses/${expenseId}/mark-paid`;
+      body = JSON.stringify({});
+      break;
+    default:
+      return {
+        success: false,
+        message: `Status ${newStatus} can't be set directly.`,
+      };
   }
-  const exp = mockExpenses.find(e => e.id === expenseId);
-  if (!exp) return { success: false, message: 'Expense not found.' };
-
-  const user = await currentUser();
-  exp.status = newStatus as ExpenseStatus;
-
-  if (newStatus === 'APPROVED' && !exp.approvedById) {
-    exp.approvedById = user?.userId;
-    exp.approvedByName = user?.fullName;
-  }
-  if (newStatus === 'PAID' && !exp.paidDate) {
-    exp.paidDate = new Date().toISOString();
-  }
-  if (newStatus === 'REJECTED') {
-    exp.approvedById = user?.userId;
-    exp.approvedByName = user?.fullName;
-  }
-
-  revalidatePath('/finance');
+  const res = await backendFetch(path, { method: 'POST', body });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/expenses');
-
-  return { success: true, message: `Expense marked as ${newStatus.toLowerCase()}.` };
+  return { success: true, message: `Expense marked ${newStatus.toLowerCase()}.` };
 }

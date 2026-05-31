@@ -1,34 +1,49 @@
 import { PageHeader } from '@/components/shared/PageHeader';
-import { mockPayroll } from '@/lib/mock/mockPayroll';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { Users, Banknote, Calendar, Wallet } from 'lucide-react';
 import { PayrollHeaderActions, PayrollRowStatus } from './_components/PayrollActions';
+import { PayrollEntry } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
 const monthLabel = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
+interface PayrollListResponse {
+  items: PayrollEntry[];
+}
+
+async function loadPayroll(): Promise<{ items: PayrollEntry[]; error: string | null }> {
+  try {
+    const res = await backendFetch('/finance/payroll?limit=500');
+    if (!res.ok) return { items: [], error: `Failed to load payroll (HTTP ${res.status})` };
+    const body = (await res.json()) as PayrollListResponse;
+    return { items: body.items ?? [], error: null };
+  } catch {
+    return { items: [], error: 'Unable to reach the backend.' };
+  }
+}
+
 export default async function PayrollPage() {
-  // Identify current month
+  const { items: payroll, error } = await loadPayroll();
+
   const now = new Date();
   const periodStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
   const currentPeriod = monthLabel(periodStart);
 
-  const periodEntries = mockPayroll.filter(p => p.period === currentPeriod);
-  const otherEntries = [...mockPayroll].filter(p => p.period !== currentPeriod);
+  const periodEntries = payroll.filter((p) => p.period === currentPeriod);
+  const otherEntries = [...payroll].filter((p) => p.period !== currentPeriod);
 
-  // Sort other periods newest-first
   otherEntries.sort((a, b) => new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime());
 
   const needsGeneration = periodEntries.length === 0;
-  const hasDraft = periodEntries.some(p => p.status === 'DRAFT');
-  const hasApproved = periodEntries.some(p => p.status === 'APPROVED');
+  const hasDraft = periodEntries.some((p) => p.status === 'DRAFT');
+  const hasApproved = periodEntries.some((p) => p.status === 'APPROVED');
 
   const currentMonthBudget = periodEntries.reduce((s, p) => s + p.netPay, 0);
-  const currentPaidOut = periodEntries.filter(p => p.status === 'PAID').reduce((s, p) => s + p.netPay, 0);
+  const currentPaidOut = periodEntries.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.netPay, 0);
   const currentPending = currentMonthBudget - currentPaidOut;
 
-  // Group history by period
-  const grouped: Record<string, typeof mockPayroll> = {};
+  const grouped: Record<string, PayrollEntry[]> = {};
   for (const e of otherEntries) {
     (grouped[e.period] ??= []).push(e);
   }
@@ -49,7 +64,12 @@ export default async function PayrollPage() {
         }
       />
 
-      {/* Hero */}
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
       <section className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary to-primary-dark text-white p-6 shadow-primary-glow">
         <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10" />
         <div className="absolute -right-20 -bottom-20 w-64 h-64 rounded-full bg-white/5" />
@@ -74,7 +94,6 @@ export default async function PayrollPage() {
         </div>
       </section>
 
-      {/* Current period payroll */}
       <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -97,7 +116,6 @@ export default async function PayrollPage() {
         )}
       </section>
 
-      {/* History */}
       {Object.keys(grouped).length > 0 && (
         <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
           <div className="p-5 border-b border-gray-100">
@@ -108,7 +126,7 @@ export default async function PayrollPage() {
           </div>
           {Object.entries(grouped).map(([period, entries]) => {
             const total = entries.reduce((s, p) => s + p.netPay, 0);
-            const allPaid = entries.every(e => e.status === 'PAID');
+            const allPaid = entries.every((e) => e.status === 'PAID');
             return (
               <details key={period} className="border-b border-gray-100 last:border-0 group">
                 <summary className="cursor-pointer px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
@@ -134,7 +152,7 @@ export default async function PayrollPage() {
   );
 }
 
-function PayrollTable({ entries }: { entries: typeof mockPayroll }) {
+function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
@@ -151,7 +169,7 @@ function PayrollTable({ entries }: { entries: typeof mockPayroll }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {entries.map(e => (
+          {entries.map((e) => (
             <tr key={e.id} className="hover:bg-gray-50/60 transition-colors">
               <td className="px-5 py-3.5">
                 <p className="font-medium text-gray-900">{e.staffName}</p>

@@ -1,5 +1,4 @@
 import { PageHeader } from '@/components/shared/PageHeader';
-import { mockExpenses } from '@/lib/mock/mockExpenses';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -21,7 +20,8 @@ import {
   Paperclip,
 } from 'lucide-react';
 import { LogExpenseButton, ExpenseStatusCell } from './_components/ExpenseActions';
-import { ExpenseCategory } from '@/types';
+import { Expense, ExpenseCategory } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
 const CATEGORY_META: Record<ExpenseCategory, { label: string; icon: React.ElementType; iconClass: string }> = {
   RENT: { label: 'Rent', icon: Building, iconClass: 'bg-blue-50 text-blue-700' },
@@ -47,8 +47,24 @@ const PAYMENT_METHOD_LABEL: Record<string, string> = {
   PETTY_CASH: 'Petty Cash',
 };
 
+interface ExpensesListResponse {
+  items: Expense[];
+}
+
+async function loadExpenses(): Promise<{ items: Expense[]; error: string | null }> {
+  try {
+    const res = await backendFetch('/finance/expenses?limit=500');
+    if (!res.ok) return { items: [], error: `Failed to load expenses (HTTP ${res.status})` };
+    const body = (await res.json()) as ExpensesListResponse;
+    return { items: body.items ?? [], error: null };
+  } catch {
+    return { items: [], error: 'Unable to reach the backend.' };
+  }
+}
+
 export default async function ExpensesPage() {
-  const sorted = [...mockExpenses].sort(
+  const { items: expenses, error } = await loadExpenses();
+  const sorted = [...expenses].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
@@ -56,13 +72,12 @@ export default async function ExpensesPage() {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const monthExpenses = mockExpenses.filter(e => new Date(e.date) >= monthStart);
+  const monthExpenses = expenses.filter((e) => new Date(e.date) >= monthStart);
   const monthTotal = monthExpenses.reduce((s, e) => s + e.amount, 0);
-  const monthPaid = monthExpenses.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
-  const pending = mockExpenses.filter(e => e.status === 'PENDING').reduce((s, e) => s + e.amount, 0);
-  const approved = mockExpenses.filter(e => e.status === 'APPROVED').reduce((s, e) => s + e.amount, 0);
+  const monthPaid = monthExpenses.filter((e) => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+  const pending = expenses.filter((e) => e.status === 'PENDING').reduce((s, e) => s + e.amount, 0);
+  const approved = expenses.filter((e) => e.status === 'APPROVED').reduce((s, e) => s + e.amount, 0);
 
-  // Spending by category this month
   const byCategory: Record<string, number> = {};
   for (const e of monthExpenses) {
     byCategory[e.category] = (byCategory[e.category] ?? 0) + e.amount;
@@ -77,10 +92,16 @@ export default async function ExpensesPage() {
         actions={<LogExpenseButton />}
       />
 
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KpiTile icon={Receipt} label="Spent This Month" value={formatCurrency(monthTotal, { compact: true })} sub={`${monthExpenses.length} expense${monthExpenses.length === 1 ? '' : 's'}`} />
-        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid, { compact: true })} sub={`${monthExpenses.filter(e => e.status === 'PAID').length} settled`} tone="success" />
-        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending, { compact: true })} sub={`${mockExpenses.filter(e => e.status === 'PENDING').length} pending`} tone="warning" />
+        <KpiTile icon={CheckCircle2} label="Paid" value={formatCurrency(monthPaid, { compact: true })} sub={`${monthExpenses.filter((e) => e.status === 'PAID').length} settled`} tone="success" />
+        <KpiTile icon={Clock} label="Awaiting Approval" value={formatCurrency(pending, { compact: true })} sub={`${expenses.filter((e) => e.status === 'PENDING').length} pending`} tone="warning" />
         <KpiTile icon={AlertCircle} label="Approved · Unpaid" value={formatCurrency(approved, { compact: true })} sub="Ready to pay" tone={approved > 0 ? 'danger' : 'default'} />
       </section>
 
@@ -130,13 +151,13 @@ export default async function ExpensesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {sorted.map(e => {
+              {sorted.map((e) => {
                 const meta = CATEGORY_META[e.category] ?? CATEGORY_META.OTHER;
                 const Icon = meta.icon;
                 return (
                   <tr key={e.id} className="hover:bg-gray-50/60 transition-colors">
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-gray-900 text-xs">{e.id}</p>
+                      <p className="font-semibold text-gray-900 text-xs">{e.expenseNumber ?? e.id}</p>
                       <p className="text-[11px] text-gray-500">by {e.recordedByName ?? 'system'}</p>
                     </td>
                     <td className="px-5 py-3.5">

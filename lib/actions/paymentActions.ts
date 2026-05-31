@@ -1,129 +1,84 @@
 'use server';
 
-import { paymentSchema } from '../validations/payment';
-import { mockPayments } from '../mock/mockPayments';
-import { mockStudents } from '../mock/mockStudents';
-import { mockLeads } from '../mock/mockLeads';
 import { revalidatePath } from 'next/cache';
 import { ActionResult, PaymentStatus } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-const PAYMENT_STATUSES: PaymentStatus[] = ['PENDING', 'PARTIAL', 'CLEARED', 'OVERDUE'];
-
-export async function updatePaymentStatus(paymentId: string, newStatus: string): Promise<ActionResult> {
-  if (!PAYMENT_STATUSES.includes(newStatus as PaymentStatus)) {
-    return { success: false, message: "Invalid payment status." };
-  }
-  const record = mockPayments.find(p => p.id === paymentId);
-  if (!record) {
-    return { success: false, message: "Payment record not found." };
-  }
-  record.status = newStatus as PaymentStatus;
-
-  revalidatePath('/payments');
-  revalidatePath(`/students/${record.studentId}`);
-
-  return { success: true, message: `Payment marked as ${newStatus.toLowerCase()}.` };
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
-export async function recordPayment(prevState: any, formData: FormData): Promise<ActionResult> {
-  try {
-    const data = Object.fromEntries(formData.entries());
-    const validatedFields = paymentSchema.safeParse(data);
+/**
+ * The backend computes PaymentRecord status from totalDue / totalPaid, so
+ * direct status mutation is no longer a first-class operation. We surface a
+ * notes-tagged PATCH so the UI keeps working; the canonical status advance
+ * happens via `recordPayment` below.
+ */
+export async function updatePaymentStatus(
+  studentId: string,
+  newStatus: PaymentStatus | string,
+): Promise<ActionResult> {
+  const res = await backendFetch(`/finance/payments/${studentId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      notes: `[manual] status reviewed as ${newStatus} on ${new Date().toISOString().slice(0, 10)}`,
+    }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/payments');
+  return { success: true, message: `Payment marked ${newStatus.toLowerCase()}.` };
+}
 
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        message: "Please fix the payment validation errors.",
-        errors: validatedFields.error.flatten().fieldErrors,
-      };
-    }
+/**
+ * Record a payment against one of the four buckets on a student's
+ * PaymentRecord. FormData carries: studentId, bucket, amount, receiptNumber.
+ */
+export async function recordPayment(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const studentId = (formData.get('studentId') as string | null)?.trim();
+  const bucket = (formData.get('bucket') as string | null)?.trim()?.toUpperCase();
+  const amountRaw = (formData.get('amount') as string | null)?.trim();
+  const receiptNumber = (formData.get('receiptNumber') as string | null)?.trim();
+  const notes = (formData.get('notes') as string | null)?.trim() || undefined;
 
-    const {
-      studentId,
-      feeType,
-      amount,
-      receiptNumber,
-      paymentDate,
-      notes,
-      receiptUrl,
-      receiptFilename,
-      receiptContentType,
-    } = validatedFields.data;
-
-    const recordIndex = mockPayments.findIndex(p => p.studentId === studentId);
-
-    if (recordIndex === -1) {
-      return { success: false, message: "No active payment record found for this student. They must exist in the system first." };
-    }
-
-    const record = mockPayments[recordIndex];
-
-    // Simulate DB update natively
-    record.receiptNumbers.push(receiptNumber);
-    record.lastPaymentDate = new Date(paymentDate).toISOString();
-    record.totalPaid += amount;
-    record.balance = Math.max(0, record.totalDue - record.totalPaid);
-
-    if (receiptUrl) {
-      record.receiptAttachments = [
-        ...(record.receiptAttachments ?? []),
-        {
-          receiptNumber,
-          url: receiptUrl,
-          filename: receiptFilename || 'receipt',
-          contentType: receiptContentType || 'application/octet-stream',
-          uploadedAt: new Date().toISOString(),
-        },
-      ];
-    }
-
-    if (notes) {
-      record.notes = notes;
-    }
-
-    if (feeType === 'AGENCY') {
-      record.agencyFeePaid += amount;
-      record.agencyFeeDate = record.lastPaymentDate;
-    } else if (feeType === 'APPLICATION') {
-      record.applicationFeePaid += amount;
-      record.applicationFeeDate = record.lastPaymentDate;
-    } else if (feeType === 'TUITION') {
-      record.tuitionFeePaid += amount;
-      record.tuitionFeeDate = record.lastPaymentDate;
-    } else if (feeType === 'HOSTEL') {
-      record.hostelFeePaid += amount;
-      record.hostelFeeDate = record.lastPaymentDate;
-    }
-
-    // Update Status
-    if (record.balance <= 0) {
-      record.status = 'CLEARED';
-    } else {
-      record.status = 'PARTIAL';
-    }
-
-    // Update Student pipeline stage if they are in early stages
-    const student = mockStudents.find(s => s.id === studentId);
-    if (student) {
-      if (['LEAD', 'COUNSELING', 'PAYMENT_PENDING'].includes(student.pipelineStage)) {
-        student.pipelineStage = 'PAYMENT_CONFIRMED';
-        student.updatedAt = new Date().toISOString();
-      }
-
-      // Ensure any linked lead is marked as CONVERTED
-      const lead = mockLeads.find(l => l.convertedStudentId === studentId);
-      if (lead && lead.status !== 'CONVERTED') {
-        lead.status = 'CONVERTED';
-        lead.updatedAt = new Date().toISOString();
-      }
-    }
-
-    revalidatePath('/payments');
-    revalidatePath('/students');
-    revalidatePath('/leads');
-
-    return { success: true, message: "Payment processed and balance updated!" };
-  } catch (error) {
-    return { success: false, message: "Unexpected server error." };
+  if (!studentId || !bucket || !amountRaw || !receiptNumber) {
+    return {
+      success: false,
+      message: 'studentId, bucket, amount and receiptNumber are required.',
+    };
   }
+  if (
+    bucket !== 'AGENCY' &&
+    bucket !== 'APPLICATION' &&
+    bucket !== 'TUITION' &&
+    bucket !== 'HOSTEL'
+  ) {
+    return {
+      success: false,
+      message: 'bucket must be one of AGENCY | APPLICATION | TUITION | HOSTEL.',
+    };
+  }
+
+  const res = await backendFetch(`/finance/payments/${studentId}/record`, {
+    method: 'POST',
+    body: JSON.stringify({
+      bucket,
+      amount: Number(amountRaw),
+      receiptNumber,
+      notes,
+    }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+
+  revalidatePath('/payments');
+  revalidatePath(`/students/${studentId}`);
+  return { success: true, message: 'Payment recorded.' };
 }

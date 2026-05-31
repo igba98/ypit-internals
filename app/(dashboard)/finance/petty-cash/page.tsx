@@ -1,5 +1,4 @@
 import { PageHeader } from '@/components/shared/PageHeader';
-import { mockPettyCash, getPettyCashBalance } from '@/lib/mock/mockPettyCash';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -14,7 +13,8 @@ import {
   Paperclip,
 } from 'lucide-react';
 import { PettyCashActions } from './_components/PettyCashActions';
-import { PettyCashTxType, PettyCashCategory } from '@/types';
+import { PettyCashTransaction, PettyCashTxType, PettyCashCategory } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
 const CATEGORY_LABEL: Record<PettyCashCategory, string> = {
   OFFICE_SUPPLIES: 'Office Supplies',
@@ -48,33 +48,58 @@ const TYPE_META: Record<PettyCashTxType, { label: string; icon: React.ElementTyp
   INITIAL_FLOAT: { label: 'Initial Float', icon: PiggyBank, iconClass: 'bg-primary-muted text-primary' },
 };
 
-export default async function PettyCashPage() {
-  const balance = getPettyCashBalance();
-  const txs = [...mockPettyCash].reverse(); // newest first
+interface PettyCashListResponse {
+  items: PettyCashTransaction[];
+}
 
-  // This-month aggregations
+interface BalanceResponse {
+  balance: number;
+  lastTxNumber: string | null;
+}
+
+async function loadPettyCash(): Promise<{
+  txs: PettyCashTransaction[];
+  balance: number;
+  error: string | null;
+}> {
+  try {
+    const [txRes, balRes] = await Promise.all([
+      backendFetch('/finance/petty-cash?limit=500'),
+      backendFetch('/finance/petty-cash/balance'),
+    ]);
+    if (!txRes.ok || !balRes.ok) {
+      return { txs: [], balance: 0, error: `Failed to load petty cash (txs HTTP ${txRes.status}, balance HTTP ${balRes.status})` };
+    }
+    const txBody = (await txRes.json()) as PettyCashListResponse;
+    const balBody = (await balRes.json()) as BalanceResponse;
+    return { txs: txBody.items ?? [], balance: balBody.balance ?? 0, error: null };
+  } catch {
+    return { txs: [], balance: 0, error: 'Unable to reach the backend.' };
+  }
+}
+
+export default async function PettyCashPage() {
+  const { txs, balance, error } = await loadPettyCash();
+
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const monthExpenses = mockPettyCash
-    .filter(t => t.type === 'EXPENSE' && new Date(t.date) >= monthStart)
+  const monthExpenses = txs
+    .filter((t) => t.type === 'EXPENSE' && new Date(t.date) >= monthStart)
     .reduce((sum, t) => sum + t.amount, 0);
-  const monthReplenishments = mockPettyCash
-    .filter(t => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart)
+  const monthReplenishments = txs
+    .filter((t) => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart)
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Category breakdown this month
   const byCategory: Record<string, number> = {};
-  for (const t of mockPettyCash) {
+  for (const t of txs) {
     if (t.type !== 'EXPENSE') continue;
     if (new Date(t.date) < monthStart) continue;
     const k = t.category ?? 'OTHER';
     byCategory[k] = (byCategory[k] ?? 0) + t.amount;
   }
-  const topCategories = Object.entries(byCategory)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  const topCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const topMax = topCategories[0]?.[1] ?? 0;
 
   const lowBalance = balance < 100000;
@@ -87,7 +112,12 @@ export default async function PettyCashPage() {
         actions={<PettyCashActions balance={balance} />}
       />
 
-      {/* Hero balance */}
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
       <section className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary to-primary-dark text-white p-6 shadow-primary-glow">
         <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10" />
         <div className="absolute -right-20 -bottom-20 w-64 h-64 rounded-full bg-white/5" />
@@ -108,17 +138,16 @@ export default async function PettyCashPage() {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Spent This Month</p>
             <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthExpenses, { compact: true })}</p>
-            <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'EXPENSE' && new Date(t.date) >= monthStart).length} vouchers</p>
+            <p className="text-xs text-white/70 mt-1">{txs.filter((t) => t.type === 'EXPENSE' && new Date(t.date) >= monthStart).length} vouchers</p>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">Replenished</p>
             <p className="text-2xl font-bold mt-1.5">{formatCurrency(monthReplenishments, { compact: true })}</p>
-            <p className="text-xs text-white/70 mt-1">{mockPettyCash.filter(t => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart).length} top-ups</p>
+            <p className="text-xs text-white/70 mt-1">{txs.filter((t) => t.type === 'REPLENISHMENT' && new Date(t.date) >= monthStart).length} top-ups</p>
           </div>
         </div>
       </section>
 
-      {/* Category breakdown */}
       {topCategories.length > 0 && (
         <section className="bg-white rounded-xl shadow-card border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -149,7 +178,6 @@ export default async function PettyCashPage() {
         </section>
       )}
 
-      {/* Transaction log */}
       <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -172,7 +200,7 @@ export default async function PettyCashPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {txs.map(tx => {
+              {txs.map((tx) => {
                 const meta = TYPE_META[tx.type];
                 const Icon = meta.icon;
                 const isExpense = tx.type === 'EXPENSE';
@@ -184,7 +212,7 @@ export default async function PettyCashPage() {
                           <Icon className="w-4 h-4" />
                         </span>
                         <div>
-                          <p className="font-semibold text-gray-900">{tx.voucherNumber ?? tx.id}</p>
+                          <p className="font-semibold text-gray-900">{tx.voucherNumber ?? tx.txNumber ?? tx.id}</p>
                           <p className="text-[11px] text-gray-500">{meta.label}</p>
                         </div>
                       </div>

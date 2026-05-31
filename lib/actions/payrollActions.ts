@@ -1,122 +1,147 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { mockPayroll, ROLE_BASE_SALARY } from '../mock/mockPayroll';
-import { mockUsers } from '../mock/mockUsers';
-import { ActionResult, PayrollEntry, PayrollStatus } from '@/types';
+import { ActionResult, PayrollStatus, Role } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-const PAYROLL_STATUSES: PayrollStatus[] = ['DRAFT', 'APPROVED', 'PAID', 'CANCELLED'];
-
-const monthLabel = (d: Date) =>
-  d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-const monthCode = (d: Date) =>
-  ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][d.getMonth()];
-
-const computeNet = (base: number, allowances = 0, deductions = 0) => {
-  const gross = base + allowances;
-  const tax = Math.max(0, Math.round((gross - 270000) * 0.09));
-  const pension = Math.round(base * 0.1);
-  const net = gross - tax - pension - deductions;
-  return { tax, pension, net };
-};
-
-export async function generatePayroll(periodStartISO: string): Promise<ActionResult> {
-  const start = new Date(periodStartISO);
-  if (Number.isNaN(start.getTime())) {
-    return { success: false, message: 'Invalid period.' };
-  }
-  // Always work on the 1st of that month
-  start.setUTCDate(1);
-  start.setUTCHours(0, 0, 0, 0);
-  const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0, 23, 59, 59));
-  const period = monthLabel(start);
-  const code = monthCode(start);
-  const year = start.getUTCFullYear();
-
-  // Skip if already generated
-  if (mockPayroll.some(p => p.period === period)) {
-    return { success: false, message: `${period} payroll already generated.` };
-  }
-
-  const eligible = mockUsers.filter(
-    u => u.status === 'ACTIVE' && (ROLE_BASE_SALARY[u.role] ?? 0) > 0,
-  );
-
-  let counter = 1;
-  for (const staff of eligible) {
-    const base = ROLE_BASE_SALARY[staff.role];
-    const allowances =
-      staff.role === 'MANAGING_DIRECTOR' ? 500000 : staff.role === 'MARKETING_MANAGER' ? 300000 : 150000;
-    const { tax, pension, net } = computeNet(base, allowances, 0);
-    const entry: PayrollEntry = {
-      id: `PR-${year}-${code}-${String(counter).padStart(3, '0')}`,
-      staffId: staff.id,
-      staffName: staff.fullName,
-      staffRole: staff.role,
-      department: staff.department,
-      period,
-      periodStart: start.toISOString(),
-      periodEnd: end.toISOString(),
-      baseSalary: base,
-      allowances,
-      deductions: 0,
-      tax,
-      pension,
-      netPay: net,
-      status: 'DRAFT',
-      createdAt: new Date().toISOString(),
-    };
-    mockPayroll.push(entry);
-    counter++;
-  }
-
-  revalidatePath('/finance');
-  revalidatePath('/finance/payroll');
-
-  return { success: true, message: `${period} payroll generated for ${eligible.length} staff.` };
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
-export async function updatePayrollStatus(payrollId: string, newStatus: string): Promise<ActionResult> {
-  if (!PAYROLL_STATUSES.includes(newStatus as PayrollStatus)) {
-    return { success: false, message: 'Invalid payroll status.' };
-  }
-  const entry = mockPayroll.find(p => p.id === payrollId);
-  if (!entry) return { success: false, message: 'Payroll entry not found.' };
+const DEFAULT_BASE_SALARY = 500_000;
+const PERIOD_LABEL_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+});
 
-  entry.status = newStatus as PayrollStatus;
-  if (newStatus === 'PAID' && !entry.paidDate) {
-    entry.paidDate = new Date().toISOString();
-    if (!entry.paymentMethod) entry.paymentMethod = 'BANK_TRANSFER';
+interface StaffMember {
+  id: string;
+  fullName: string;
+  role: Role;
+  department: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+}
+
+/**
+ * "Generate payroll" — fetches all ACTIVE staff and creates one DRAFT row per
+ * person at a placeholder base salary. Finance then edits each entry before
+ * approving. Duplicates (same staff + period) silently skip thanks to the
+ * unique constraint on the backend.
+ */
+export async function generatePayroll(
+  periodStartISO: string,
+): Promise<ActionResult> {
+  const start = new Date(periodStartISO);
+  if (Number.isNaN(start.getTime())) {
+    return { success: false, message: 'Invalid period start date.' };
+  }
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+  const period = PERIOD_LABEL_FORMATTER.format(start);
+
+  const staffRes = await backendFetch('/staff?status=ACTIVE&limit=500');
+  if (!staffRes.ok) return { success: false, ...(await readError(staffRes)) };
+  const staffBody = (await staffRes.json()) as { items: StaffMember[] };
+  const active = (staffBody.items ?? []).filter((u) => u.status === 'ACTIVE');
+
+  let created = 0;
+  let skipped = 0;
+  for (const u of active) {
+    const res = await backendFetch('/finance/payroll', {
+      method: 'POST',
+      body: JSON.stringify({
+        staffId: u.id,
+        period,
+        periodStart: start.toISOString().slice(0, 10),
+        periodEnd: end.toISOString().slice(0, 10),
+        baseSalary: DEFAULT_BASE_SALARY,
+        allowances: 0,
+        deductions: 0,
+      }),
+    });
+    if (res.ok) created++;
+    else skipped++;
   }
 
-  revalidatePath('/finance');
   revalidatePath('/finance/payroll');
+  return {
+    success: true,
+    message: `Generated ${created} payroll row${created === 1 ? '' : 's'} for ${period}${
+      skipped > 0 ? ` (${skipped} skipped — likely duplicates)` : ''
+    }.`,
+  };
+}
 
-  return { success: true, message: `${entry.staffName} payroll marked ${newStatus.toLowerCase()}.` };
+export async function updatePayrollStatus(
+  payrollId: string,
+  newStatus: PayrollStatus | string,
+): Promise<ActionResult> {
+  let path: string;
+  let body: string | undefined;
+  switch (newStatus) {
+    case 'APPROVED':
+      path = `/finance/payroll/${payrollId}/approve`;
+      break;
+    case 'PAID':
+      path = `/finance/payroll/${payrollId}/mark-paid`;
+      body = JSON.stringify({ paymentMethod: 'BANK_TRANSFER' });
+      break;
+    case 'CANCELLED':
+      path = `/finance/payroll/${payrollId}/cancel`;
+      body = JSON.stringify({ reason: 'Manually cancelled' });
+      break;
+    default:
+      return {
+        success: false,
+        message: `Status ${newStatus} can't be set directly — only APPROVED / PAID / CANCELLED are transition targets.`,
+      };
+  }
+  const res = await backendFetch(path, { method: 'POST', body });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/finance/payroll');
+  return { success: true, message: `Payroll ${newStatus.toLowerCase()}.` };
+}
+
+interface PayrollRow {
+  id: string;
+  status: PayrollStatus;
+}
+
+async function listForPeriod(period: string, status: PayrollStatus): Promise<PayrollRow[]> {
+  const res = await backendFetch(
+    `/finance/payroll?period=${encodeURIComponent(period)}&status=${status}&limit=500`,
+  );
+  if (!res.ok) return [];
+  const body = (await res.json()) as { items: PayrollRow[] };
+  return body.items ?? [];
 }
 
 export async function approveAllPayroll(period: string): Promise<ActionResult> {
-  const matches = mockPayroll.filter(p => p.period === period && p.status === 'DRAFT');
-  if (matches.length === 0) {
-    return { success: false, message: 'No draft entries to approve for that period.' };
+  const drafts = await listForPeriod(period, 'DRAFT');
+  let approved = 0;
+  for (const row of drafts) {
+    const res = await backendFetch(`/finance/payroll/${row.id}/approve`, { method: 'POST' });
+    if (res.ok) approved++;
   }
-  for (const e of matches) e.status = 'APPROVED';
   revalidatePath('/finance/payroll');
-  return { success: true, message: `Approved ${matches.length} entries for ${period}.` };
+  return { success: true, message: `Approved ${approved} payroll row${approved === 1 ? '' : 's'} for ${period}.` };
 }
 
 export async function markAllPaidForPeriod(period: string): Promise<ActionResult> {
-  const matches = mockPayroll.filter(p => p.period === period && p.status === 'APPROVED');
-  if (matches.length === 0) {
-    return { success: false, message: 'No approved entries pending payment for that period.' };
-  }
-  const now = new Date().toISOString();
-  for (const e of matches) {
-    e.status = 'PAID';
-    e.paidDate = now;
-    if (!e.paymentMethod) e.paymentMethod = 'BANK_TRANSFER';
+  const approved = await listForPeriod(period, 'APPROVED');
+  let paid = 0;
+  for (const row of approved) {
+    const res = await backendFetch(`/finance/payroll/${row.id}/mark-paid`, {
+      method: 'POST',
+      body: JSON.stringify({ paymentMethod: 'BANK_TRANSFER' }),
+    });
+    if (res.ok) paid++;
   }
   revalidatePath('/finance/payroll');
-  return { success: true, message: `Paid ${matches.length} entries for ${period}.` };
+  return { success: true, message: `Paid ${paid} payroll row${paid === 1 ? '' : 's'} for ${period}.` };
 }

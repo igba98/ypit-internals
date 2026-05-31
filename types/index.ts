@@ -402,7 +402,9 @@ export interface InvoiceLineItem {
 }
 
 export interface Invoice {
-  id: string;                       // INV-2026-0001
+  id: string;                       // cuid (backend) or INV-2026-0001 (mock)
+  /** Human-readable serial INV-YYYY-NNNN (backend-only). */
+  invoiceNumber?: string;
   recipientType: InvoiceRecipientType;
   recipientId?: string;             // linked studentId / vendor id
   recipientName: string;
@@ -462,7 +464,9 @@ export type PettyCashCategory =
   | 'OTHER';
 
 export interface PettyCashTransaction {
-  id: string;                       // PC-2026-0001
+  id: string;                       // cuid (backend) or PC-2026-0001 (mock)
+  /** Human-readable serial PC-YYYY-NNNN (backend-only). */
+  txNumber?: string;
   date: string;
   type: PettyCashTxType;
   category?: PettyCashCategory;
@@ -497,7 +501,9 @@ export type ExpenseCategory =
 export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
 
 export interface Expense {
-  id: string;                       // EXP-2026-0001
+  id: string;                       // cuid (backend) or EXP-2026-0001 (mock)
+  /** Human-readable serial EXP-YYYY-NNNN (backend-only). */
+  expenseNumber?: string;
   category: ExpenseCategory;
   vendor?: string;
   description: string;

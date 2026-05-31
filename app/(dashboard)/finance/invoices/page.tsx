@@ -1,11 +1,11 @@
 import { PageHeader } from '@/components/shared/PageHeader';
-import { mockInvoices } from '@/lib/mock/mockInvoices';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { Building2, GraduationCap, FileText, ArrowDownCircle, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { NewInvoiceButton } from './_components/NewInvoiceButton';
 import { InvoiceStatusCell } from './_components/InvoiceStatusCell';
-import { InvoiceRecipientType } from '@/types';
+import { Invoice, InvoiceRecipientType } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
 const RECIPIENT_META: Record<InvoiceRecipientType, { icon: React.ElementType; iconClass: string; label: string }> = {
   STUDENT: { icon: GraduationCap, iconClass: 'bg-primary-muted text-primary', label: 'Student' },
@@ -13,16 +13,32 @@ const RECIPIENT_META: Record<InvoiceRecipientType, { icon: React.ElementType; ic
   OTHER: { icon: FileText, iconClass: 'bg-gray-50 text-gray-600', label: 'Other' },
 };
 
-export default async function InvoicesPage() {
-  const sorted = [...mockInvoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+interface InvoicesResponse {
+  items: Invoice[];
+}
 
-  const totalIssued = mockInvoices.reduce((s, i) => s + i.total, 0);
-  const totalPaid = mockInvoices.reduce((s, i) => s + i.paidAmount, 0);
+async function loadInvoices(): Promise<{ items: Invoice[]; error: string | null }> {
+  try {
+    const res = await backendFetch('/finance/invoices?limit=500');
+    if (!res.ok) return { items: [], error: `Failed to load invoices (HTTP ${res.status})` };
+    const body = (await res.json()) as InvoicesResponse;
+    return { items: body.items ?? [], error: null };
+  } catch {
+    return { items: [], error: 'Unable to reach the backend.' };
+  }
+}
+
+export default async function InvoicesPage() {
+  const { items: invoices, error } = await loadInvoices();
+  const sorted = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const totalIssued = invoices.reduce((s, i) => s + i.total, 0);
+  const totalPaid = invoices.reduce((s, i) => s + i.paidAmount, 0);
   const outstanding = totalIssued - totalPaid;
-  const overdueAmount = mockInvoices
+  const overdueAmount = invoices
     .filter(i => i.status === 'OVERDUE')
     .reduce((s, i) => s + (i.total - i.paidAmount), 0);
-  const overdueCount = mockInvoices.filter(i => i.status === 'OVERDUE').length;
+  const overdueCount = invoices.filter(i => i.status === 'OVERDUE').length;
 
   return (
     <>
@@ -32,10 +48,15 @@ export default async function InvoicesPage() {
         actions={<NewInvoiceButton />}
       />
 
-      {/* KPI strip */}
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued, { compact: true })} sub={`${mockInvoices.length} invoices`} />
-        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid, { compact: true })} sub={`${mockInvoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
+        <KpiTile icon={FileText} label="Issued" value={formatCurrency(totalIssued, { compact: true })} sub={`${invoices.length} invoices`} />
+        <KpiTile icon={CheckCircle2} label="Collected" value={formatCurrency(totalPaid, { compact: true })} sub={`${invoices.filter(i => i.status === 'PAID').length} paid`} tone="success" />
         <KpiTile icon={ArrowDownCircle} label="Outstanding" value={formatCurrency(outstanding, { compact: true })} sub="Pending collection" tone="warning" />
         <KpiTile icon={AlertCircle} label="Overdue" value={formatCurrency(overdueAmount, { compact: true })} sub={`${overdueCount} invoice${overdueCount === 1 ? '' : 's'}`} tone={overdueCount > 0 ? 'danger' : 'default'} />
       </section>
@@ -66,7 +87,7 @@ export default async function InvoicesPage() {
                 return (
                   <tr key={inv.id} className={`hover:bg-gray-50/60 transition-colors ${isOverdue ? 'bg-red-50/30' : ''}`}>
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-gray-900">{inv.id}</p>
+                      <p className="font-semibold text-gray-900">{inv.invoiceNumber ?? inv.id}</p>
                       <p className="text-[11px] text-gray-500">by {inv.createdByName ?? 'system'}</p>
                     </td>
                     <td className="px-5 py-3.5">

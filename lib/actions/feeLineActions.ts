@@ -1,83 +1,96 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { mockFeeLedgers, getFeeLedgerForStudent } from '../mock/mockFeeLedgers';
-import { mockAuditLogs } from '../mock/mockAuditLogs';
 import { ActionResult, FeeLineStatus } from '@/types';
-import { overrideFeeLineSchema } from '../validations/catalog';
+import { backendFetch } from '@/lib/backend';
 
-const STATUSES: FeeLineStatus[] = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED'];
-
-function logFeeLedger(action: 'UPDATE', detail: string, studentId: string, previousValue?: string, newValue?: string) {
-  mockAuditLogs.unshift({
-    id: `aud_${Date.now()}`,
-    userId: 'usr_system',
-    userName: 'System',
-    userRole: 'FINANCE',
-    action,
-    module: 'FEE_LEDGER',
-    detail,
-    entityId: studentId,
-    entityType: 'StudentFeeLedger',
-    previousValue,
-    newValue,
-    timestamp: new Date().toISOString(),
-  });
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
 export async function updateFeeLineStatus(
   studentId: string,
   lineId: string,
-  newStatus: string,
+  newStatus: FeeLineStatus,
+  reason?: string,
 ): Promise<ActionResult> {
-  if (!STATUSES.includes(newStatus as FeeLineStatus)) {
-    return { success: false, message: 'Invalid status.' };
+  if (newStatus !== 'WAIVED' && newStatus !== 'OVERDUE') {
+    return {
+      success: false,
+      message: `Status ${newStatus} can't be set directly — use payment recording or override.`,
+    };
   }
-  const ledger = getFeeLedgerForStudent(studentId);
-  if (!ledger) return { success: false, message: 'No fee ledger found for this student.' };
-  const line = ledger.lines.find(l => l.id === lineId);
-  if (!line) return { success: false, message: 'Fee line not found.' };
-
-  const before = line.status;
-  line.status = newStatus as FeeLineStatus;
-  ledger.updatedAt = new Date().toISOString();
-  logFeeLedger('UPDATE', `Fee line status ${before} → ${newStatus}`, studentId, before, newStatus);
-
-  revalidatePath('/payments');
+  const res = await backendFetch(
+    `/finance/students/${studentId}/ledger/lines/${lineId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: newStatus,
+        reason: reason && reason.length >= 3 ? reason : 'Manual status change',
+      }),
+    },
+  );
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath(`/students/${studentId}`);
-  revalidatePath('/finance');
-  return { success: true, message: `Status updated to ${newStatus.toLowerCase()}.` };
+  return { success: true, message: `Fee line marked ${newStatus.toLowerCase()}.` };
 }
 
-export async function overrideFeeLine(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const parsed = overrideFeeLineSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) {
-    return { success: false, message: 'Validation failed.', errors: parsed.error.flatten().fieldErrors };
-  }
-  const { studentId, lineId, amount, currency, dueDate, reason } = parsed.data;
-
-  const ledger = getFeeLedgerForStudent(studentId);
-  if (!ledger) return { success: false, message: 'No fee ledger found.' };
-  const line = ledger.lines.find(l => l.id === lineId);
-  if (!line) return { success: false, message: 'Fee line not found.' };
-
-  if (line.status === 'PAID') {
-    return { success: false, message: 'Cannot override a paid line.' };
+export async function overrideFeeLine(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const studentId = (formData.get('studentId') as string | null)?.trim();
+  const lineId = (formData.get('lineId') as string | null)?.trim();
+  if (!studentId || !lineId) {
+    return { success: false, message: 'Missing studentId or lineId.' };
   }
 
-  const before = JSON.stringify(line);
-  if (amount !== undefined) line.amount = amount;
-  if (currency !== undefined) line.currency = currency;
-  if (dueDate !== undefined) line.dueDate = dueDate;
-  line.overrideReason = reason;
-  line.overriddenById = 'usr_current';
-  line.overriddenByName = 'Finance';
-  line.overriddenAt = new Date().toISOString();
-  ledger.updatedAt = new Date().toISOString();
-  logFeeLedger('UPDATE', `Fee line overridden — reason: ${reason}`, studentId, before, JSON.stringify(line));
+  const body: Record<string, unknown> = {
+    reason: (formData.get('reason') as string | null)?.trim() || 'Manual override',
+  };
+  const amount = (formData.get('amount') as string | null)?.trim();
+  if (amount) body.amount = Number(amount);
+  const dueDate = (formData.get('dueDate') as string | null)?.trim();
+  if (dueDate) body.dueDate = dueDate;
+  const label = (formData.get('label') as string | null)?.trim();
+  if (label) body.label = label;
+  const status = (formData.get('status') as string | null)?.trim();
+  if (status === 'WAIVED' || status === 'OVERDUE') body.status = status;
 
-  revalidatePath('/payments');
+  const res = await backendFetch(
+    `/finance/students/${studentId}/ledger/lines/${lineId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath(`/students/${studentId}`);
-  revalidatePath('/finance');
-  return { success: true, message: 'Fee line overridden.' };
+  return { success: true, message: 'Fee line updated.' };
+}
+
+export async function recordFeeLinePayment(
+  studentId: string,
+  lineId: string,
+  amount: number,
+  receiptNumber?: string,
+  notes?: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(
+    `/finance/students/${studentId}/ledger/lines/${lineId}/payment`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ amount, receiptNumber, notes }),
+    },
+  );
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath('/payments');
+  return { success: true, message: 'Payment recorded.' };
 }

@@ -1,126 +1,118 @@
 'use server';
 
-import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { mockInvoices } from '../mock/mockInvoices';
-import { invoiceSchema } from '../validations/finance';
-import { ActionResult, Invoice, InvoiceStatus, PaymentMethod } from '@/types';
+import { ActionResult, InvoiceStatus, PaymentMethod } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-const INVOICE_STATUSES: InvoiceStatus[] = ['DRAFT', 'SENT', 'PAID', 'PARTIAL', 'OVERDUE', 'VOID'];
-const PAYMENT_METHODS: PaymentMethod[] = ['BANK_TRANSFER', 'CASH', 'CHEQUE', 'CARD', 'MOBILE_MONEY', 'PETTY_CASH'];
-
-function nextInvoiceId(): string {
-  const year = new Date().getFullYear();
-  const max = mockInvoices
-    .filter(i => i.id.startsWith(`INV-${year}-`))
-    .reduce((m, i) => {
-      const n = parseInt(i.id.split('-')[2] ?? '0', 10);
-      return Number.isFinite(n) && n > m ? n : m;
-    }, 0);
-  return `INV-${year}-${String(max + 1).padStart(4, '0')}`;
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
-async function currentUser() {
-  const c = await cookies();
-  const cookie = c.get('ypit_session');
-  if (!cookie) return null;
-  try {
-    return JSON.parse(cookie.value) as { userId: string; fullName: string };
-  } catch {
-    return null;
+function readLineItems(formData: FormData): {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}[] {
+  const raw = formData.get('lineItems');
+  if (typeof raw === 'string' && raw.trim().length > 0) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map((p) => {
+          const o = p as Record<string, unknown>;
+          return {
+            description: String(o.description ?? '').trim(),
+            quantity: Number(o.quantity ?? 1),
+            unitPrice: Number(o.unitPrice ?? 0),
+          };
+        });
+      }
+    } catch {
+      /* fall through */
+    }
   }
+  const out: { description: string; quantity: number; unitPrice: number }[] = [];
+  for (let i = 0; i < 50; i++) {
+    const desc = formData.get(`lineItems[${i}][description]`);
+    if (typeof desc !== 'string' || desc.trim().length === 0) break;
+    out.push({
+      description: desc.trim(),
+      quantity: Number(formData.get(`lineItems[${i}][quantity]`) ?? 1),
+      unitPrice: Number(formData.get(`lineItems[${i}][unitPrice]`) ?? 0),
+    });
+  }
+  return out;
 }
 
-export async function createInvoice(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const data = Object.fromEntries(formData.entries());
-  const parsed = invoiceSchema.safeParse(data);
-  if (!parsed.success) {
+export async function createInvoice(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const body: Record<string, unknown> = {
+    recipientType: (formData.get('recipientType') as string | null)?.trim() || 'STUDENT',
+    recipientName: (formData.get('recipientName') as string | null)?.trim(),
+    description: (formData.get('description') as string | null)?.trim(),
+    lineItems: readLineItems(formData),
+    tax: Number(formData.get('tax') ?? 0),
+    currency: (formData.get('currency') as string | null)?.trim() || 'TZS',
+    issueDate: (formData.get('issueDate') as string | null)?.trim(),
+    dueDate: (formData.get('dueDate') as string | null)?.trim(),
+    notes: (formData.get('notes') as string | null)?.trim() || undefined,
+  };
+  const recipientId = (formData.get('recipientId') as string | null)?.trim();
+  if (recipientId) body.recipientId = recipientId;
+
+  const res = await backendFetch('/finance/invoices', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+
+  revalidatePath('/finance/invoices');
+  return { success: true, message: 'Invoice created.' };
+}
+
+export async function updateInvoiceStatus(
+  invoiceId: string,
+  newStatus: InvoiceStatus | string,
+): Promise<ActionResult> {
+  if (newStatus === 'SENT') {
+    const res = await backendFetch(`/finance/invoices/${invoiceId}/send`, { method: 'POST' });
+    if (!res.ok) return { success: false, ...(await readError(res)) };
+  } else if (newStatus === 'VOID') {
+    const res = await backendFetch(`/finance/invoices/${invoiceId}/void`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: 'Manually voided' }),
+    });
+    if (!res.ok) return { success: false, ...(await readError(res)) };
+  } else {
     return {
       success: false,
-      message: 'Please fix the validation errors.',
-      errors: z.flattenError(parsed.error).fieldErrors,
+      message: `Status ${newStatus} can't be set directly — use the payment dialog or backend transition endpoints.`,
     };
   }
-
-  const v = parsed.data;
-  const subtotal = v.quantity * v.unitPrice;
-  const total = subtotal + (v.tax || 0);
-  const user = await currentUser();
-
-  const invoice: Invoice = {
-    id: nextInvoiceId(),
-    recipientType: v.recipientType,
-    recipientId: v.recipientId || undefined,
-    recipientName: v.recipientName,
-    description: v.description,
-    lineItems: [
-      { description: v.itemDescription, quantity: v.quantity, unitPrice: v.unitPrice, total: subtotal },
-    ],
-    subtotal,
-    tax: v.tax || 0,
-    total,
-    currency: v.currency || 'TZS',
-    issueDate: new Date(v.issueDate).toISOString(),
-    dueDate: new Date(v.dueDate).toISOString(),
-    status: 'SENT',
-    paidAmount: 0,
-    notes: v.notes,
-    createdById: user?.userId,
-    createdByName: user?.fullName,
-    createdAt: new Date().toISOString(),
-  };
-
-  mockInvoices.unshift(invoice);
-
-  revalidatePath('/finance');
   revalidatePath('/finance/invoices');
-
-  return { success: true, message: `Invoice ${invoice.id} created.` };
-}
-
-export async function updateInvoiceStatus(invoiceId: string, newStatus: string): Promise<ActionResult> {
-  if (!INVOICE_STATUSES.includes(newStatus as InvoiceStatus)) {
-    return { success: false, message: 'Invalid invoice status.' };
-  }
-  const inv = mockInvoices.find(i => i.id === invoiceId);
-  if (!inv) return { success: false, message: 'Invoice not found.' };
-
-  inv.status = newStatus as InvoiceStatus;
-  if (inv.status === 'PAID') {
-    inv.paidAmount = inv.total;
-    if (!inv.paidDate) inv.paidDate = new Date().toISOString();
-  }
-
-  revalidatePath('/finance');
-  revalidatePath('/finance/invoices');
-  revalidatePath(`/finance/invoices/${invoiceId}`);
-
-  return { success: true, message: `Invoice marked as ${newStatus.toLowerCase()}.` };
+  return { success: true, message: `Invoice marked ${newStatus.toLowerCase()}.` };
 }
 
 export async function recordInvoicePayment(
   invoiceId: string,
   amount: number,
-  method: string,
+  paymentMethod: PaymentMethod,
+  paidDate?: string,
+  notes?: string,
 ): Promise<ActionResult> {
-  if (!PAYMENT_METHODS.includes(method as PaymentMethod)) {
-    return { success: false, message: 'Invalid payment method.' };
-  }
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { success: false, message: 'Amount must be a positive number.' };
-  }
-  const inv = mockInvoices.find(i => i.id === invoiceId);
-  if (!inv) return { success: false, message: 'Invoice not found.' };
-  if (inv.status === 'VOID') return { success: false, message: 'Cannot pay a voided invoice.' };
-
-  inv.paidAmount = Math.min(inv.total, inv.paidAmount + amount);
-  inv.paymentMethod = method as PaymentMethod;
-  inv.paidDate = new Date().toISOString();
-  inv.status = inv.paidAmount >= inv.total ? 'PAID' : 'PARTIAL';
-
-  revalidatePath('/finance');
+  const res = await backendFetch(`/finance/invoices/${invoiceId}/payment`, {
+    method: 'POST',
+    body: JSON.stringify({ amount, paymentMethod, paidDate, notes }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/invoices');
-
-  return { success: true, message: `Recorded payment on ${inv.id}.` };
+  return { success: true, message: 'Payment recorded.' };
 }

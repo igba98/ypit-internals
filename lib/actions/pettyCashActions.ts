@@ -1,122 +1,92 @@
 'use server';
 
-import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { mockPettyCash, getPettyCashBalance } from '../mock/mockPettyCash';
-import { pettyCashExpenseSchema, pettyCashReplenishSchema } from '../validations/finance';
-import { ActionResult, PettyCashTransaction } from '@/types';
+import { ActionResult } from '@/types';
+import { backendFetch } from '@/lib/backend';
 
-function nextPettyCashId(): string {
-  const year = new Date().getFullYear();
-  const max = mockPettyCash
-    .filter(t => t.id.startsWith(`PC-${year}-`))
-    .reduce((m, t) => {
-      const n = parseInt(t.id.split('-')[2] ?? '0', 10);
-      return Number.isFinite(n) && n > m ? n : m;
-    }, 0);
-  return `PC-${year}-${String(max + 1).padStart(4, '0')}`;
+async function readError(res: Response) {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message?: string; fieldErrors?: Record<string, string[]> };
+  } | null;
+  return {
+    message: body?.error?.message ?? `Request failed (${res.status}).`,
+    errors: body?.error?.fieldErrors,
+  };
 }
 
-function nextVoucherNumber(): string {
-  const year = new Date().getFullYear();
-  const expenseCount = mockPettyCash.filter(
-    t => t.type === 'EXPENSE' && t.voucherNumber?.startsWith(`PV-${year}-`) && !t.voucherNumber.includes('REPL') && !t.voucherNumber.includes('INIT'),
-  ).length;
-  return `PV-${year}-${String(expenseCount + 1).padStart(3, '0')}`;
+function formStr(formData: FormData, key: string): string | undefined {
+  const v = formData.get(key);
+  if (typeof v !== 'string') return undefined;
+  const t = v.trim();
+  return t.length > 0 ? t : undefined;
 }
 
-async function currentUser() {
-  const c = await cookies();
-  const cookie = c.get('ypit_session');
-  if (!cookie) return null;
-  try {
-    return JSON.parse(cookie.value) as { userId: string; fullName: string };
-  } catch {
-    return null;
-  }
-}
-
-export async function recordPettyCashExpense(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const data = Object.fromEntries(formData.entries());
-  const parsed = pettyCashExpenseSchema.safeParse(data);
-  if (!parsed.success) {
+export async function recordPettyCashExpense(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const description = formStr(formData, 'description');
+  const amountRaw = formStr(formData, 'amount');
+  const category = formStr(formData, 'category');
+  if (!description || !amountRaw || !category) {
     return {
       success: false,
-      message: 'Please fix the validation errors.',
-      errors: z.flattenError(parsed.error).fieldErrors,
+      message: 'description, amount, and category are required.',
     };
   }
-  const v = parsed.data;
-  const balance = getPettyCashBalance();
-  if (v.amount > balance) {
-    return {
-      success: false,
-      message: `Insufficient float (current balance TZS ${balance.toLocaleString()}). Replenish first.`,
-    };
-  }
-  const user = await currentUser();
-  const newBalance = balance - v.amount;
 
-  const tx: PettyCashTransaction = {
-    id: nextPettyCashId(),
-    date: new Date(v.date).toISOString(),
+  const body: Record<string, unknown> = {
     type: 'EXPENSE',
-    category: v.category,
-    description: v.description,
-    amount: v.amount,
-    currency: 'TZS',
-    recipient: v.recipient,
-    voucherNumber: v.voucherNumber || nextVoucherNumber(),
-    balanceAfter: newBalance,
-    recordedById: user?.userId,
-    recordedByName: user?.fullName,
-    notes: v.notes,
-    receiptUrl: v.receiptUrl || undefined,
-    receiptFilename: v.receiptFilename || undefined,
-    receiptContentType: v.receiptContentType || undefined,
+    category,
+    description,
+    amount: Number(amountRaw),
+    currency: formStr(formData, 'currency') ?? 'TZS',
+    date: formStr(formData, 'date'),
+    recipient: formStr(formData, 'recipient'),
+    voucherNumber: formStr(formData, 'voucherNumber'),
+    notes: formStr(formData, 'notes'),
+    receiptUrl: formStr(formData, 'receiptUrl'),
+    receiptFilename: formStr(formData, 'receiptFilename'),
+    receiptContentType: formStr(formData, 'receiptContentType'),
   };
 
-  mockPettyCash.push(tx);
-
-  revalidatePath('/finance');
+  const res = await backendFetch('/finance/petty-cash', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/petty-cash');
-
-  return { success: true, message: `Voucher ${tx.voucherNumber} recorded. Balance: TZS ${newBalance.toLocaleString()}.` };
+  return { success: true, message: 'Petty cash expense recorded.' };
 }
 
-export async function replenishPettyCash(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const data = Object.fromEntries(formData.entries());
-  const parsed = pettyCashReplenishSchema.safeParse(data);
-  if (!parsed.success) {
-    return {
-      success: false,
-      message: 'Please fix the validation errors.',
-      errors: z.flattenError(parsed.error).fieldErrors,
-    };
+export async function replenishPettyCash(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const description = formStr(formData, 'description');
+  const amountRaw = formStr(formData, 'amount');
+  if (!description || !amountRaw) {
+    return { success: false, message: 'description and amount are required.' };
   }
-  const v = parsed.data;
-  const user = await currentUser();
-  const newBalance = getPettyCashBalance() + v.amount;
+  const isInitial = formStr(formData, 'type') === 'INITIAL_FLOAT';
 
-  const tx: PettyCashTransaction = {
-    id: nextPettyCashId(),
-    date: new Date(v.date).toISOString(),
-    type: 'REPLENISHMENT',
-    description: 'Replenishment from bank',
-    amount: v.amount,
-    currency: 'TZS',
-    voucherNumber: v.voucherNumber || `PV-${new Date().getFullYear()}-REPL-${String(Math.floor(Math.random() * 90) + 10)}`,
-    balanceAfter: newBalance,
-    recordedById: user?.userId,
-    recordedByName: user?.fullName,
-    notes: v.notes,
+  const body: Record<string, unknown> = {
+    type: isInitial ? 'INITIAL_FLOAT' : 'REPLENISHMENT',
+    description,
+    amount: Number(amountRaw),
+    currency: formStr(formData, 'currency') ?? 'TZS',
+    date: formStr(formData, 'date'),
+    notes: formStr(formData, 'notes'),
   };
 
-  mockPettyCash.push(tx);
-
-  revalidatePath('/finance');
+  const res = await backendFetch('/finance/petty-cash', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/petty-cash');
-
-  return { success: true, message: `Float replenished. Balance: TZS ${newBalance.toLocaleString()}.` };
+  return {
+    success: true,
+    message: isInitial ? 'Initial float recorded.' : 'Petty cash replenished.',
+  };
 }

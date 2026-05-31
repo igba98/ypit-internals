@@ -3,14 +3,17 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { MyQueue } from '@/components/pipeline/MyQueue';
-import { Session } from '@/types';
+import {
+  Expense,
+  Invoice,
+  PaymentRecord,
+  PayrollEntry,
+  PettyCashTransaction,
+  Session,
+} from '@/types';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
-import { mockInvoices } from '@/lib/mock/mockInvoices';
-import { mockPayroll } from '@/lib/mock/mockPayroll';
-import { mockPettyCash, getPettyCashBalance } from '@/lib/mock/mockPettyCash';
-import { mockExpenses } from '@/lib/mock/mockExpenses';
-import { mockPayments } from '@/lib/mock/mockPayments';
+import { backendFetch } from '@/lib/backend';
 import {
   Wallet,
   ArrowDownCircle,
@@ -25,72 +28,110 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
+async function loadHubData() {
+  // Bundle every finance fetch in parallel — six round-trips in one tick.
+  const [invRes, payrollRes, pettyRes, balRes, expRes, paymentsRes] = await Promise.all([
+    backendFetch('/finance/invoices?limit=500'),
+    backendFetch('/finance/payroll?limit=500'),
+    backendFetch('/finance/petty-cash?limit=500'),
+    backendFetch('/finance/petty-cash/balance'),
+    backendFetch('/finance/expenses?limit=500'),
+    backendFetch('/finance/payments?limit=500'),
+  ]);
+  const ok = invRes.ok && payrollRes.ok && pettyRes.ok && balRes.ok && expRes.ok && paymentsRes.ok;
+  if (!ok) {
+    return {
+      invoices: [] as Invoice[],
+      payroll: [] as PayrollEntry[],
+      petty: [] as PettyCashTransaction[],
+      pettyBalance: 0,
+      expenses: [] as Expense[],
+      payments: [] as PaymentRecord[],
+      error: 'One or more finance endpoints failed.',
+    };
+  }
+  const [invBody, payrollBody, pettyBody, balBody, expBody, paymentsBody] = await Promise.all([
+    invRes.json() as Promise<{ items: Invoice[] }>,
+    payrollRes.json() as Promise<{ items: PayrollEntry[] }>,
+    pettyRes.json() as Promise<{ items: PettyCashTransaction[] }>,
+    balRes.json() as Promise<{ balance: number }>,
+    expRes.json() as Promise<{ items: Expense[] }>,
+    paymentsRes.json() as Promise<{ items: PaymentRecord[] }>,
+  ]);
+  return {
+    invoices: invBody.items ?? [],
+    payroll: payrollBody.items ?? [],
+    petty: pettyBody.items ?? [],
+    pettyBalance: balBody.balance ?? 0,
+    expenses: expBody.items ?? [],
+    payments: paymentsBody.items ?? [],
+    error: null as string | null,
+  };
+}
+
 export default async function FinanceOverviewPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  // --- Aggregates ---
-  const pettyCashBalance = getPettyCashBalance();
+  const { invoices, payroll, petty, pettyBalance, expenses, payments, error } = await loadHubData();
 
-  const studentBalance = mockPayments.reduce((sum, p) => sum + p.balance, 0);
-  const invoicesOutstanding = mockInvoices
-    .filter(i => i.status === 'SENT' || i.status === 'PARTIAL' || i.status === 'OVERDUE')
+  const studentBalance = payments.reduce((sum, p) => sum + p.balance, 0);
+  const invoicesOutstanding = invoices
+    .filter((i) => i.status === 'SENT' || i.status === 'PARTIAL' || i.status === 'OVERDUE')
     .reduce((sum, i) => sum + (i.total - i.paidAmount), 0);
   const receivablesTotal = studentBalance + invoicesOutstanding;
 
-  const expensesPending = mockExpenses
-    .filter(e => e.status === 'PENDING' || e.status === 'APPROVED')
+  const expensesPending = expenses
+    .filter((e) => e.status === 'PENDING' || e.status === 'APPROVED')
     .reduce((sum, e) => sum + e.amount, 0);
-  const payrollOutstanding = mockPayroll
-    .filter(p => p.status === 'DRAFT' || p.status === 'APPROVED')
+  const payrollOutstanding = payroll
+    .filter((p) => p.status === 'DRAFT' || p.status === 'APPROVED')
     .reduce((sum, p) => sum + p.netPay, 0);
   const payablesTotal = expensesPending + payrollOutstanding;
 
-  // This month metrics
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
   const revenueThisMonth =
-    mockInvoices
-      .filter(i => i.paidDate && new Date(i.paidDate) >= monthStart)
+    invoices
+      .filter((i) => i.paidDate && new Date(i.paidDate) >= monthStart)
       .reduce((sum, i) => sum + i.paidAmount, 0) +
-    mockPayments
-      .filter(p => p.lastPaymentDate && new Date(p.lastPaymentDate) >= monthStart)
+    payments
+      .filter((p) => p.lastPaymentDate && new Date(p.lastPaymentDate) >= monthStart)
       .reduce((sum, p) => sum + p.totalPaid, 0);
-  const expensesThisMonth = mockExpenses
-    .filter(e => e.paidDate && new Date(e.paidDate) >= monthStart)
+  const expensesThisMonth = expenses
+    .filter((e) => e.paidDate && new Date(e.paidDate) >= monthStart)
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const overdueInvoices = mockInvoices.filter(i => i.status === 'OVERDUE');
-  const pendingApprovals = mockExpenses.filter(e => e.status === 'PENDING');
-  const draftPayroll = mockPayroll.filter(p => p.status === 'DRAFT');
+  const overdueInvoices = invoices.filter((i) => i.status === 'OVERDUE');
+  const pendingApprovals = expenses.filter((e) => e.status === 'PENDING');
+  const draftPayroll = payroll.filter((p) => p.status === 'DRAFT');
 
-  // Recent activity
   type ActivityItem = { id: string; kind: string; title: string; amount: number; date: string; href?: string };
   const activity: ActivityItem[] = [
-    ...mockInvoices.slice(0, 5).map(i => ({
+    ...invoices.slice(0, 5).map((i) => ({
       id: `act-inv-${i.id}`,
       kind: 'invoice',
-      title: `${i.id} → ${i.recipientName}`,
+      title: `${i.invoiceNumber ?? i.id} → ${i.recipientName}`,
       amount: i.total,
       date: i.createdAt,
       href: '/finance/invoices',
     })),
-    ...mockPettyCash.slice(-5).reverse().map(t => ({
+    ...petty.slice(0, 5).map((t) => ({
       id: `act-pc-${t.id}`,
       kind: 'pettycash',
-      title: `${t.voucherNumber ?? t.id} · ${t.description}`,
+      title: `${t.voucherNumber ?? t.txNumber ?? t.id} · ${t.description}`,
       amount: t.type === 'EXPENSE' ? -t.amount : t.amount,
       date: t.date,
       href: '/finance/petty-cash',
     })),
-    ...mockExpenses.slice(0, 5).map(e => ({
+    ...expenses.slice(0, 5).map((e) => ({
       id: `act-exp-${e.id}`,
       kind: 'expense',
-      title: `${e.id} · ${e.description}`,
+      title: `${e.expenseNumber ?? e.id} · ${e.description}`,
       amount: -e.amount,
       date: e.createdAt,
       href: '/finance/expenses',
@@ -106,76 +147,36 @@ export default async function FinanceOverviewPage() {
         description="Cash position, receivables, payables, payroll and petty cash — all in one place."
       />
 
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
       <MyQueue session={session} title="Students Awaiting Payment Confirmation" />
 
-      {/* Top KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          label="Receivables"
-          value={formatCurrency(receivablesTotal, { compact: true })}
-          sublabel={`${formatCurrency(invoicesOutstanding)} on open invoices`}
-          icon={ArrowDownCircle}
-          tone="success"
-        />
-        <KpiCard
-          label="Payables"
-          value={formatCurrency(payablesTotal, { compact: true })}
-          sublabel={`${mockExpenses.filter(e => e.status !== 'PAID' && e.status !== 'REJECTED').length} expenses · ${draftPayroll.length} draft payslips`}
-          icon={ArrowUpCircle}
-          tone="warning"
-        />
-        <KpiCard
-          label="Petty Cash Float"
-          value={formatCurrency(pettyCashBalance, { compact: true })}
-          sublabel={pettyCashBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'}
-          icon={Wallet}
-          tone={pettyCashBalance < 100000 ? 'danger' : 'primary'}
-        />
-        <KpiCard
-          label="Net This Month"
-          value={formatCurrency(revenueThisMonth - expensesThisMonth, { compact: true })}
-          sublabel={`+${formatCurrency(revenueThisMonth)} · −${formatCurrency(expensesThisMonth)}`}
-          icon={TrendingUp}
-          tone="default"
-        />
+        <KpiCard label="Receivables" value={formatCurrency(receivablesTotal, { compact: true })} sublabel={`${formatCurrency(invoicesOutstanding)} on open invoices`} icon={ArrowDownCircle} tone="success" />
+        <KpiCard label="Payables" value={formatCurrency(payablesTotal, { compact: true })} sublabel={`${expenses.filter((e) => e.status !== 'PAID' && e.status !== 'REJECTED').length} expenses · ${draftPayroll.length} draft payslips`} icon={ArrowUpCircle} tone="warning" />
+        <KpiCard label="Petty Cash Float" value={formatCurrency(pettyBalance, { compact: true })} sublabel={pettyBalance < 100000 ? 'Below safe threshold — replenish soon' : 'Healthy float'} icon={Wallet} tone={pettyBalance < 100000 ? 'danger' : 'primary'} />
+        <KpiCard label="Net This Month" value={formatCurrency(revenueThisMonth - expensesThisMonth, { compact: true })} sublabel={`+${formatCurrency(revenueThisMonth)} · −${formatCurrency(expensesThisMonth)}`} icon={TrendingUp} tone="default" />
       </div>
 
-      {/* Alerts strip */}
       {(overdueInvoices.length > 0 || pendingApprovals.length > 0 || draftPayroll.length > 0) && (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {overdueInvoices.length > 0 && (
-            <AlertCard
-              tone="danger"
-              icon={AlertTriangle}
-              title={`${overdueInvoices.length} overdue invoice${overdueInvoices.length === 1 ? '' : 's'}`}
-              description={`${formatCurrency(overdueInvoices.reduce((s, i) => s + (i.total - i.paidAmount), 0))} past due`}
-              href="/finance/invoices"
-            />
+            <AlertCard tone="danger" icon={AlertTriangle} title={`${overdueInvoices.length} overdue invoice${overdueInvoices.length === 1 ? '' : 's'}`} description={`${formatCurrency(overdueInvoices.reduce((s, i) => s + (i.total - i.paidAmount), 0))} past due`} href="/finance/invoices" />
           )}
           {pendingApprovals.length > 0 && (
-            <AlertCard
-              tone="warning"
-              icon={Clock}
-              title={`${pendingApprovals.length} expense${pendingApprovals.length === 1 ? '' : 's'} awaiting approval`}
-              description={`${formatCurrency(pendingApprovals.reduce((s, e) => s + e.amount, 0))} pending`}
-              href="/finance/expenses"
-            />
+            <AlertCard tone="warning" icon={Clock} title={`${pendingApprovals.length} expense${pendingApprovals.length === 1 ? '' : 's'} awaiting approval`} description={`${formatCurrency(pendingApprovals.reduce((s, e) => s + e.amount, 0))} pending`} href="/finance/expenses" />
           )}
           {draftPayroll.length > 0 && (
-            <AlertCard
-              tone="info"
-              icon={Users}
-              title={`${draftPayroll.length} draft payslip${draftPayroll.length === 1 ? '' : 's'}`}
-              description={`${formatCurrency(draftPayroll.reduce((s, p) => s + p.netPay, 0))} to process`}
-              href="/finance/payroll"
-            />
+            <AlertCard tone="info" icon={Users} title={`${draftPayroll.length} draft payslip${draftPayroll.length === 1 ? '' : 's'}`} description={`${formatCurrency(draftPayroll.reduce((s, p) => s + p.netPay, 0))} to process`} href="/finance/payroll" />
           )}
         </section>
       )}
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick actions */}
         <section className="lg:col-span-1 bg-white rounded-xl shadow-card p-6 border border-gray-100">
           <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Banknote className="w-4 h-4 text-primary" />
@@ -191,8 +192,7 @@ export default async function FinanceOverviewPage() {
           <div className="mt-6 pt-6 border-t border-gray-100">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-3">Account Snapshot</h4>
             <dl className="space-y-2.5">
-              <Row label="Cash (estimated)" value={formatCurrency(15000000 + pettyCashBalance)} />
-              <Row label="Petty cash" value={formatCurrency(pettyCashBalance)} />
+              <Row label="Petty cash" value={formatCurrency(pettyBalance)} />
               <Row label="Student receivables" value={formatCurrency(studentBalance)} />
               <Row label="Invoice receivables" value={formatCurrency(invoicesOutstanding)} />
               <Row label="Open expenses" value={formatCurrency(expensesPending)} negative />
@@ -201,7 +201,6 @@ export default async function FinanceOverviewPage() {
           </div>
         </section>
 
-        {/* Recent activity feed */}
         <section className="lg:col-span-2 bg-white rounded-xl shadow-card p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -212,14 +211,11 @@ export default async function FinanceOverviewPage() {
           </div>
 
           <ul className="space-y-2">
-            {activity.map(item => {
+            {activity.map((item) => {
               const positive = item.amount > 0;
               return (
                 <li key={item.id}>
-                  <Link
-                    href={item.href ?? '#'}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
+                  <Link href={item.href ?? '#'} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group">
                     <span className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${
                       item.kind === 'invoice' ? 'bg-blue-50 text-blue-600' :
                       item.kind === 'pettycash' ? 'bg-amber-50 text-amber-600' :
@@ -326,10 +322,7 @@ function AlertCard({
 
 function QuickAction({ icon: Icon, label, hint, href }: { icon: React.ElementType; label: string; hint: string; href: string }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary/30 hover:bg-primary-muted/40 transition-colors group"
-    >
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary/30 hover:bg-primary-muted/40 transition-colors group">
       <div className="w-9 h-9 rounded-md bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center shrink-0 shadow-primary-glow">
         <Icon className="w-4 h-4" />
       </div>
