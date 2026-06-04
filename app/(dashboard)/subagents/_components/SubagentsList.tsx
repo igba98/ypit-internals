@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { User } from '@/types';
+import { Avatar } from '@/components/shared/Avatar';
 import { Mail, Phone, ExternalLink } from 'lucide-react';
 
 interface SubagentWithStats extends User {
@@ -36,15 +37,7 @@ export function SubagentsList({ subagents }: { subagents: SubagentWithStats[] })
             <tr key={agent.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
               <td className="py-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0">
-                    {agent.avatar ? (
-                      <img src={agent.avatar} alt={agent.fullName} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">
-                        {agent.fullName.charAt(0)}
-                      </div>
-                    )}
-                  </div>
+                  <Avatar name={agent.fullName} size="lg" className="w-10 h-10" />
                   <div className="font-medium text-gray-900">{agent.fullName}</div>
                 </div>
               </td>

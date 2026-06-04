@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { Avatar } from '@/components/shared/Avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { mockUsers } from '@/lib/mock/mockUsers';
 import { mockLeads } from '@/lib/mock/mockLeads';
@@ -53,15 +53,7 @@ export default async function SubagentDetailsPage({ params }: { params: Promise<
           {/* Subagent Info Card */}
           <div className="bg-white rounded-xl shadow-card p-6">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden shrink-0">
-                {subagent.avatar ? (
-                  <img src={subagent.avatar} alt={subagent.fullName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-medium">
-                    {subagent.fullName.charAt(0)}
-                  </div>
-                )}
-              </div>
+              <Avatar name={subagent.fullName} size="xl" className="w-16 h-16 text-xl" />
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{subagent.fullName}</h2>
                 <span className={`inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium
