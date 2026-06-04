@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { DocumentManagement } from '../_components/DocumentManagement';
 import { backendFetch } from '@/lib/backend';
+import { listStudentDocuments } from '@/lib/actions/documentActions';
 import { Application } from '@/types';
 
 async function loadApplication(id: string): Promise<Application | null> {
@@ -23,6 +24,8 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   const record = await loadApplication(id);
   if (!record) notFound();
 
+  const documents = await listStudentDocuments(record.studentId);
+
   return (
     <div className="space-y-8">
       <GenericDetailPage
@@ -33,7 +36,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
       />
 
       <div className="max-w-5xl mx-auto px-4 md:px-0">
-        <DocumentManagement studentId={record.studentId} />
+        <DocumentManagement studentId={record.studentId} initialDocuments={documents} />
       </div>
     </div>
   );

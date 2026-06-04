@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState, useTransition } from 'react';
+import { useActionState, useEffect, useRef, useTransition } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -124,17 +124,17 @@ export function CheckInPanel({ record }: Props) {
 
 function CheckInForm({ record }: { record: OperationsRecord }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, isPending] = useActionState(
     async (_prev: ActionResult | null, formData: FormData): Promise<ActionResult> =>
       recordWellnessCheckIn(record.id, _prev, formData),
     null,
   );
-  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     if (state?.success) {
       toast.success(state.message);
-      setResetKey((k) => k + 1);
+      formRef.current?.reset();
       router.refresh();
     } else if (state?.success === false) {
       toast.error(state.message);
@@ -142,7 +142,7 @@ function CheckInForm({ record }: { record: OperationsRecord }) {
   }, [state, router]);
 
   return (
-    <form action={formAction} key={resetKey} className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+    <form ref={formRef} action={formAction} className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-gray-100">
       <div className="space-y-2">
         <Label htmlFor="wellbeingStatus" className="flex items-center gap-1.5">
           <Activity className="w-3.5 h-3.5" /> Wellbeing

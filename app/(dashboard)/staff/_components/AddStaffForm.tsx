@@ -11,22 +11,20 @@ import { Copy, KeyRound, Mail, MailWarning } from 'lucide-react';
 
 export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, formAction, isPending] = useActionState(addStaff, null);
-  const [showCreds, setShowCreds] = useState(false);
 
   useEffect(() => {
     if (state?.success) {
       toast.success(state.message);
-      if (state.tempPassword) {
-        setShowCreds(true);
-      } else {
-        onSuccess();
-      }
+      // If there's no temp password to show, we're done — close the panel.
+      // Otherwise the conditional render below switches to CredentialsCard
+      // and `onSuccess` will fire when the admin clicks "Done" there.
+      if (!state.tempPassword) onSuccess();
     } else if (state?.success === false) {
       toast.error(state.message);
     }
   }, [state, onSuccess]);
 
-  if (showCreds && state?.tempPassword) {
+  if (state?.tempPassword) {
     return (
       <CredentialsCard
         tempPassword={state.tempPassword}

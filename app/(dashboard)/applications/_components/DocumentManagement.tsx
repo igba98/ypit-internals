@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Document } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ import {
 
 interface DocumentManagementProps {
   studentId: string;
+  initialDocuments: Document[];
 }
 
 function StatusBadge({ doc }: { doc: Document }) {
@@ -49,9 +50,9 @@ function StatusBadge({ doc }: { doc: Document }) {
   return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">Pending review</Badge>;
 }
 
-export function DocumentManagement({ studentId }: DocumentManagementProps) {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
+export function DocumentManagement({ studentId, initialDocuments }: DocumentManagementProps) {
+  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [loading, setLoading] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -61,10 +62,6 @@ export function DocumentManagement({ studentId }: DocumentManagementProps) {
     setDocuments(docs);
     setLoading(false);
   }, [studentId]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   const handleDownload = async (doc: Document) => {
     setBusyId(doc.id);
