@@ -90,13 +90,13 @@ function NewInvoiceForm({ onSuccess }: { onSuccess: () => void }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="unitPrice">Unit Price (TSh) *</Label>
-            <Input id="unitPrice" name="unitPrice" type="number" min={0} step="1000" placeholder="0" required />
+            <Input id="unitPrice" name="unitPrice" type="number" min={0} step="100" placeholder="0" required />
             {errors.unitPrice && <p className="text-xs text-red-600">{errors.unitPrice[0]}</p>}
           </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="tax">Tax (TSh)</Label>
-          <Input id="tax" name="tax" type="number" min={0} step="1000" defaultValue={0} />
+          <Input id="tax" name="tax" type="number" min={0} step="100" defaultValue={0} />
         </div>
       </div>
 

@@ -72,7 +72,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
   return (
     <div className={cn(
-      "hidden lg:flex flex-col h-full bg-brand-black text-white transition-all duration-300",
+      "hidden lg:flex flex-col h-full overflow-hidden bg-brand-black text-white transition-all duration-300 shrink-0",
       collapsed ? "w-[72px]" : "w-[260px]"
     )}>
       <div className="p-4 flex items-center justify-between border-b border-gray-800">
@@ -102,7 +102,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         </div>
       </div>
 
-      <div className="flex-1 py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto py-4">
         {!collapsed && <div className="px-4 text-[10px] uppercase tracking-widest text-gray-500 mb-2">Main Menu</div>}
         <nav className="px-2 space-y-1">
           {navItems.map((item) => {
@@ -144,7 +144,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4 border-t border-gray-800 shrink-0">
         <button
           onClick={clearSession}
           className={cn(

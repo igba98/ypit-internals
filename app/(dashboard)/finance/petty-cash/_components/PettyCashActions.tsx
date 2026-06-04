@@ -110,7 +110,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="amount">Amount (TSh) *</Label>
-          <Input id="amount" name="amount" type="number" min={1} step="100" placeholder="0" required />
+          <Input id="amount" name="amount" type="number" min={0} step="100" placeholder="0" required />
           {fieldErrors.amount && <p className="text-xs text-red-600">{fieldErrors.amount[0]}</p>}
         </div>
         <div className="space-y-2">
@@ -171,7 +171,7 @@ function ReplenishForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <Label htmlFor="amount">Amount (TSh) *</Label>
-        <Input id="amount" name="amount" type="number" min={1} step="1000" placeholder="300000" required />
+        <Input id="amount" name="amount" type="number" min={0} step="100" placeholder="300000" required />
         {fieldErrors.amount && <p className="text-xs text-red-600">{fieldErrors.amount[0]}</p>}
       </div>
 

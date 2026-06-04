@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Document } from '@/types';
-import { getDocumentsByStudentId } from '@/lib/mock/mockDocuments';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -13,42 +13,107 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Download, CheckCircle, Trash2, FileText, Upload } from 'lucide-react';
+import {
+  CheckCircle,
+  Download,
+  FileText,
+  Loader2,
+  Trash2,
+  Upload,
+  XCircle,
+} from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { DocumentUploadModal } from './DocumentUploadModal';
+import {
+  deleteDocument,
+  getDocumentDownloadUrl,
+  listStudentDocuments,
+  rejectDocument,
+  verifyDocument,
+} from '@/lib/actions/documentActions';
 
 interface DocumentManagementProps {
   studentId: string;
 }
 
+function StatusBadge({ doc }: { doc: Document }) {
+  if (doc.status === 'VERIFIED' || doc.verified) {
+    return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-none">Verified</Badge>;
+  }
+  if (doc.status === 'REJECTED') {
+    return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-none">Rejected</Badge>;
+  }
+  if (doc.status === 'UPLOADING') {
+    return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none">Uploading</Badge>;
+  }
+  return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">Pending review</Badge>;
+}
+
 export function DocumentManagement({ studentId }: DocumentManagementProps) {
-  const [documents, setDocuments] = useState<Document[]>(getDocumentsByStudentId(studentId));
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
-    // In a real app, this would be an API call
-    if (confirm('Are you sure you want to delete this document?')) {
-      setDocuments(documents.filter(doc => doc.id !== id));
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const docs = await listStudentDocuments(studentId);
+    setDocuments(docs);
+    setLoading(false);
+  }, [studentId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const handleDownload = async (doc: Document) => {
+    setBusyId(doc.id);
+    const res = await getDocumentDownloadUrl(doc.id);
+    setBusyId(null);
+    if (!res.success) {
+      toast.error(res.message);
+      return;
     }
+    window.open(res.url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleVerify = (id: string) => {
-    // In a real app, this would be an API call
-    setDocuments(documents.map(doc =>
-      doc.id === id ? { ...doc, verified: true } : doc
-    ));
+  const handleVerify = async (doc: Document) => {
+    setBusyId(doc.id);
+    const res = await verifyDocument(doc.id, studentId);
+    setBusyId(null);
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+    toast.success(res.message);
+    refresh();
   };
 
-  const handleUpload = (newDoc: Omit<Document, 'id' | 'uploadedAt' | 'uploadedBy' | 'verified'>) => {
-    const document: Document = {
-      ...newDoc,
-      id: `doc_${Date.now()}`,
-      uploadedAt: new Date().toISOString(),
-      uploadedBy: 'Current User', // Should come from session
-      verified: false,
-    };
+  const handleReject = async (doc: Document) => {
+    const reason = window.prompt(`Reject "${doc.name}" — what's the reason?`);
+    if (!reason || !reason.trim()) return;
+    setBusyId(doc.id);
+    const res = await rejectDocument(doc.id, studentId, reason.trim());
+    setBusyId(null);
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+    toast.success(res.message);
+    refresh();
+  };
 
-    setDocuments([...documents, document]);
+  const handleDelete = async (doc: Document) => {
+    if (!window.confirm(`Delete "${doc.name}"? This removes the file from storage too.`)) return;
+    setBusyId(doc.id);
+    const res = await deleteDocument(doc.id, studentId);
+    setBusyId(null);
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+    toast.success(res.message);
+    refresh();
   };
 
   return (
@@ -73,66 +138,103 @@ export function DocumentManagement({ studentId }: DocumentManagementProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {documents.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  <Loader2 className="w-4 h-4 inline-block animate-spin mr-2" />
+                  Loading documents...
+                </TableCell>
+              </TableRow>
+            ) : documents.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   No documents uploaded yet.
                 </TableCell>
               </TableRow>
             ) : (
-              documents.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">{doc.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-gray-50">
-                      {doc.type.replace('_', ' ')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-900">{formatDate(doc.uploadedAt)}</span>
-                      <span className="text-xs text-gray-500">by {doc.uploadedBy}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {doc.verified ? (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-none">Verified</Badge>
-                    ) : (
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">Pending</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <a href={doc.url} download target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-gray-100 rounded-md transition-colors" title="Download">
-                        <Download className="w-4 h-4 text-gray-600" />
-                      </a>
-                      {!doc.verified && (
+              documents.map((doc) => {
+                const busy = busyId === doc.id;
+                return (
+                  <TableRow key={doc.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{doc.name}</span>
+                          {doc.sizeBytes && (
+                            <span className="text-[11px] text-gray-500">
+                              {(doc.sizeBytes / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-gray-50">
+                        {doc.type.replace(/_/g, ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-900">{formatDate(doc.uploadedAt)}</span>
+                        <span className="text-xs text-gray-500">by {doc.uploadedBy}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <StatusBadge doc={doc} />
+                        {doc.status === 'REJECTED' && doc.rejectionReason && (
+                          <span className="text-[11px] text-red-600">{doc.rejectionReason}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Verify"
-                          onClick={() => handleVerify(doc.id)}
+                          title="Download"
+                          onClick={() => handleDownload(doc)}
+                          disabled={busy || doc.status === 'UPLOADING'}
                         >
-                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 text-gray-600" />}
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Delete"
-                        onClick={() => handleDelete(doc.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                        {doc.status !== 'VERIFIED' && doc.status !== 'UPLOADING' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Verify"
+                            onClick={() => handleVerify(doc)}
+                            disabled={busy}
+                          >
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          </Button>
+                        )}
+                        {doc.status !== 'REJECTED' && doc.status !== 'UPLOADING' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Reject"
+                            onClick={() => handleReject(doc)}
+                            disabled={busy}
+                          >
+                            <XCircle className="w-4 h-4 text-amber-600" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Delete"
+                          onClick={() => handleDelete(doc)}
+                          disabled={busy}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -142,7 +244,10 @@ export function DocumentManagement({ studentId }: DocumentManagementProps) {
         studentId={studentId}
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        onUpload={handleUpload}
+        onUploaded={() => {
+          setIsUploadModalOpen(false);
+          refresh();
+        }}
       />
     </div>
   );

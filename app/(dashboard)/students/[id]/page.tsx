@@ -25,8 +25,9 @@ import { StageTimeline } from '@/components/pipeline/StageTimeline';
 import { SentMessagesPanel } from '@/components/pipeline/SentMessagesPanel';
 import { GuardiansSection } from '@/components/pipeline/GuardiansSection';
 import { TravelChecklistCard } from '@/components/pipeline/TravelChecklistCard';
-import { ActivityEvent } from '@/lib/studentDetail';
+import { ActivityEvent, buildActivity } from '@/lib/studentDetail';
 import { backendFetch } from '@/lib/backend';
+import { listStudentDocuments } from '@/lib/actions/documentActions';
 
 interface DetailResponse extends Student {
   guardians: Guardian[];
@@ -50,7 +51,10 @@ export default async function StudentDetailPage({
 
   const { id } = await params;
 
-  const res = await backendFetch(`/students/${id}/detail`);
+  const [res, documents] = await Promise.all([
+    backendFetch(`/students/${id}/detail`),
+    listStudentDocuments(id),
+  ]);
   if (res.status === 404) notFound();
   if (!res.ok) {
     return (
@@ -71,9 +75,8 @@ export default async function StudentDetailPage({
   const payment = paymentRecord;
   const travel = travelRecord;
 
-  // Activity for the Activity Log tab is synthesised from stage transitions.
-  // Document / check-in feeds will be added when those modules ship.
-  const activity: ActivityEvent[] = stageTransitions.map((t) => ({
+  // Real stage-transition events from the backend (richer than synthesized).
+  const stageEvents: ActivityEvent[] = stageTransitions.map((t) => ({
     id: t.id,
     kind: 'STAGE',
     title: `${t.fromStage.replace(/_/g, ' ')} → ${t.toStage.replace(/_/g, ' ')}`.toLowerCase(),
@@ -82,12 +85,21 @@ export default async function StudentDetailPage({
     timestamp: t.createdAt,
   }));
 
+  // Build the rest of the feed from real backend data (payment/application/travel/documents).
+  // Filter out the synthesized STAGE events from buildActivity since we already have real ones above.
+  const builtActivity = buildActivity(student, payment, application, travel, documents)
+    .filter((e) => e.kind !== 'STAGE');
+
+  const activity = [...stageEvents, ...builtActivity].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
+
   const detail = {
     student,
     payment,
     application,
     travel,
-    documents: [],
+    documents,
     activity,
   };
 

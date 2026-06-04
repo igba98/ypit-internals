@@ -19,7 +19,8 @@ interface PayrollHeaderActionsProps {
   currentPeriodStart: string;
   hasDraft: boolean;
   hasApproved: boolean;
-  needsGeneration: boolean;
+  missingStaffCount: number;
+  hasAnyEntries: boolean;
 }
 
 export function PayrollHeaderActions({
@@ -27,7 +28,8 @@ export function PayrollHeaderActions({
   currentPeriodStart,
   hasDraft,
   hasApproved,
-  needsGeneration,
+  missingStaffCount,
+  hasAnyEntries,
 }: PayrollHeaderActionsProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -44,16 +46,26 @@ export function PayrollHeaderActions({
     });
   };
 
+  const showGenerate = missingStaffCount > 0;
+  const generateLabel = hasAnyEntries
+    ? `Add Missing (${missingStaffCount})`
+    : `Generate ${currentPeriod}`;
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {needsGeneration && (
+      {showGenerate && (
         <Button
           onClick={() => dispatch(() => generatePayroll(currentPeriodStart))}
           disabled={isPending}
           className="gap-2 bg-primary hover:bg-primary-light text-white"
+          title={
+            hasAnyEntries
+              ? `Create DRAFT rows for ${missingStaffCount} active staff member${missingStaffCount === 1 ? '' : 's'} without a row this period.`
+              : `Create DRAFT rows for all active staff for ${currentPeriod}.`
+          }
         >
           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
-          Generate {currentPeriod}
+          {generateLabel}
         </Button>
       )}
       {hasDraft && (

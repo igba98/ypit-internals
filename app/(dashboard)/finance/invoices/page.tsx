@@ -1,7 +1,8 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
-import { Building2, GraduationCap, FileText, ArrowDownCircle, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { Building2, GraduationCap, FileText, ArrowDownCircle, AlertCircle, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
 import { NewInvoiceButton } from './_components/NewInvoiceButton';
 import { InvoiceStatusCell } from './_components/InvoiceStatusCell';
 import { Invoice, InvoiceRecipientType } from '@/types';
@@ -77,6 +78,7 @@ export default async function InvoicesPage() {
                 <th className="px-5 py-3 font-medium text-right">Total</th>
                 <th className="px-5 py-3 font-medium text-right">Paid</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium text-right">Preview</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -129,11 +131,22 @@ export default async function InvoicesPage() {
                     <td className="px-5 py-3.5">
                       <InvoiceStatusCell invoiceId={inv.id} value={inv.status} />
                     </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <Link
+                        href={`/print/invoice/${inv.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-light"
+                        title="Open print-ready invoice in a new tab"
+                      >
+                        View <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </td>
                   </tr>
                 );
               })}
               {sorted.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-500">No invoices yet. Click <strong>New Invoice</strong> to create one.</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-500">No invoices yet. Click <strong>New Invoice</strong> to create one.</td></tr>
               )}
             </tbody>
           </table>

@@ -1,8 +1,4 @@
 import { Student, PaymentRecord, Application, TravelRecord, Document, PipelineStage } from '@/types';
-import { mockPayments } from './mock/mockPayments';
-import { mockApplications } from './mock/mockApplications';
-import { mockTravelRecords } from './mock/mockTravel';
-import { mockDocuments } from './mock/mockDocuments';
 
 export type ActivityKind =
   | 'CREATED'
@@ -33,15 +29,15 @@ export interface StudentDetail {
 }
 
 const STAGE_LABELS: Record<PipelineStage, string> = {
-  LEAD: "Lead captured",
-  COUNSELING: "Moved to Counseling",
-  PAYMENT_PENDING: "Marked as Payment Pending",
-  PAYMENT_CONFIRMED: "Payment Confirmed",
-  APPLICATION_SUBMITTED: "Application Submitted",
-  UNIVERSITY_ACCEPTED: "University Accepted",
-  TRAVEL_PLANNING: "Travel Planning started",
-  TRAVELLED: "Travelled to destination",
-  MONITORING: "In Monitoring",
+  LEAD: 'Lead captured',
+  COUNSELING: 'Moved to Counseling',
+  PAYMENT_PENDING: 'Marked as Payment Pending',
+  PAYMENT_CONFIRMED: 'Payment Confirmed',
+  APPLICATION_SUBMITTED: 'Application Submitted',
+  UNIVERSITY_ACCEPTED: 'University Accepted',
+  TRAVEL_PLANNING: 'Travel Planning started',
+  TRAVELLED: 'Travelled to destination',
+  MONITORING: 'In Monitoring',
 };
 
 const STAGE_ORDER: PipelineStage[] = [
@@ -58,10 +54,14 @@ const STAGE_ORDER: PipelineStage[] = [
 
 /**
  * Synthesize a per-student activity timeline from related entity data.
- * Real events would come from an audit log; for mock UX we fan them out
- * across the student's known timestamps so the timeline feels alive.
+ * The page is responsible for fetching everything from the backend and
+ * passing it in. This function does no I/O.
+ *
+ * Stage transitions: if the caller has real `StageTransition` rows from the
+ * backend, prefer those (richer actor + notes). The synthetic fallback below
+ * is used when no transitions are provided.
  */
-function buildActivity(
+export function buildActivity(
   student: Student,
   payment: PaymentRecord | null,
   application: Application | null,
@@ -99,7 +99,6 @@ function buildActivity(
     }
   }
 
-  // Payments
   if (payment) {
     if (payment.agencyFeeDate && payment.agencyFeePaid > 0) {
       events.push({
@@ -143,7 +142,6 @@ function buildActivity(
     }
   }
 
-  // Application
   if (application) {
     if (application.submissionDate) {
       events.push({
@@ -175,19 +173,22 @@ function buildActivity(
     }
   }
 
-  // Documents
   for (const doc of documents) {
+    const verifiedLabel = doc.status === 'VERIFIED' || doc.verified
+      ? 'Verified by reviewer'
+      : doc.status === 'REJECTED'
+        ? `Rejected: ${doc.rejectionReason ?? 'no reason given'}`
+        : 'Pending verification';
     events.push({
       id: `act_${student.id}_doc_${doc.id}`,
       kind: 'DOCUMENT',
       title: `Document uploaded: ${doc.name}`,
-      description: doc.verified ? 'Verified by reviewer' : 'Pending verification',
+      description: verifiedLabel,
       actor: doc.uploadedBy,
       timestamp: doc.uploadedAt,
     });
   }
 
-  // Travel / visa
   if (travel) {
     if (travel.visaApplicationDate) {
       events.push({
@@ -230,7 +231,6 @@ function buildActivity(
     }
   }
 
-  // Notes
   if (student.notes) {
     events.push({
       id: `act_${student.id}_note`,
@@ -243,14 +243,4 @@ function buildActivity(
   }
 
   return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-}
-
-export function getStudentDetail(student: Student): StudentDetail {
-  const payment = mockPayments.find(p => p.studentId === student.id) ?? null;
-  const application = mockApplications.find(a => a.studentId === student.id) ?? null;
-  const travel = mockTravelRecords.find(t => t.studentId === student.id) ?? null;
-  const documents = mockDocuments.filter(d => d.studentId === student.id);
-  const activity = buildActivity(student, payment, application, travel, documents);
-
-  return { student, payment, application, travel, documents, activity };
 }

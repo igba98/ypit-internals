@@ -74,6 +74,8 @@ export interface User {
   avatar?: string;
   phone?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  /** Default monthly base salary in TZS — used by payroll generation. */
+  baseSalary?: number;
   lastLogin?: string;
   createdAt: string;
   createdBy?: string;
@@ -192,16 +194,39 @@ export interface Application {
   updatedAt: string;
 }
 
+export type DocumentType =
+  | 'PASSPORT'
+  | 'TRANSCRIPT'
+  | 'CERTIFICATE'
+  | 'OFFER_LETTER'
+  | 'VISA'
+  | 'BANK_STATEMENT'
+  | 'PHOTO'
+  | 'REFERENCE_LETTER'
+  | 'OTHER';
+
+export type DocumentStatus = 'UPLOADING' | 'PENDING_REVIEW' | 'VERIFIED' | 'REJECTED';
+
 export interface Document {
   id: string;
   studentId: string;
-  type: 'PASSPORT' | 'TRANSCRIPT' | 'CERTIFICATE' | 'OFFER_LETTER' | 'VISA' | 'BANK_STATEMENT' | 'PHOTO' | 'REFERENCE_LETTER' | 'OTHER';
+  type: DocumentType;
+  /** Display label (mock: `name`, backend: `originalName` — UI normalizes). */
   name: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  /** Empty string for backend rows; presigned URL fetched on demand. */
   url: string;
   uploadedAt: string;
   uploadedBy: string;
+  /** Derived: true when status === 'VERIFIED'. Kept for backwards-compat. */
   verified: boolean;
-  notes?: string;
+  status?: DocumentStatus;
+  notes?: string | null;
+  rejectionReason?: string | null;
+  expiresAt?: string | null;
+  reviewedAt?: string | null;
 }
 
 export interface TravelRecord {

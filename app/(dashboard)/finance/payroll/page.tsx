@@ -3,6 +3,7 @@ import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { Users, Banknote, Calendar, Wallet } from 'lucide-react';
 import { PayrollHeaderActions, PayrollRowStatus } from './_components/PayrollActions';
+import { EditPayrollDialog } from './_components/EditPayrollDialog';
 import { PayrollEntry } from '@/types';
 import { backendFetch } from '@/lib/backend';
 
@@ -12,19 +13,37 @@ interface PayrollListResponse {
   items: PayrollEntry[];
 }
 
-async function loadPayroll(): Promise<{ items: PayrollEntry[]; error: string | null }> {
+interface StaffListResponse {
+  items: { id: string; status: string }[];
+}
+
+async function loadInputs(): Promise<{
+  payroll: PayrollEntry[];
+  activeStaffIds: string[];
+  error: string | null;
+}> {
   try {
-    const res = await backendFetch('/finance/payroll?limit=500');
-    if (!res.ok) return { items: [], error: `Failed to load payroll (HTTP ${res.status})` };
-    const body = (await res.json()) as PayrollListResponse;
-    return { items: body.items ?? [], error: null };
+    const [payrollRes, staffRes] = await Promise.all([
+      backendFetch('/finance/payroll?limit=500'),
+      backendFetch('/staff?status=ACTIVE&limit=100'),
+    ]);
+    if (!payrollRes.ok) {
+      return { payroll: [], activeStaffIds: [], error: `Failed to load payroll (HTTP ${payrollRes.status})` };
+    }
+    const payrollBody = (await payrollRes.json()) as PayrollListResponse;
+    const staffBody = staffRes.ok ? ((await staffRes.json()) as StaffListResponse) : { items: [] };
+    return {
+      payroll: payrollBody.items ?? [],
+      activeStaffIds: (staffBody.items ?? []).filter((u) => u.status === 'ACTIVE').map((u) => u.id),
+      error: null,
+    };
   } catch {
-    return { items: [], error: 'Unable to reach the backend.' };
+    return { payroll: [], activeStaffIds: [], error: 'Unable to reach the backend.' };
   }
 }
 
 export default async function PayrollPage() {
-  const { items: payroll, error } = await loadPayroll();
+  const { payroll, activeStaffIds, error } = await loadInputs();
 
   const now = new Date();
   const periodStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
@@ -35,7 +54,8 @@ export default async function PayrollPage() {
 
   otherEntries.sort((a, b) => new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime());
 
-  const needsGeneration = periodEntries.length === 0;
+  const staffWithRowThisPeriod = new Set(periodEntries.map((p) => p.staffId));
+  const missingStaffCount = activeStaffIds.filter((id) => !staffWithRowThisPeriod.has(id)).length;
   const hasDraft = periodEntries.some((p) => p.status === 'DRAFT');
   const hasApproved = periodEntries.some((p) => p.status === 'APPROVED');
 
@@ -59,7 +79,8 @@ export default async function PayrollPage() {
             currentPeriodStart={periodStart.toISOString()}
             hasDraft={hasDraft}
             hasApproved={hasApproved}
-            needsGeneration={needsGeneration}
+            missingStaffCount={missingStaffCount}
+            hasAnyEntries={periodEntries.length > 0}
           />
         }
       />
@@ -166,6 +187,7 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
             <th className="px-5 py-3 font-medium text-right">NSSF</th>
             <th className="px-5 py-3 font-medium text-right">Net Pay</th>
             <th className="px-5 py-3 font-medium">Status</th>
+            <th className="px-5 py-3 font-medium text-right">Edit</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -188,6 +210,13 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
                     <span className="text-[11px] text-gray-500">paid {formatDate(e.paidDate)}</span>
                   )}
                 </div>
+              </td>
+              <td className="px-5 py-3.5 text-right">
+                {e.status === 'DRAFT' ? (
+                  <EditPayrollDialog entry={e} />
+                ) : (
+                  <span className="text-[11px] text-gray-400" title="Only DRAFT rows can be edited">—</span>
+                )}
               </td>
             </tr>
           ))}

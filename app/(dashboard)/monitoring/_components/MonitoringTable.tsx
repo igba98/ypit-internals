@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { OperationsRecord } from '@/types';
+import { Avatar } from '@/components/shared/Avatar';
 import { DataTable } from '@/components/shared/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
@@ -19,9 +19,7 @@ export function MonitoringTable({ data }: MonitoringTableProps) {
       header: 'Student',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
-            <Image src={`https://i.pravatar.cc/150?u=${row.original.studentId}`} alt={row.original.studentName} width={32} height={32} className="w-full h-full object-cover" />
-          </div>
+          <Avatar name={row.original.studentName} size="md" />
           <span className="font-medium text-gray-900">{row.original.studentName}</span>
         </div>
       ),

@@ -1,10 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import { User } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { RoleBadge } from '@/components/shared/RoleBadge';
+import { Avatar } from '@/components/shared/Avatar';
 import { Phone, Mail } from 'lucide-react';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
 
@@ -19,9 +19,7 @@ export function StaffTable({ data }: StaffTableProps) {
       header: 'Name',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
-            <Image src={`https://i.pravatar.cc/150?u=${row.original.id}`} alt={row.original.fullName} width={32} height={32} className="w-full h-full object-cover" />
-          </div>
+          <Avatar name={row.original.fullName} size="md" />
           <span className="font-medium text-gray-900">{row.original.fullName}</span>
         </div>
       ),

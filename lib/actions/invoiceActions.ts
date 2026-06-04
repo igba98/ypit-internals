@@ -47,6 +47,18 @@ function readLineItems(formData: FormData): {
       unitPrice: Number(formData.get(`lineItems[${i}][unitPrice]`) ?? 0),
     });
   }
+  if (out.length > 0) return out;
+
+  const singleDesc = formData.get('itemDescription');
+  if (typeof singleDesc === 'string' && singleDesc.trim().length > 0) {
+    return [
+      {
+        description: singleDesc.trim(),
+        quantity: Number(formData.get('quantity') ?? 1) || 1,
+        unitPrice: Number(formData.get('unitPrice') ?? 0),
+      },
+    ];
+  }
   return out;
 }
 
