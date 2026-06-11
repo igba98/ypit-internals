@@ -746,3 +746,51 @@ export interface BankReconciliation {
   preparedByName: string;
   createdAt: string;
 }
+
+// ── Phase 9: Equipment register (IT Admin) ──────────────────────
+
+export type EquipmentCategory =
+  | 'LAPTOP'
+  | 'DESKTOP'
+  | 'PHONE'
+  | 'MONITOR'
+  | 'PRINTER'
+  | 'FURNITURE'
+  | 'ACCESSORY'
+  | 'VEHICLE'
+  | 'OTHER';
+
+export type EquipmentCondition = 'NEW' | 'GOOD' | 'FAIR' | 'DAMAGED';
+
+export type EquipmentStatus = 'ASSIGNED' | 'RETURNED' | 'LOST';
+
+export interface EquipmentAssignment {
+  id: string;
+  assetNumber: string;              // EQ-2026-0001
+  staffId: string;
+  staffName: string;
+  name: string;
+  category: EquipmentCategory;
+  serialNumber?: string | null;
+  description?: string | null;
+  conditionOut: EquipmentCondition;
+  issuedAt: string;
+  issuedByName: string;
+  status: EquipmentStatus;
+  returnedAt?: string | null;
+  conditionIn?: EquipmentCondition | null;
+  faultNotes?: string | null;
+  receivedByName?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface StaffClearance {
+  staffId: string;
+  staffName: string;
+  totalIssued: number;
+  outstandingCount: number;
+  lostCount: number;
+  cleared: boolean;
+  outstanding?: EquipmentAssignment[];
+}
