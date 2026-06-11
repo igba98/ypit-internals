@@ -857,3 +857,36 @@ export interface SubAgentDetail extends SubAgentSummary {
   contract: (SubAgentContract & { followUps: SubAgentFollowUp[] }) | null;
   students: SubAgentStudentRow[];
 }
+
+// ── Phase 9: Letter templates + Pre-Admission Notices ───────────
+
+export interface LetterTemplate {
+  id: string;
+  name: string;
+  description?: string | null;
+  body: string;
+  isActive: boolean;
+  createdByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PreAdmissionNoticeRow {
+  id: string;
+  noticeNumber: string;             // PAN-2026-0001
+  studentId: string;
+  studentName: string;
+  templateName: string;
+  emailTo: string;
+  emailSentAt?: string | null;
+  emailError?: string | null;
+  whatsappQueued: boolean;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface PreAdmissionNotice extends PreAdmissionNoticeRow {
+  templateId?: string | null;
+  data: Record<string, string>;
+  renderedHtml: string;
+}

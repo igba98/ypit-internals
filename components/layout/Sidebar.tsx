@@ -21,6 +21,7 @@ import {
   Settings,
   LogOut,
   Laptop,
+  FileSignature,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -59,6 +60,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Admission Letters', href: '/admission-letters', icon: FileSignature, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
