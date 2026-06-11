@@ -686,3 +686,63 @@ export interface TravelStepStatusMap {
 
 export type NotifyAudience = 'STUDENT' | 'PARENT_PRIMARY' | 'ALL_PARENTS' | 'NEW_OWNER' | 'TEAM';
 export type NotifyChannel = 'WHATSAPP' | 'IN_APP';
+
+// ── Phase 9: Cash Book + Bank Reconciliation ────────────────────
+
+export type CashBookEntryType = 'RECEIPT' | 'PAYMENT';
+
+export type CashBookSource =
+  | 'STUDENT_PAYMENT'
+  | 'FEE_LINE'
+  | 'INVOICE'
+  | 'EXPENSE'
+  | 'PAYROLL'
+  | 'PETTY_CASH'
+  | 'PIPELINE'
+  | 'MANUAL';
+
+export interface CashBookEntry {
+  id: string;
+  entryNumber: string;              // CB-2026-00001
+  date: string;
+  type: CashBookEntryType;
+  source: CashBookSource;
+  description: string;
+  reference?: string | null;
+  paymentMethod: PaymentMethod;
+  amount: number;
+  currency: string;
+  entityId?: string | null;
+  entityType?: string | null;
+  studentId?: string | null;
+  reconciled: boolean;
+  reconciledAt?: string | null;
+  bankStatementRef?: string | null;
+  recordedByName: string;
+  createdAt: string;
+}
+
+export interface CashbookSummary {
+  openingBalance: number;
+  receiptsTotal: number;
+  paymentsTotal: number;
+  net: number;
+  closingBalance: number;
+  bank: { receipts: number; payments: number; net: number };
+  cash: { receipts: number; payments: number; net: number };
+  unreconciledBankCount: number;
+}
+
+export interface BankReconciliation {
+  id: string;
+  recNumber: string;                // BR-2026-001
+  statementDate: string;
+  statementBalance: number;
+  bookBankBalance: number;
+  reconciledTotal: number;
+  unreconciledCount: number;
+  difference: number;
+  notes?: string | null;
+  preparedByName: string;
+  createdAt: string;
+}
