@@ -55,7 +55,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ALL'] },
       { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Leads', href: '/leads', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT'] },
-      { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR'] },
+      { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },

@@ -794,3 +794,66 @@ export interface StaffClearance {
   cleared: boolean;
   outstanding?: EquipmentAssignment[];
 }
+
+// ── Phase 9: Sub-agent contracts (Operations) ───────────────────
+
+export type ContractStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED';
+
+export interface SubAgentContract {
+  id: string;
+  subAgentId: string;
+  status: ContractStatus;
+  startDate?: string | null;
+  endDate?: string | null;
+  signedAt?: string | null;
+  studentTarget: number;
+  commissionTerms?: string | null;
+  notes?: string | null;
+  lastFollowUpAt?: string | null;
+  createdByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubAgentFollowUp {
+  id: string;
+  contractId: string;
+  subAgentId: string;
+  notes: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface SubAgentStats {
+  studentsRecruited: number;
+  studentsTravelled: number;
+  studentTarget: number;
+  targetProgressPct: number | null;
+}
+
+export interface SubAgentSummary {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  createdAt: string;
+  contract: SubAgentContract | null;
+  stats: SubAgentStats;
+}
+
+export interface SubAgentStudentRow {
+  id: string;
+  registrationNumber: string;
+  fullName: string;
+  pipelineStage: PipelineStage;
+  targetUniversity?: string | null;
+  targetCountry?: string | null;
+  createdAt: string;
+  stageEnteredAt?: string | null;
+}
+
+export interface SubAgentDetail extends SubAgentSummary {
+  contract: (SubAgentContract & { followUps: SubAgentFollowUp[] }) | null;
+  students: SubAgentStudentRow[];
+}
