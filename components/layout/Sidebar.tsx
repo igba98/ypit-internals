@@ -42,6 +42,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
     if (session.role === 'FINANCE') {
       return [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'Students', href: '/students', icon: Users },
         { label: 'Finance Hub', href: '/finance', icon: Wallet },
         { label: 'Student Payments', href: '/payments', icon: CreditCard },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },

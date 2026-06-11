@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SlideInPanel } from '@/components/shared/SlideInPanel';
-import { RecordPaymentForm } from './RecordPaymentForm';
+import { RecordPaymentForm, StudentOption } from './RecordPaymentForm';
 import { DollarSign } from 'lucide-react';
 
-export function RecordPaymentButton() {
+export function RecordPaymentButton({ students }: { students: StudentOption[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -22,7 +22,7 @@ export function RecordPaymentButton() {
         title="Record New Payment"
         description="Log a financial transaction against a student's standing balance."
       >
-        <RecordPaymentForm onSuccess={() => setIsOpen(false)} />
+        <RecordPaymentForm students={students} onSuccess={() => setIsOpen(false)} />
       </SlideInPanel>
     </>
   );

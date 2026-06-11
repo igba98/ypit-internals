@@ -6,8 +6,9 @@ import { redirect } from 'next/navigation';
 import { DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { RecordPaymentButton } from './_components/RecordPaymentButton';
 import { formatCurrency } from '@/lib/format';
-import { PaymentRecord } from '@/types';
+import { PaymentRecord, Student } from '@/types';
 import { backendFetch } from '@/lib/backend';
+import { StudentOption } from './_components/RecordPaymentForm';
 
 interface PaymentsListResponse {
   items: PaymentRecord[];
@@ -24,6 +25,22 @@ async function loadPayments(): Promise<{ items: PaymentRecord[]; error: string |
   }
 }
 
+async function loadStudentOptions(): Promise<StudentOption[]> {
+  try {
+    const res = await backendFetch('/students?limit=500');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: Student[] };
+    return (body.items ?? []).map((s) => ({
+      id: s.id,
+      fullName: s.fullName,
+      registrationNumber: s.registrationNumber,
+      pipelineStage: s.pipelineStage,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function PaymentsPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ypit_session');
@@ -33,7 +50,10 @@ export default async function PaymentsPage() {
   const allowedRoles = ['FINANCE', 'MANAGING_DIRECTOR'];
   if (!allowedRoles.includes(session.role)) redirect('/dashboard');
 
-  const { items: payments, error } = await loadPayments();
+  const [{ items: payments, error }, studentOptions] = await Promise.all([
+    loadPayments(),
+    loadStudentOptions(),
+  ]);
 
   const totalCollected = payments.reduce((sum, p) => sum + p.totalPaid, 0);
   const pendingCount = payments.filter((p) => p.status === 'PENDING' || p.status === 'PARTIAL').length;
@@ -47,7 +67,7 @@ export default async function PaymentsPage() {
         description="Manage student payments, agency fees, and tuition."
         actions={
           ['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role) && (
-            <RecordPaymentButton />
+            <RecordPaymentButton students={studentOptions} />
           )
         }
       />

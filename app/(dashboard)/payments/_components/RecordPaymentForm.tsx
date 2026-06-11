@@ -9,9 +9,21 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AttachmentField } from '@/components/shared/AttachmentField';
 import { toast } from 'sonner';
-import { mockStudents } from '@/lib/mock/mockStudents';
 
-export function RecordPaymentForm({ onSuccess }: { onSuccess: () => void }) {
+export interface StudentOption {
+  id: string;
+  fullName: string;
+  registrationNumber: string;
+  pipelineStage: string;
+}
+
+export function RecordPaymentForm({
+  students,
+  onSuccess,
+}: {
+  students: StudentOption[];
+  onSuccess: () => void;
+}) {
   const [state, formAction, isPending] = useActionState(recordPayment, null);
 
   useEffect(() => {
@@ -23,15 +35,29 @@ export function RecordPaymentForm({ onSuccess }: { onSuccess: () => void }) {
     }
   }, [state, onSuccess]);
 
+  const awaiting = students.filter((s) => s.pipelineStage === 'PAYMENT_PENDING');
+  const others = students.filter((s) => s.pipelineStage !== 'PAYMENT_PENDING');
+
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="studentId">Select Student *</Label>
         <Select id="studentId" name="studentId" required defaultValue="">
           <option value="" disabled>Choose a tracked student...</option>
-          {mockStudents.map(student => (
-            <option key={student.id} value={student.id}>{student.fullName} ({student.registrationNumber})</option>
-          ))}
+          {awaiting.length > 0 && (
+            <optgroup label="Awaiting payment">
+              {awaiting.map(student => (
+                <option key={student.id} value={student.id}>{student.fullName} ({student.registrationNumber})</option>
+              ))}
+            </optgroup>
+          )}
+          {others.length > 0 && (
+            <optgroup label="Other students">
+              {others.map(student => (
+                <option key={student.id} value={student.id}>{student.fullName} ({student.registrationNumber})</option>
+              ))}
+            </optgroup>
+          )}
         </Select>
         {state?.errors?.studentId && <p className="text-red-500 text-xs">{state.errors.studentId[0]}</p>}
       </div>

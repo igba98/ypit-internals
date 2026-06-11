@@ -1,9 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { Student, Session } from '@/types';
-import { mockStudents } from '@/lib/mock/mockStudents';
 import { getStageOwners } from '@/lib/pipeline/stageOwnership';
+import { backendFetch } from '@/lib/backend';
 import { AdvanceStageButton } from './AdvanceStageButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -14,14 +12,30 @@ interface Props {
   limit?: number;
 }
 
-export function MyQueue({ session, title = 'My Queue', emptyText = 'No students waiting on you right now.', limit = 10 }: Props) {
-  const students = mockStudents
-    .filter(s => {
-      const owners = getStageOwners(s.pipelineStage);
-      return owners.includes(session.role) || s.stageOwnerId === session.userId;
-    })
-    .sort((a, b) => (a.stageEnteredAt ?? a.createdAt).localeCompare(b.stageEnteredAt ?? b.createdAt))
-    .slice(0, limit);
+async function loadOwnedStudents(session: Session, limit: number): Promise<Student[]> {
+  try {
+    const res = await backendFetch('/students?limit=500');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: Student[] };
+    return (body.items ?? [])
+      .filter((s) => {
+        const owners = getStageOwners(s.pipelineStage);
+        return owners.includes(session.role) || s.stageOwnerId === session.userId;
+      })
+      .sort((a, b) => (a.stageEnteredAt ?? a.createdAt).localeCompare(b.stageEnteredAt ?? b.createdAt))
+      .slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+export async function MyQueue({
+  session,
+  title = 'My Queue',
+  emptyText = 'No students waiting on you right now.',
+  limit = 10,
+}: Props) {
+  const students = await loadOwnedStudents(session, limit);
 
   return (
     <Card>
