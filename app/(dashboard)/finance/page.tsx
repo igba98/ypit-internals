@@ -26,6 +26,8 @@ import {
   Banknote,
   Clock,
   ArrowUpRight,
+  BookText,
+  Landmark,
 } from 'lucide-react';
 
 async function loadHubData() {
@@ -187,6 +189,8 @@ export default async function FinanceOverviewPage() {
             <QuickAction icon={Wallet} label="Petty Cash" hint="Log voucher · replenish float" href="/finance/petty-cash" />
             <QuickAction icon={Users} label="Run Payroll" hint="Process this month's payslips" href="/finance/payroll" />
             <QuickAction icon={Receipt} label="Log Expense" hint="Record an office expense" href="/finance/expenses" />
+            <QuickAction icon={BookText} label="Cash Book" hint="Receipts & payments register · print report" href="/finance/cash-book" />
+            <QuickAction icon={Landmark} label="Bank Reconciliation" hint="Match entries against the bank statement" href="/finance/reconciliation" />
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-100">
