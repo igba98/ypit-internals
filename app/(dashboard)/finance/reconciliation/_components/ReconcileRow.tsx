@@ -45,7 +45,7 @@ export function ReconcileRow({
         <p className="text-gray-900 max-w-[260px] truncate" title={entry.description}>{entry.description}</p>
         <p className="text-[11px] text-gray-500 font-mono">{entry.entryNumber}</p>
       </td>
-      <td className="px-4 py-3 text-xs text-gray-600">{entry.reference ?? '—'}</td>
+      <td className="px-4 py-3 text-xs text-gray-600">{entry.reference ?? '-'}</td>
       <td className={`px-4 py-3 text-right font-semibold ${entry.type === 'RECEIPT' ? 'text-green-700' : 'text-red-600'}`}>
         {entry.type === 'RECEIPT' ? '+' : '−'}{formatCurrency(entry.amount, { currency: entry.currency })}
       </td>

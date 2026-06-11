@@ -68,7 +68,7 @@ export async function addStaff(
 
   const deliveredNote = created.email.delivered
     ? 'Welcome email sent.'
-    : `Email delivery failed — share the temp password manually${created.email.error ? ` (${created.email.error})` : ''}.`;
+    : `Email delivery failed - share the temp password manually${created.email.error ? ` (${created.email.error})` : ''}.`;
 
   return {
     success: true,
@@ -140,7 +140,7 @@ export async function resetStaffPassword(staffId: string): Promise<ResetPassword
     success: true,
     message: body.email.delivered
       ? 'Temp password generated and emailed.'
-      : 'Temp password generated. Email failed — share manually.',
+      : 'Temp password generated. Email failed - share manually.',
     tempPassword: body.tempPassword,
     emailDelivered: body.email.delivered,
   };

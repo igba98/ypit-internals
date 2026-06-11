@@ -39,7 +39,7 @@ export function EquipmentTable({ items }: { items: EquipmentAssignment[] }) {
   const [busy, startTransition] = useTransition();
 
   const onMarkLost = (item: EquipmentAssignment) => {
-    const notes = window.prompt(`Mark "${item.name}" (${item.assetNumber}) as LOST — how was it lost?`);
+    const notes = window.prompt(`Mark "${item.name}" (${item.assetNumber}) as LOST - how was it lost?`);
     if (!notes || !notes.trim()) return;
     startTransition(async () => {
       const res = await markEquipmentLost(item.id, notes.trim());
@@ -229,7 +229,7 @@ function ReturnForm({
           name="faultNotes"
           rows={3}
           required={condition === 'DAMAGED'}
-          placeholder={condition === 'DAMAGED' ? 'Describe the fault — what is broken, missing, or worn?' : 'Any remarks about the item'}
+          placeholder={condition === 'DAMAGED' ? 'Describe the fault - what is broken, missing, or worn?' : 'Any remarks about the item'}
         />
         {errors.faultNotes && <p className="text-xs text-red-600">{errors.faultNotes[0]}</p>}
       </div>

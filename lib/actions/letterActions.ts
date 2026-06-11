@@ -76,7 +76,7 @@ export async function importWordTemplate(
     const result = await mammoth.convertToHtml({ buffer });
     html = result.value;
   } catch {
-    return { success: false, message: 'Could not read that file — is it a valid .docx?' };
+    return { success: false, message: 'Could not read that file - is it a valid .docx?' };
   }
   if (!html || html.trim().length < 10) {
     return { success: false, message: 'The document appears to be empty.' };
@@ -92,7 +92,7 @@ export async function importWordTemplate(
   });
   if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidate();
-  return { success: true, message: `Imported "${file.name}" — review the placeholders, then activate.` };
+  return { success: true, message: `Imported "${file.name}" - review the placeholders, then activate.` };
 }
 
 export async function updateLetterTemplate(

@@ -145,7 +145,7 @@ export function TemplatesSection({
 
       {templates.length === 0 ? (
         <p className="text-sm text-gray-500 px-5 py-10 text-center">
-          No templates yet. Create one or import a Word document — use placeholders like{' '}
+          No templates yet. Create one or import a Word document - use placeholders like{' '}
           <code className="bg-gray-100 px-1 rounded">{'{{fullName}}'}</code> where student details should go.
         </p>
       ) : (
@@ -210,7 +210,7 @@ export function TemplatesSection({
         isOpen={panel.kind === 'new' || panel.kind === 'edit'}
         onClose={close}
         title={panel.kind === 'edit' ? `Edit · ${panel.template.name}` : 'New Letter Template'}
-        description="HTML body — drop {{placeholders}} where student details should appear."
+        description="HTML body - drop {{placeholders}} where student details should appear."
       >
         <TemplateForm
           template={panel.kind === 'edit' ? panel.template : null}
@@ -223,7 +223,7 @@ export function TemplatesSection({
         isOpen={panel.kind === 'import'}
         onClose={close}
         title="Import Word Document"
-        description="Upload a .docx — it's converted to an editable template. Placeholders typed in Word like {{fullName}} keep working."
+        description="Upload a .docx - it's converted to an editable template. Placeholders typed in Word like {{fullName}} keep working."
       >
         <ImportForm onSuccess={close} />
       </SlideInPanel>
@@ -293,7 +293,7 @@ function TemplateForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Placeholders — click to insert</Label>
+        <Label>Placeholders - click to insert</Label>
         <div className="flex flex-wrap gap-1.5">
           {PLACEHOLDERS.map((p) => (
             <button
@@ -374,8 +374,8 @@ function ImportForm({ onSuccess }: { onSuccess: () => void }) {
         <Label htmlFor="file">Word Document (.docx) *</Label>
         <Input id="file" name="file" type="file" accept=".docx" required />
         <p className="text-[11px] text-gray-500">
-          Type placeholders directly in Word — e.g. <code className="bg-gray-100 px-1 rounded">{'{{fullName}}'}</code>,{' '}
-          <code className="bg-gray-100 px-1 rounded">{'{{gender}}'}</code> — they survive the conversion.
+          Type placeholders directly in Word - e.g. <code className="bg-gray-100 px-1 rounded">{'{{fullName}}'}</code>,{' '}
+          <code className="bg-gray-100 px-1 rounded">{'{{gender}}'}</code> - they survive the conversion.
           You can also add them after import via Edit.
         </p>
       </div>

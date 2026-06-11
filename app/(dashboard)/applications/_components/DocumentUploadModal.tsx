@@ -44,7 +44,7 @@ const DOCUMENT_TYPES: DocumentType[] = [
   'OTHER',
 ];
 
-const MAX_BYTES = 25 * 1024 * 1024; // 25 MB — backend cap
+const MAX_BYTES = 25 * 1024 * 1024; // 25 MB - backend cap
 
 export function DocumentUploadModal({
   studentId,
@@ -90,7 +90,7 @@ export function DocumentUploadModal({
   const handleUploadClick = async () => {
     if (!selectedFile) return;
     if (selectedFile.size > MAX_BYTES) {
-      toast.error(`File is ${(selectedFile.size / 1024 / 1024).toFixed(1)} MB — max is 25 MB.`);
+      toast.error(`File is ${(selectedFile.size / 1024 / 1024).toFixed(1)} MB - max is 25 MB.`);
       return;
     }
 

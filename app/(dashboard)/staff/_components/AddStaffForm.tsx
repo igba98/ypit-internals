@@ -15,7 +15,7 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
   useEffect(() => {
     if (state?.success) {
       toast.success(state.message);
-      // If there's no temp password to show, we're done — close the panel.
+      // If there's no temp password to show, we're done - close the panel.
       // Otherwise the conditional render below switches to CredentialsCard
       // and `onSuccess` will fire when the admin clicks "Done" there.
       if (!state.tempPassword) onSuccess();

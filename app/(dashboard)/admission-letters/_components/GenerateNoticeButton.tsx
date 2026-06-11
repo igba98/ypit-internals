@@ -48,7 +48,7 @@ export function GenerateNoticeButton({
         isOpen={open}
         onClose={() => setOpen(false)}
         title="Generate Pre-Admission Notice"
-        description="Details prefill from the student record — correct anything before sending. The letter is emailed automatically."
+        description="Details prefill from the student record - correct anything before sending. The letter is emailed automatically."
       >
         <NoticeForm
           students={students}
@@ -94,7 +94,7 @@ function NoticeForm({
     <form action={formAction} className="space-y-4">
       {!hasActiveTemplate && (
         <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          No template is active yet — generation will fail until one is toggled <strong>In Use</strong>.
+          No template is active yet - generation will fail until one is toggled <strong>In Use</strong>.
         </p>
       )}
 
@@ -138,7 +138,7 @@ function NoticeForm({
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
             <Select id="gender" name="gender" defaultValue={selected?.gender ?? ''}>
-              <option value="">—</option>
+              <option value="">-</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>

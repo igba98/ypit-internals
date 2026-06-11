@@ -160,7 +160,7 @@ export default async function CashBookPage({
                     <p className="text-gray-900 max-w-[320px] truncate" title={e.description}>{e.description}</p>
                     <p className="text-[11px] text-gray-500">{e.source.replace(/_/g, ' ').toLowerCase()}</p>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{e.reference ?? '—'}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{e.reference ?? '-'}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${CASH_METHODS.includes(e.paymentMethod) ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
                       {e.paymentMethod.replace(/_/g, ' ').toLowerCase()}

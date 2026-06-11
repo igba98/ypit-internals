@@ -74,7 +74,7 @@ export interface User {
   avatar?: string;
   phone?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  /** Default monthly base salary in TZS — used by payroll generation. */
+  /** Default monthly base salary in TZS - used by payroll generation. */
   baseSalary?: number;
   lastLogin?: string;
   createdAt: string;
@@ -211,7 +211,7 @@ export interface Document {
   id: string;
   studentId: string;
   type: DocumentType;
-  /** Display label (mock: `name`, backend: `originalName` — UI normalizes). */
+  /** Display label (mock: `name`, backend: `originalName` - UI normalizes). */
   name: string;
   originalName?: string;
   mimeType?: string;

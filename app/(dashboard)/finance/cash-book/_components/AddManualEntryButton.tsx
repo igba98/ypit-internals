@@ -24,7 +24,7 @@ export function AddManualEntryButton() {
         isOpen={open}
         onClose={() => setOpen(false)}
         title="Manual Cash Book Entry"
-        description="Bank charges, interest received, corrections — anything not covered by the automatic feeds."
+        description="Bank charges, interest received, corrections - anything not covered by the automatic feeds."
       >
         <ManualEntryForm onSuccess={() => setOpen(false)} />
       </SlideInPanel>

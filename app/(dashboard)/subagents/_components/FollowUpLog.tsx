@@ -47,7 +47,7 @@ export function FollowUpLog({ subAgentId, followUps, canEdit }: Props) {
             name="notes"
             rows={2}
             required
-            placeholder="e.g. Called about Q3 targets — promised 5 new students by August. Contract renewal due next month."
+            placeholder="e.g. Called about Q3 targets - promised 5 new students by August. Contract renewal due next month."
           />
           <div className="flex justify-end">
             <Button type="submit" size="sm" disabled={isPending} className="gap-1.5">

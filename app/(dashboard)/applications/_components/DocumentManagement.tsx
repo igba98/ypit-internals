@@ -87,7 +87,7 @@ export function DocumentManagement({ studentId, initialDocuments }: DocumentMana
   };
 
   const handleReject = async (doc: Document) => {
-    const reason = window.prompt(`Reject "${doc.name}" — what's the reason?`);
+    const reason = window.prompt(`Reject "${doc.name}" - what's the reason?`);
     if (!reason || !reason.trim()) return;
     setBusyId(doc.id);
     const res = await rejectDocument(doc.id, studentId, reason.trim());

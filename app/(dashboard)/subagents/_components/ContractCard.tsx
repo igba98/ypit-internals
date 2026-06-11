@@ -62,7 +62,7 @@ export function ContractCard({ subAgentId, subAgentName, contract, canEdit }: Pr
           <div className="flex items-center justify-between">
             <dt className="text-gray-500">Period</dt>
             <dd className="text-gray-900 font-medium">
-              {contract.startDate ? formatDate(contract.startDate) : '—'} → {contract.endDate ? formatDate(contract.endDate) : '—'}
+              {contract.startDate ? formatDate(contract.startDate) : '-'} → {contract.endDate ? formatDate(contract.endDate) : '-'}
             </dd>
           </div>
           <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export function ContractCard({ subAgentId, subAgentName, contract, canEdit }: Pr
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-gray-500">Student target (KPI)</dt>
-            <dd className="text-gray-900 font-bold">{contract.studentTarget || '—'}</dd>
+            <dd className="text-gray-900 font-bold">{contract.studentTarget || '-'}</dd>
           </div>
           {contract.commissionTerms && (
             <div>

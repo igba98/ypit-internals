@@ -156,7 +156,7 @@ export async function deleteDocument(
 
 /**
  * Backwards-compat wrapper for the old `setDocumentVerification(docId, verified)` shape.
- * Internally routes to /verify or /reject. Reject requires a reason — pass "Rejected by reviewer"
+ * Internally routes to /verify or /reject. Reject requires a reason - pass "Rejected by reviewer"
  * as fallback when this wrapper is used.
  */
 export async function setDocumentVerification(

@@ -163,7 +163,7 @@ export async function updateTravelRecord(
 /**
  * Advances a single pipeline sub-step. Delegates to the Phase 6 endpoint:
  *   POST /students/:studentId/travel-steps/:step
- * The body schema is dynamic per step (passport/visa/flight/arrival) — pass
+ * The body schema is dynamic per step (passport/visa/flight/arrival) - pass
  * whatever the step expects (e.g. { passportNumber }, { decision: 'APPROVED' }).
  */
 export async function advanceTravelStep(

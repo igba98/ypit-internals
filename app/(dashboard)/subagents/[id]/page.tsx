@@ -138,7 +138,7 @@ export default async function SubagentDetailsPage({
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-gray-500">No KPI target set — add one on the contract.</p>
+              <p className="text-xs text-gray-500">No KPI target set - add one on the contract.</p>
             )}
           </div>
 
@@ -206,7 +206,7 @@ export default async function SubagentDetailsPage({
                               <p className="text-[11px] text-gray-500">{s.targetCountry}</p>
                             </>
                           ) : (
-                            <span className="text-gray-400 text-xs">—</span>
+                            <span className="text-gray-400 text-xs">-</span>
                           )}
                         </td>
                         <td className="py-3">

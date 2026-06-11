@@ -14,7 +14,7 @@ async function loadClearance(staffId: string): Promise<StaffClearance | null> {
   }
 }
 
-/** Server component — drop into the staff detail page. */
+/** Server component - drop into the staff detail page. */
 export async function EquipmentClearanceCard({ staffId }: { staffId: string }) {
   const clearance = await loadClearance(staffId);
   if (!clearance || clearance.totalIssued === 0) return null;

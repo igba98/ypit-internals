@@ -136,7 +136,7 @@ export default async function AdmissionLettersPage() {
                         <MessageCircle className="w-3.5 h-3.5" /> Queued
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-gray-400">-</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5 text-right">

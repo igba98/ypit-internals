@@ -215,7 +215,7 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
                 {e.status === 'DRAFT' ? (
                   <EditPayrollDialog entry={e} />
                 ) : (
-                  <span className="text-[11px] text-gray-400" title="Only DRAFT rows can be edited">—</span>
+                  <span className="text-[11px] text-gray-400" title="Only DRAFT rows can be edited">-</span>
                 )}
               </td>
             </tr>

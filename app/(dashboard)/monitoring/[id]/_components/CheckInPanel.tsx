@@ -33,7 +33,7 @@ export function CheckInPanel({ record }: Props) {
   const [busy, startTransition] = useTransition();
 
   const onEscalate = () => {
-    const reason = window.prompt(`Escalate ${record.studentName} — what's the reason?`);
+    const reason = window.prompt(`Escalate ${record.studentName} - what's the reason?`);
     if (!reason || !reason.trim()) return;
     startTransition(async () => {
       const res = await escalateMonitoring(record.id, reason.trim(), record.studentId);
