@@ -18,6 +18,15 @@ import { AddManualEntryButton } from './_components/AddManualEntryButton';
 
 const CASH_METHODS = ['CASH', 'PETTY_CASH'];
 
+/** Plain helper (not a component) so the closure mutation is lint-legal. */
+function withRunningBalance(items: CashBookEntry[], opening: number) {
+  let running = opening;
+  return items.map((e) => {
+    running += e.type === 'RECEIPT' ? e.amount : -e.amount;
+    return { ...e, runningBalance: running };
+  });
+}
+
 function monthStartISO(): string {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
@@ -67,11 +76,7 @@ export default async function CashBookPage({
   const { items, summary, error } = await loadCashbook(from, to);
 
   // Running balance starting from the opening balance.
-  let running = summary?.openingBalance ?? 0;
-  const rows = items.map((e) => {
-    running += e.type === 'RECEIPT' ? e.amount : -e.amount;
-    return { ...e, runningBalance: running };
-  });
+  const rows = withRunningBalance(items, summary?.openingBalance ?? 0);
 
   return (
     <div className="space-y-6">

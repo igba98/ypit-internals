@@ -9,6 +9,15 @@ export const metadata = {
   title: 'Cash Book Report · YPIT',
 };
 
+/** Plain helper (not a component) so the closure mutation is lint-legal. */
+function withRunningBalance(items: CashBookEntry[], opening: number) {
+  let running = opening;
+  return items.map((e) => {
+    running += e.type === 'RECEIPT' ? e.amount : -e.amount;
+    return { ...e, runningBalance: running };
+  });
+}
+
 async function load(from: string, to: string): Promise<{
   items: CashBookEntry[];
   summary: CashbookSummary | null;
@@ -39,11 +48,7 @@ export default async function CashbookPrintPage({
 
   const { items, summary } = await load(from, to);
 
-  let running = summary?.openingBalance ?? 0;
-  const rows = items.map((e) => {
-    running += e.type === 'RECEIPT' ? e.amount : -e.amount;
-    return { ...e, runningBalance: running };
-  });
+  const rows = withRunningBalance(items, summary?.openingBalance ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white">
