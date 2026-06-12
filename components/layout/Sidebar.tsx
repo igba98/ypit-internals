@@ -64,7 +64,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
-      { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
+      { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['ALL'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Audit Logs', href: '/audit-logs', icon: Shield, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },

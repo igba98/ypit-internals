@@ -890,3 +890,26 @@ export interface PreAdmissionNotice extends PreAdmissionNoticeRow {
   data: Record<string, string>;
   renderedHtml: string;
 }
+
+// ── Phase 9: Reports overview ───────────────────────────────────
+
+export interface ReportsOverview {
+  keyMetrics: {
+    totalLeads: number;
+    convertedLeads: number;
+    conversionRate: number;
+    totalStudents: number;
+    travelledStudents: number;
+    receiptsYtd: number;
+    paymentsYtd: number;
+    receivables: number;
+    escalations: number;
+  };
+  pipeline: { stage: PipelineStage; count: number }[];
+  destinations: { country: string; count: number }[];
+  applications: { status: ApplicationStatus; count: number }[];
+  wellbeing: { status: WellbeingStatus; count: number }[];
+  monthlyTrend: { month: string; leads: number; students: number; travelled: number }[];
+  financeTrend: { month: string; receipts: number; payments: number }[];
+  generatedAt: string;
+}
