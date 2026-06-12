@@ -27,6 +27,7 @@ interface Props {
 export function AdvanceStageModal({ student, session, transition, open, onClose }: Props) {
   const [values, setValues] = useState<StageTransitionPayload>(() => initialValues(transition.requiredFields));
   const [assigneeId, setAssigneeId] = useState<string>('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [isPending, startTransition] = useTransition();
 
   const eligibleAssignees = mockUsers.filter(u => u.role === transition.newOwnerRole && u.status === 'ACTIVE');
@@ -64,7 +65,12 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
         });
         onClose();
       } else {
-        toast.error(result.message);
+        const errs = (result.errors ?? {}) as Record<string, string[]>;
+        setFieldErrors(errs);
+        const detail = Object.entries(errs)
+          .map(([k, v]) => `${k}: ${v[0]}`)
+          .join(' · ');
+        toast.error(detail ? `${result.message} — ${detail}` : result.message);
       }
     });
   }
@@ -85,6 +91,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
               key={field.key}
               field={field}
               value={values[field.key]}
+              error={fieldErrors[field.key]?.[0]}
               onChange={(v) => setValues({ ...values, [field.key]: v })}
             />
           ))}
@@ -144,10 +151,12 @@ function initialValues(fields: FieldSpec[]): StageTransitionPayload {
 interface FieldInputProps {
   field: FieldSpec;
   value: string | number | boolean | null | undefined;
+  error?: string;
   onChange: (v: string | number | boolean | null) => void;
 }
 
-function FieldInput({ field, value, onChange }: FieldInputProps) {
+function FieldInput({ field, value, error, onChange }: FieldInputProps) {
+  const errorEl = error ? <p className="text-xs text-red-600 mt-1">{error}</p> : null;
   const labelEl = (
     <Label htmlFor={field.key}>
       {field.label}{field.required ? ' *' : ''}
@@ -155,14 +164,22 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
   );
   switch (field.kind) {
     case 'text':
+      return <div><span>{labelEl}</span><Input id={field.key} value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />{errorEl}</div>;
     case 'url':
-      return <div><span>{labelEl}</span><Input id={field.key} value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} /></div>;
+      return (
+        <div>
+          <span>{labelEl}</span>
+          <Input id={field.key} type="url" placeholder="https://..." value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />
+          <p className="text-[11px] text-gray-500 mt-1">Paste a full link — https:// is added automatically if missing.</p>
+          {errorEl}
+        </div>
+      );
     case 'textarea':
-      return <div><span>{labelEl}</span><Textarea id={field.key} value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} /></div>;
+      return <div><span>{labelEl}</span><Textarea id={field.key} value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />{errorEl}</div>;
     case 'number':
       return <div><span>{labelEl}</span><Input id={field.key} type="number" min={field.min} value={value == null ? '' : String(value)} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} /></div>;
     case 'date':
-      return <div><span>{labelEl}</span><Input id={field.key} type="date" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} /></div>;
+      return <div><span>{labelEl}</span><Input id={field.key} type="date" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />{errorEl}</div>;
     case 'boolean':
       return (
         <div className="flex items-center gap-2">

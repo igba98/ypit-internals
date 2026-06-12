@@ -897,6 +897,7 @@ export interface ReportsOverview {
   keyMetrics: {
     totalLeads: number;
     convertedLeads: number;
+    activeLeads: number;
     conversionRate: number;
     totalStudents: number;
     travelledStudents: number;
