@@ -930,3 +930,27 @@ export interface StudentFollowUp {
   createdByName: string;
   createdAt: string;
 }
+
+// ── Phase 9: Website enquiries (public site → back-office) ───────
+
+export type EnquiryType = 'CONTACT' | 'BOOKING' | 'APPLICATION';
+export type EnquiryStatus = 'NEW' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED';
+
+export interface WebsiteEnquiry {
+  id: string;
+  reference: string;                // WEB-2026-0001
+  type: EnquiryType;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  topic?: string | null;
+  interestedCountry?: string | null;
+  message?: string | null;
+  preferredDate?: string | null;
+  status: EnquiryStatus;
+  handledByName?: string | null;
+  internalNotes?: string | null;
+  convertedLeadId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
