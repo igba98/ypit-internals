@@ -28,6 +28,8 @@ import { TravelChecklistCard } from '@/components/pipeline/TravelChecklistCard';
 import { ActivityEvent, buildActivity } from '@/lib/studentDetail';
 import { backendFetch } from '@/lib/backend';
 import { listStudentDocuments } from '@/lib/actions/documentActions';
+import { listStudentFollowUps } from '@/lib/actions/studentFollowUpActions';
+import { FollowUpSection } from './_components/FollowUpSection';
 
 interface DetailResponse extends Student {
   guardians: Guardian[];
@@ -51,9 +53,10 @@ export default async function StudentDetailPage({
 
   const { id } = await params;
 
-  const [res, documents] = await Promise.all([
+  const [res, documents, followUps] = await Promise.all([
     backendFetch(`/students/${id}/detail`),
     listStudentDocuments(id),
+    listStudentFollowUps(id),
   ]);
   if (res.status === 404) notFound();
   if (!res.ok) {
@@ -239,6 +242,12 @@ export default async function StudentDetailPage({
           session={session}
         />
       )}
+
+      <FollowUpSection
+        studentId={student.id}
+        followUps={followUps}
+        canEdit={['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'].includes(session.role)}
+      />
 
       <Card>
         <CardHeader><CardTitle>Sent Messages (Simulated WhatsApp)</CardTitle></CardHeader>

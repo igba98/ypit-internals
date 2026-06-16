@@ -914,3 +914,19 @@ export interface ReportsOverview {
   financeTrend: { month: string; receipts: number; payments: number }[];
   generatedAt: string;
 }
+
+// ── Phase 9: Student follow-ups (Relationship Officer) ──────────
+
+export type FollowUpType = 'CALL' | 'WHATSAPP' | 'EMAIL' | 'MEETING' | 'NOTE';
+export type FollowUpOutcome = 'POSITIVE' | 'NEUTRAL' | 'NEEDS_ATTENTION' | 'NO_RESPONSE';
+
+export interface StudentFollowUp {
+  id: string;
+  studentId: string;
+  type: FollowUpType;
+  outcome: FollowUpOutcome;
+  notes: string;
+  nextFollowUp?: string | null;
+  createdByName: string;
+  createdAt: string;
+}

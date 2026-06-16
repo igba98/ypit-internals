@@ -63,12 +63,15 @@ export async function replenishPettyCash(
   _prev: unknown,
   formData: FormData,
 ): Promise<ActionResult> {
-  const description = formStr(formData, 'description');
   const amountRaw = formStr(formData, 'amount');
-  if (!description || !amountRaw) {
-    return { success: false, message: 'description and amount are required.' };
+  if (!amountRaw) {
+    return { success: false, message: 'Amount is required.' };
   }
   const isInitial = formStr(formData, 'type') === 'INITIAL_FLOAT';
+  // Description is optional from the caller — default to a sensible label.
+  const description =
+    formStr(formData, 'description') ??
+    (isInitial ? 'Initial petty cash float' : 'Float top-up from bank');
 
   const body: Record<string, unknown> = {
     type: isInitial ? 'INITIAL_FLOAT' : 'REPLENISHMENT',
@@ -76,6 +79,7 @@ export async function replenishPettyCash(
     amount: Number(amountRaw),
     currency: formStr(formData, 'currency') ?? 'TZS',
     date: formStr(formData, 'date'),
+    voucherNumber: formStr(formData, 'voucherNumber'),
     notes: formStr(formData, 'notes'),
   };
 

@@ -38,14 +38,18 @@ async function loadData(): Promise<{
       backendFetch('/staff?limit=500'),
       backendFetch('/students?limit=500'),
     ]);
-    if (!staffRes.ok || !studentsRes.ok) {
+    // Students are the critical dataset; staff is only used for the marketer
+    // performance table, so a staff failure degrades gracefully.
+    if (!studentsRes.ok) {
       return {
         marketers: [],
         students: [],
-        error: `Failed to load data (staff HTTP ${staffRes.status}, students HTTP ${studentsRes.status})`,
+        error: `Failed to load students (HTTP ${studentsRes.status}).`,
       };
     }
-    const staffBody = (await staffRes.json()) as StaffListResponse;
+    const staffBody = staffRes.ok
+      ? ((await staffRes.json()) as StaffListResponse)
+      : { items: [] };
     const studentsBody = (await studentsRes.json()) as StudentsListResponse;
     const marketers = (staffBody.items ?? []).filter(
       (u) => u.role === 'MARKETING_STAFF' || u.role === 'SUB_AGENT',
@@ -67,6 +71,7 @@ export default async function LeadsPage() {
     'MARKETING_STAFF',
     'SUB_AGENT',
     'MANAGING_DIRECTOR',
+    'IT_ADMIN',
   ];
   if (!allowedRoles.includes(session.role)) redirect('/dashboard');
 
@@ -112,7 +117,7 @@ export default async function LeadsPage() {
         title="Employee Leads Performance"
         description="Track the performance of staff members and agents in converting students."
         actions={
-          ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'MARKETING_STAFF'].includes(
+          ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'MARKETING_STAFF', 'SUB_AGENT', 'IT_ADMIN'].includes(
             session.role,
           ) && <AddLeadButton />
         }

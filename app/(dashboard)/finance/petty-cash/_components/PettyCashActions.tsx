@@ -176,6 +176,12 @@ function ReplenishForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="description">Source / Description *</Label>
+        <Input id="description" name="description" placeholder="e.g. Withdrawn from CRDB main account" required defaultValue="Float top-up from bank" />
+        {fieldErrors.description && <p className="text-xs text-red-600">{fieldErrors.description[0]}</p>}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="voucherNumber">Reference #</Label>
         <Input id="voucherNumber" name="voucherNumber" placeholder="Bank slip / cheque number" />
       </div>
