@@ -13,9 +13,15 @@ interface EnquiriesResponse {
   newCount: number;
 }
 
-async function load(filter?: string): Promise<{ items: WebsiteEnquiry[]; newCount: number; error: string | null }> {
+async function load(
+  status?: string,
+  type?: string,
+): Promise<{ items: WebsiteEnquiry[]; newCount: number; error: string | null }> {
   try {
-    const qs = filter && filter !== 'all' ? `?status=${filter}` : '';
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.set('status', status);
+    if (type && type !== 'all') params.set('type', type);
+    const qs = params.toString() ? `?${params.toString()}` : '';
     const res = await backendFetch(`/enquiries${qs}`);
     if (!res.ok) return { items: [], newCount: 0, error: `Failed to load enquiries (HTTP ${res.status})` };
     const body = (await res.json()) as EnquiriesResponse;
@@ -25,7 +31,7 @@ async function load(filter?: string): Promise<{ items: WebsiteEnquiry[]; newCoun
   }
 }
 
-const TABS = [
+const STATUS_TABS = [
   { key: 'all', label: 'All' },
   { key: 'NEW', label: 'New' },
   { key: 'CONTACTED', label: 'Contacted' },
@@ -33,10 +39,17 @@ const TABS = [
   { key: 'ARCHIVED', label: 'Archived' },
 ];
 
+const TYPE_TABS = [
+  { key: 'all', label: 'All types' },
+  { key: 'CONTACT', label: 'Contact' },
+  { key: 'BOOKING', label: 'Bookings' },
+  { key: 'APPLICATION', label: 'Applications' },
+];
+
 export default async function EnquiriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; type?: string }>;
 }) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ypit_session');
@@ -46,8 +59,16 @@ export default async function EnquiriesPage({
   const allowed = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'];
   if (!allowed.includes(session.role)) redirect('/dashboard');
 
-  const { status = 'all' } = await searchParams;
-  const { items, newCount, error } = await load(status);
+  const { status = 'all', type = 'all' } = await searchParams;
+  const { items, newCount, error } = await load(status, type);
+
+  const qpref = (s: string, t: string) => {
+    const p = new URLSearchParams();
+    if (s !== 'all') p.set('status', s);
+    if (t !== 'all') p.set('type', t);
+    const q = p.toString();
+    return `/enquiries${q ? `?${q}` : ''}`;
+  };
 
   const bookings = items.filter((e) => e.type === 'BOOKING').length;
   const converted = items.filter((e) => e.status === 'CONVERTED').length;
@@ -74,12 +95,26 @@ export default async function EnquiriesPage({
 
       <div className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
         <div className="p-3 border-b border-gray-100 flex items-center gap-1 overflow-x-auto">
-          {TABS.map((t) => (
+          {TYPE_TABS.map((t) => (
             <Link
               key={t.key}
-              href={`/enquiries?status=${t.key}`}
+              href={qpref(status, t.key)}
               className={`px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                status === t.key ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-50'
+                type === t.key ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {t.label}
+            </Link>
+          ))}
+        </div>
+        <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-1 overflow-x-auto bg-gray-50/40">
+          <span className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mr-1.5">Status</span>
+          {STATUS_TABS.map((t) => (
+            <Link
+              key={t.key}
+              href={qpref(t.key, type)}
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
+                status === t.key ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {t.label}

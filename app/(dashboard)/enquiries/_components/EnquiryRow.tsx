@@ -130,8 +130,29 @@ export function EnquiryRow({ enquiry }: { enquiry: WebsiteEnquiry }) {
               {enquiry.interestedCountry && (
                 <p><span className="text-gray-500">Country:</span> {enquiry.interestedCountry}</p>
               )}
+
+              {enquiry.extra && Object.keys(enquiry.extra).length > 0 && (
+                <div className="pt-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    {enquiry.type === 'APPLICATION' ? 'Application details' : 'Details'}
+                  </p>
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                    {Object.entries(enquiry.extra).map(([k, v]) => {
+                      const val = formatExtraValue(v);
+                      if (!val) return null;
+                      return (
+                        <div key={k} className="flex gap-2 text-xs">
+                          <dt className="text-gray-500 capitalize shrink-0">{humanize(k)}:</dt>
+                          <dd className="text-gray-900 break-words">{val}</dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </div>
+              )}
+
               {enquiry.handledByName && (
-                <p className="text-[11px] text-gray-500">Handled by {enquiry.handledByName}</p>
+                <p className="text-[11px] text-gray-500 pt-1">Handled by {enquiry.handledByName}</p>
               )}
             </div>
           </td>
@@ -139,4 +160,26 @@ export function EnquiryRow({ enquiry }: { enquiry: WebsiteEnquiry }) {
       )}
     </>
   );
+}
+
+function humanize(key: string): string {
+  return key
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]/g, ' ')
+    .toLowerCase();
+}
+
+function formatExtraValue(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '';
+  if (Array.isArray(v)) return v.map((x) => formatExtraValue(x)).filter(Boolean).join(', ');
+  if (typeof v === 'object') {
+    const parts = Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => {
+        const f = formatExtraValue(val);
+        return f ? `${humanize(k)}: ${f}` : '';
+      })
+      .filter(Boolean);
+    return parts.join(' · ');
+  }
+  return String(v);
 }
