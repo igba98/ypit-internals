@@ -64,14 +64,14 @@ export function RecordPaymentForm({
 
       <div className="grid grid-cols-2 gap-4">
          <div className="space-y-2">
-          <Label htmlFor="feeType">Fee Type *</Label>
-          <Select id="feeType" name="feeType" required defaultValue="AGENCY">
+          <Label htmlFor="bucket">Fee Type *</Label>
+          <Select id="bucket" name="bucket" required defaultValue="AGENCY">
             <option value="AGENCY">Agency Fee</option>
             <option value="APPLICATION">Application Fee</option>
             <option value="TUITION">Tuition Fee</option>
             <option value="HOSTEL">Hostel Fee</option>
           </Select>
-          {state?.errors?.feeType && <p className="text-red-500 text-xs">{state.errors.feeType[0]}</p>}
+          {state?.errors?.bucket && <p className="text-red-500 text-xs">{state.errors.bucket[0]}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="amount">Amount (TSh) *</Label>
