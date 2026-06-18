@@ -23,6 +23,7 @@ import {
   Laptop,
   FileSignature,
   Inbox,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -58,6 +59,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Leads', href: '/leads', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT', 'IT_ADMIN'] },
       { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'] },
+      { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
       { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },

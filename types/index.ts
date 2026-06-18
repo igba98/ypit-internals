@@ -956,3 +956,74 @@ export interface WebsiteEnquiry {
   createdAt: string;
   updatedAt: string;
 }
+
+// ── Phase 10: Campaigns / Communication (SMS · WhatsApp · Email) ──
+
+export type CampaignChannel = 'SMS' | 'WHATSAPP' | 'EMAIL';
+export type CampaignStatus =
+  | 'DRAFT'
+  | 'SENDING'
+  | 'SENT'
+  | 'PARTIAL'
+  | 'FAILED';
+
+export interface ContactGroup {
+  id: string;
+  name: string;
+  description?: string | null;
+  contactCount: number;
+  createdById: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignContact {
+  id: string;
+  groupId: string;
+  fullName: string;
+  phone?: string | null;
+  email?: string | null;
+  relation?: string | null;
+  studentName?: string | null;
+  createdAt: string;
+}
+
+export interface ContactGroupDetail extends ContactGroup {
+  contacts: CampaignContact[];
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  channel: CampaignChannel;
+  subject?: string | null;
+  message: string;
+  groupId: string;
+  status: CampaignStatus;
+  totalRecipients: number;
+  sentCount: number;
+  failedCount: number;
+  skippedCount: number;
+  sentAt?: string | null;
+  createdById: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Joined on list. */
+  group?: { name: string } | null;
+}
+
+/** A row the aggressive importer refused, with the reason why. */
+export interface RejectedRow {
+  row: number;
+  name: string;
+  reason: string;
+}
+
+export interface ImportResult {
+  /** Null when every row was rejected — no group is created in that case. */
+  group: { id: string; name: string } | null;
+  imported: number;
+  rejected: RejectedRow[];
+}
