@@ -57,7 +57,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
     const items = [
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ALL'] },
-      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
+      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Leads', href: '/leads', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT', 'IT_ADMIN'] },
       { label: 'Student Leads', href: '/student-leads', icon: GraduationCap, roles: ['SUB_AGENT', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'MANAGING_DIRECTOR'] },
       { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'] },
