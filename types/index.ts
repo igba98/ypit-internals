@@ -137,6 +137,14 @@ export interface Lead {
   notes?: string;
   followUpDate?: string;
   convertedStudentId?: string;
+  // Optional student-profile details captured up-front (sub-agent "student form").
+  whatsapp?: string | null;
+  nationality?: string | null;
+  passportNumber?: string | null;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  dateOfBirth?: string | null;
+  targetUniversity?: string | null;
+  targetIntake?: string | null;
 }
 
 export interface PaymentReceiptAttachment {

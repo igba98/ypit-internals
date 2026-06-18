@@ -61,3 +61,67 @@ export async function addLead(
     }`,
   };
 }
+
+/**
+ * Capture a STUDENT prospect as a Lead — the rich "student form" a sub-agent or
+ * marketing staff fills in. Posts to the backend Lead entity (NEW status); the
+ * extra student-profile fields are stored so conversion later is one-click.
+ * Sub-agents are auto-credited as the assigned owner by the backend (createdBy).
+ */
+export async function createStudentLead(
+  _prev: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const get = (k: string) => (formData.get(k) as string | null)?.trim() || undefined;
+
+  const fullName = get('fullName');
+  const phone = get('phone');
+  const source = get('source');
+  const interestedIn = get('interestedIn'); // target program
+  const interestedCountry = get('interestedCountry'); // target country
+
+  if (!fullName || !phone || !source || !interestedIn) {
+    return {
+      success: false,
+      message:
+        'Full name, phone, source and the program of interest are required.',
+    };
+  }
+
+  const payload = {
+    fullName,
+    phone,
+    email: get('email'),
+    source,
+    interestedIn,
+    interestedCountry,
+    whatsapp: get('whatsapp'),
+    nationality: get('nationality'),
+    passportNumber: get('passportNumber'),
+    gender: get('gender'),
+    dateOfBirth: get('dateOfBirth'),
+    targetUniversity: get('targetUniversity'),
+    targetIntake: get('targetIntake'),
+    notes: get('notes'),
+    assignedToId: get('assignedToId'),
+  };
+
+  const res = await backendFetch('/leads', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as {
+      error?: { message?: string; fieldErrors?: Record<string, string[]> };
+    } | null;
+    return {
+      success: false,
+      message: body?.error?.message ?? 'Failed to add the student lead.',
+      errors: body?.error?.fieldErrors,
+    };
+  }
+
+  revalidatePath('/student-leads');
+  return { success: true, message: `${fullName} added as a student lead.` };
+}
