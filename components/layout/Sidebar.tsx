@@ -25,6 +25,10 @@ import {
   Inbox,
   MessageSquare,
   GraduationCap,
+  Gauge,
+  KeyRound,
+  ScrollText,
+  Briefcase,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -50,6 +54,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         { label: 'Students', href: '/students', icon: Users },
         { label: 'Finance Hub', href: '/finance', icon: Wallet },
         { label: 'Student Payments', href: '/payments', icon: CreditCard },
+        { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },
         { label: 'Reports', href: '/reports', icon: BarChart3 },
       ];
@@ -62,17 +67,21 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Student Leads', href: '/student-leads', icon: GraduationCap, roles: ['SUB_AGENT', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'MANAGING_DIRECTOR'] },
       { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'] },
       { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
+      { label: 'Business Dev', href: '/business-development', icon: Briefcase, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
       { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
-      { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'MOUs', href: '/mous', icon: ScrollText, roles: ['MANAGING_DIRECTOR'] },
+      { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'] },
       { label: 'Admission Letters', href: '/admission-letters', icon: FileSignature, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
-      { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'] },
       { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Pipeline Health', href: '/pipeline-health', icon: Gauge, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
       { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['ALL'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
+      { label: 'Password Vault', href: '/it-vault', icon: KeyRound, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Audit Logs', href: '/audit-logs', icon: Shield, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
     ];
 

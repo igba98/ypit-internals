@@ -79,6 +79,15 @@ function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => voi
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="email">Email (login)</Label>
+        <Input id="email" name="email" type="email" defaultValue={staff.email} />
+        <p className="text-[11px] text-amber-600">
+          Changing this changes how they log in — tell them before saving.
+        </p>
+        {errors.email && <p className="text-red-500 text-xs">{errors.email[0]}</p>}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="phone">Phone</Label>
         <Input id="phone" name="phone" type="tel" defaultValue={staff.phone ?? ''} />
         {errors.phone && <p className="text-red-500 text-xs">{errors.phone[0]}</p>}

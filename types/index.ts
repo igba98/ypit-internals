@@ -1035,3 +1035,131 @@ export interface ImportResult {
   imported: number;
   rejected: RejectedRow[];
 }
+
+// ── Phase 11: Business Development (events + partnerships) ────────
+
+export type BdEventType =
+  | 'SCHOOL_VISIT'
+  | 'EXPO'
+  | 'SEMINAR'
+  | 'OPEN_DAY'
+  | 'WEBINAR'
+  | 'OTHER';
+export type BdEventStatus = 'PLANNED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+export type PartnershipStatus =
+  | 'PROSPECT'
+  | 'IN_DISCUSSION'
+  | 'MOU_SIGNED'
+  | 'ACTIVE'
+  | 'DORMANT'
+  | 'ENDED';
+
+export interface BdEvent {
+  id: string;
+  name: string;
+  type: BdEventType;
+  venue?: string | null;
+  eventDate: string;
+  endDate?: string | null;
+  /** TZS. */
+  budget?: number | null;
+  status: BdEventStatus;
+  description?: string | null;
+  outcomes?: string | null;
+  leadsGenerated: number;
+  createdById: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PartnershipFollowUp {
+  id: string;
+  partnershipId: string;
+  notes: string;
+  createdById: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface UniversityPartnership {
+  id: string;
+  universityId: string;
+  status: PartnershipStatus;
+  commissionTerms?: string | null;
+  notes?: string | null;
+  lastContactAt?: string | null;
+  updatedById?: string | null;
+  updatedByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  followUps?: PartnershipFollowUp[];
+}
+
+/** One row of the partnerships board: a catalog university + its state. */
+export interface PartnershipRow {
+  universityId: string;
+  name: string;
+  country: string;
+  city?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  partnership: UniversityPartnership | null;
+  mouCount: number;
+}
+
+// ── Phase 11: MOU documentation (Finance + CEO only) ──────────────
+
+export type MouStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED';
+
+export interface Mou {
+  id: string;
+  title: string;
+  universityId?: string | null;
+  partnerName: string;
+  description?: string | null;
+  signedDate?: string | null;
+  effectiveDate?: string | null;
+  expiryDate?: string | null;
+  status: MouStatus;
+  storageKey?: string | null;
+  originalName?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  uploadedById?: string | null;
+  uploadedByName?: string | null;
+  createdById: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Joined on list/detail. */
+  university?: { name: string; country: string } | null;
+}
+
+// ── Phase 11: IT Password Vault (IT + CEO only) ───────────────────
+
+export type CredentialCategory =
+  | 'EMAIL'
+  | 'HOSTING'
+  | 'DOMAIN'
+  | 'SAAS'
+  | 'WIFI'
+  | 'SOCIAL_MEDIA'
+  | 'OTHER';
+
+/** Secrets are never included — reveal fetches them one at a time. */
+export interface CompanyCredential {
+  id: string;
+  service: string;
+  category: CredentialCategory;
+  username: string;
+  url?: string | null;
+  notes?: string | null;
+  createdById: string;
+  createdByName: string;
+  updatedById?: string | null;
+  updatedByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
