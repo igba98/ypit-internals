@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 
 /**
  * The "student form" a sub-agent / marketing staff fills in to capture a
- * prospect as a Lead. Only name, phone, source and program are required — the
+ * prospect as a Lead. Only name, phone, source and program are required - the
  * rest of the student profile is optional but, when provided, pre-fills the
  * Student record on conversion (one-click convert later).
  */
@@ -99,7 +99,7 @@ export function AddStudentLeadForm({ onSuccess }: { onSuccess: () => void }) {
           <Input id="email" name="email" type="email" placeholder="jane@example.com" />
           {err('email')}
           <p className="text-[11px] text-gray-400">
-            Recommended — needed to convert this lead into a student later.
+            Recommended - needed to convert this lead into a student later.
           </p>
         </div>
         <div className="space-y-2">

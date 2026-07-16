@@ -70,7 +70,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
         const detail = Object.entries(errs)
           .map(([k, v]) => `${k}: ${v[0]}`)
           .join(' · ');
-        toast.error(detail ? `${result.message} — ${detail}` : result.message);
+        toast.error(detail ? `${result.message} - ${detail}` : result.message);
       }
     });
   }
@@ -170,7 +170,7 @@ function FieldInput({ field, value, error, onChange }: FieldInputProps) {
         <div>
           <span>{labelEl}</span>
           <Input id={field.key} type="url" placeholder="https://..." value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />
-          <p className="text-[11px] text-gray-500 mt-1">Paste a full link — https:// is added automatically if missing.</p>
+          <p className="text-[11px] text-gray-500 mt-1">Paste a full link - https:// is added automatically if missing.</p>
           {errorEl}
         </div>
       );

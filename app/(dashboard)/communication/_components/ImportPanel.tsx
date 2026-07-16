@@ -62,7 +62,7 @@ export function ImportPanel() {
       <form ref={formRef} onSubmit={onSubmit} className="p-4 space-y-4">
         <p className="text-xs text-gray-500 leading-relaxed">
           Download the template, fill in one parent per row, then upload it here.
-          Rows that fail validation are skipped — you&apos;ll see exactly which
+          Rows that fail validation are skipped - you&apos;ll see exactly which
           and why below.
         </p>
 
@@ -134,7 +134,7 @@ export function ImportPanel() {
             <div className="border border-amber-200 rounded-lg overflow-hidden">
               <div className="flex items-center gap-2 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 border-b border-amber-200">
                 <AlertTriangle className="w-4 h-4" />
-                {rejected.length} row{rejected.length === 1 ? '' : 's'} skipped —
+                {rejected.length} row{rejected.length === 1 ? '' : 's'} skipped -
                 did not meet the criteria
               </div>
               <ul className="max-h-56 overflow-y-auto divide-y divide-amber-100">
@@ -149,7 +149,7 @@ export function ImportPanel() {
                     <span className="text-gray-900 font-medium shrink-0">
                       {r.name}
                     </span>
-                    <span className="text-gray-400">—</span>
+                    <span className="text-gray-400">-</span>
                     <span className="text-amber-700">{r.reason}</span>
                   </li>
                 ))}

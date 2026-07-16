@@ -75,7 +75,7 @@ export function NewReconciliationForm({
         />
       </div>
 
-      {/* Live difference — the save gate. */}
+      {/* Live difference - the save gate. */}
       <div
         className={`rounded-lg border p-3 text-xs flex items-center justify-between ${
           !hasStatement
@@ -87,7 +87,7 @@ export function NewReconciliationForm({
       >
         <span className="font-medium">Difference (statement − book)</span>
         <span className="font-bold">
-          {hasStatement ? formatCurrency(difference ?? 0) : '—'}
+          {hasStatement ? formatCurrency(difference ?? 0) : '-'}
         </span>
       </div>
 
@@ -95,8 +95,8 @@ export function NewReconciliationForm({
         <p className="text-[11px] text-red-600">
           The statement and the book don&apos;t agree yet
           {unreconciledCount > 0
-            ? ` — ${unreconciledCount} bank entr${unreconciledCount === 1 ? 'y is' : 'ies are'} still unreconciled above.`
-            : ' — check for missing or duplicate bank entries.'}{' '}
+            ? ` - ${unreconciledCount} bank entr${unreconciledCount === 1 ? 'y is' : 'ies are'} still unreconciled above.`
+            : ' - check for missing or duplicate bank entries.'}{' '}
           Saving is enabled only when the difference is TSh 0.
         </p>
       )}

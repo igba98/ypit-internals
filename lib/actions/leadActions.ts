@@ -63,7 +63,7 @@ export async function addLead(
 }
 
 /**
- * Capture a STUDENT prospect as a Lead — the rich "student form" a sub-agent or
+ * Capture a STUDENT prospect as a Lead - the rich "student form" a sub-agent or
  * marketing staff fills in. Posts to the backend Lead entity (NEW status); the
  * extra student-profile fields are stored so conversion later is one-click.
  * Sub-agents are auto-credited as the assigned owner by the backend (createdBy).

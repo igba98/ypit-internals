@@ -59,7 +59,7 @@ export function VaultTable({ items }: { items: CompanyCredential[] }) {
 
   const onCopy = async (secret: string) => {
     await navigator.clipboard.writeText(secret);
-    toast.success('Copied — clipboard holds it until you copy something else.');
+    toast.success('Copied - clipboard holds it until you copy something else.');
   };
 
   const onDelete = (c: CompanyCredential) => {

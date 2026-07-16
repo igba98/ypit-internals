@@ -64,7 +64,7 @@ export function PartnershipsSection({
 
       {rows.length === 0 ? (
         <p className="text-sm text-gray-500 text-center py-10 px-4">
-          No universities in the catalog yet — add them under Finance → Catalog,
+          No universities in the catalog yet - add them under Finance → Catalog,
           then manage the partnership here.
         </p>
       ) : (
@@ -107,7 +107,7 @@ export function PartnershipsSection({
                           <Phone className="w-3 h-3" /> {r.contactPhone}
                         </span>
                       )}
-                      {!r.contactName && !r.contactEmail && !r.contactPhone && '—'}
+                      {!r.contactName && !r.contactEmail && !r.contactPhone && '-'}
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
@@ -128,7 +128,7 @@ export function PartnershipsSection({
                   <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap">
                     {r.partnership?.lastContactAt
                       ? formatDate(r.partnership.lastContactAt)
-                      : '—'}
+                      : '-'}
                   </td>
                   {canEdit && (
                     <td className="px-4 py-3.5 text-right">
@@ -287,7 +287,7 @@ function PartnershipForm({
           <Input
             value={followUp}
             onChange={(e) => setFollowUp(e.target.value)}
-            placeholder="e.g. Call with admissions office — agreed to draft MOU"
+            placeholder="e.g. Call with admissions office - agreed to draft MOU"
           />
           <Button
             variant="outline"

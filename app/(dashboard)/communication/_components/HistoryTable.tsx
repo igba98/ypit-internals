@@ -58,7 +58,7 @@ export function HistoryTable({ campaigns }: { campaigns: Campaign[] }) {
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
                   <span>
-                    To <b className="text-gray-700">{c.group?.name ?? '—'}</b>
+                    To <b className="text-gray-700">{c.group?.name ?? '-'}</b>
                   </span>
                   <span className="text-emerald-600">{c.sentCount} sent</span>
                   {c.failedCount > 0 && (

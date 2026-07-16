@@ -74,7 +74,7 @@ export function EnquiryRow({ enquiry }: { enquiry: WebsiteEnquiry }) {
         </td>
         <td className="px-4 py-3.5">
           <p className="text-sm text-gray-900 max-w-[220px] truncate" title={enquiry.topic ?? ''}>
-            {enquiry.topic ?? '—'}
+            {enquiry.topic ?? '-'}
           </p>
           <div className="flex items-center gap-3 mt-0.5 text-[11px] text-gray-500">
             <a href={`mailto:${enquiry.email}`} className="inline-flex items-center gap-1 hover:text-primary">

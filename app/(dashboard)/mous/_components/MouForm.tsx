@@ -195,7 +195,7 @@ export function MouForm({
             value={universityId}
             onChange={(e) => setUniversityId(e.target.value)}
           >
-            <option value="">— Not in catalog —</option>
+            <option value="">- Not in catalog -</option>
             {universities.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.country})

@@ -723,7 +723,7 @@ export interface CashBookEntry {
   entityId?: string | null;
   entityType?: string | null;
   studentId?: string | null;
-  /** Leg of an internal transfer (bank ↔ petty cash) — not income/expense. */
+  /** Leg of an internal transfer (bank ↔ petty cash) - not income/expense. */
   internal?: boolean;
   reconciled: boolean;
   reconciledAt?: string | null;
@@ -1032,7 +1032,7 @@ export interface RejectedRow {
 }
 
 export interface ImportResult {
-  /** Null when every row was rejected — no group is created in that case. */
+  /** Null when every row was rejected - no group is created in that case. */
   group: { id: string; name: string } | null;
   imported: number;
   rejected: RejectedRow[];
@@ -1150,7 +1150,7 @@ export type CredentialCategory =
   | 'SOCIAL_MEDIA'
   | 'OTHER';
 
-/** Secrets are never included — reveal fetches them one at a time. */
+/** Secrets are never included - reveal fetches them one at a time. */
 export interface CompanyCredential {
   id: string;
   service: string;

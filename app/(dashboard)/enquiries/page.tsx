@@ -77,7 +77,7 @@ export default async function EnquiriesPage({
     <div className="space-y-6">
       <PageHeader
         title="Website Enquiries"
-        description="Submissions from the public site — contact messages and booking requests."
+        description="Submissions from the public site - contact messages and booking requests."
       />
 
       {error && (

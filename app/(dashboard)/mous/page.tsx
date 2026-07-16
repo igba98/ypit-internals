@@ -79,7 +79,7 @@ export default async function MousPage() {
     <div className="space-y-6">
       <PageHeader
         title="MOU Documents"
-        description="Memorandums of Understanding with universities — visible to Finance and the CEO only."
+        description="Memorandums of Understanding with universities - visible to Finance and the CEO only."
         actions={<AddMouButton universities={universities} />}
       />
 
@@ -105,7 +105,7 @@ export default async function MousPage() {
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {expiringSoon.length} active MOU{expiringSoon.length === 1 ? '' : 's'}{' '}
           expire{expiringSoon.length === 1 ? 's' : ''} within {EXPIRY_WARN_DAYS}{' '}
-          days — start the renewal conversation.
+          days - start the renewal conversation.
         </p>
       )}
 

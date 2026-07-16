@@ -47,7 +47,7 @@ export default async function ItVaultPage() {
     <div className="space-y-6">
       <PageHeader
         title="Password Vault"
-        description="Company account credentials — encrypted at rest, visible to IT and the CEO only. Every reveal is logged."
+        description="Company account credentials - encrypted at rest, visible to IT and the CEO only. Every reveal is logged."
         actions={<AddCredentialButton />}
       />
 
@@ -61,7 +61,7 @@ export default async function ItVaultPage() {
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           The vault encryption key (<code>VAULT_ENCRYPTION_KEY</code>) is not set
-          on the server — saving and revealing secrets is disabled until IT
+          on the server - saving and revealing secrets is disabled until IT
           configures it.
         </p>
       )}

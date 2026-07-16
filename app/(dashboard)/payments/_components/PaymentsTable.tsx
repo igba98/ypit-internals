@@ -16,7 +16,7 @@ interface PaymentsTableProps {
   data: PaymentRecord[];
 }
 
-/** Bell button — sends the bilingual tuition reminder for one student. */
+/** Bell button - sends the bilingual tuition reminder for one student. */
 function TuitionReminderButton({ record }: { record: PaymentRecord }) {
   const [busy, startTransition] = useTransition();
   const [sent, setSent] = useState(false);

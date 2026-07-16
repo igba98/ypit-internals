@@ -150,7 +150,7 @@ export default async function DashboardPage() {
                     {s.fullName}
                   </Link>
                   <p className="text-[11px] text-gray-500 truncate">
-                    {s.registrationNumber} · {s.targetUniversity || '—'}
+                    {s.registrationNumber} · {s.targetUniversity || '-'}
                   </p>
                 </div>
                 <div className="text-right shrink-0">

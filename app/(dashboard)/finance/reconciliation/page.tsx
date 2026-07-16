@@ -115,7 +115,7 @@ export default async function ReconciliationPage({
       <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-            <CalendarDays className="w-4 h-4" /> Bank Transactions — {label}
+            <CalendarDays className="w-4 h-4" /> Bank Transactions - {label}
           </h3>
           <form method="GET" className="flex items-end gap-2">
             <div className="space-y-1">
@@ -157,7 +157,7 @@ export default async function ReconciliationPage({
             <p className="text-[11px] text-gray-500">{bankPayments.length} out</p>
           </div>
           <div className="bg-white p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><Scale className="w-3.5 h-3.5" /> Bank net — {label}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><Scale className="w-3.5 h-3.5" /> Bank net - {label}</p>
             <p className={`text-lg font-bold mt-1 ${bankReceiptTotal - bankPaymentTotal >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
               {formatCurrency(bankReceiptTotal - bankPaymentTotal)}
             </p>
@@ -185,10 +185,10 @@ export default async function ReconciliationPage({
                   <td className="px-4 py-2.5">
                     <p className="text-gray-900 max-w-[280px] truncate" title={e.description}>{e.description}</p>
                     <p className="text-[11px] text-gray-500">
-                      {e.internal ? 'internal transfer — bank side' : e.source.replace(/_/g, ' ').toLowerCase()}
+                      {e.internal ? 'internal transfer - bank side' : e.source.replace(/_/g, ' ').toLowerCase()}
                     </p>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-gray-600">{e.reference ?? '—'}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-600">{e.reference ?? '-'}</td>
                   <td className="px-4 py-2.5">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-blue-50 text-blue-700">
                       {e.paymentMethod.replace(/_/g, ' ').toLowerCase()}
@@ -227,7 +227,7 @@ export default async function ReconciliationPage({
             <ul className="space-y-1">
               {excludedEntries.map((e) => (
                 <li key={e.id} className="text-xs text-blue-800">
-                  • {formatCurrency(e.amount)} — {e.description}{' '}
+                  • {formatCurrency(e.amount)} - {e.description}{' '}
                   <span className="uppercase text-[10px] font-bold">({e.paymentMethod.replace(/_/g, ' ')})</span>
                 </li>
               ))}

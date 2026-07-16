@@ -68,7 +68,7 @@ export async function replenishPettyCash(
     return { success: false, message: 'Amount is required.' };
   }
   const isInitial = formStr(formData, 'type') === 'INITIAL_FLOAT';
-  // Description is optional from the caller — default to a sensible label.
+  // Description is optional from the caller - default to a sensible label.
   const description =
     formStr(formData, 'description') ??
     (isInitial ? 'Initial petty cash float' : 'Float top-up from bank');

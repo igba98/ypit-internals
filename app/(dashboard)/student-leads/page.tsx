@@ -173,7 +173,7 @@ export default async function StudentLeadsPage({
                     {SOURCE_LABEL[l.source]}
                   </td>
                   <td className="px-4 py-3.5 text-xs text-gray-600">
-                    {l.assignedToName ?? '—'}
+                    {l.assignedToName ?? '-'}
                   </td>
                   <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap">
                     {formatDate(l.createdAt)}

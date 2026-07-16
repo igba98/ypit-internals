@@ -15,7 +15,7 @@ export interface CredentialInput {
   service: string;
   category: CredentialCategory;
   username: string;
-  /** Optional on update — omit to keep the stored secret. */
+  /** Optional on update - omit to keep the stored secret. */
   password?: string;
   url?: string;
   notes?: string;

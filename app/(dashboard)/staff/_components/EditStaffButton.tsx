@@ -82,7 +82,7 @@ function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => voi
         <Label htmlFor="email">Email (login)</Label>
         <Input id="email" name="email" type="email" defaultValue={staff.email} />
         <p className="text-[11px] text-amber-600">
-          Changing this changes how they log in — tell them before saving.
+          Changing this changes how they log in - tell them before saving.
         </p>
         {errors.email && <p className="text-red-500 text-xs">{errors.email[0]}</p>}
       </div>

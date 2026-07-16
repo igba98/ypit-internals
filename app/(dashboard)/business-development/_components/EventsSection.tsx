@@ -111,9 +111,9 @@ export function EventsSection({
                   {formatDate(e.eventDate)}
                   {e.endDate && <> → {formatDate(e.endDate)}</>}
                 </td>
-                <td className="px-4 py-3.5 text-xs text-gray-600">{e.venue ?? '—'}</td>
+                <td className="px-4 py-3.5 text-xs text-gray-600">{e.venue ?? '-'}</td>
                 <td className="px-4 py-3.5 text-xs text-gray-600">
-                  {e.budget != null ? e.budget.toLocaleString() : '—'}
+                  {e.budget != null ? e.budget.toLocaleString() : '-'}
                 </td>
                 <td className="px-4 py-3.5">
                   <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
@@ -238,7 +238,7 @@ function EventForm({
           id="ev-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Feza Schools visit — Dar es Salaam"
+          placeholder="e.g. Feza Schools visit - Dar es Salaam"
         />
       </div>
 

@@ -10,7 +10,7 @@ import { Gauge, AlertTriangle, Clock, Users } from 'lucide-react';
 
 const ALLOWED = ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'];
 
-/** Stages where "days waiting" stops being meaningful — student has arrived. */
+/** Stages where "days waiting" stops being meaningful - student has arrived. */
 const ARRIVED_STAGES: PipelineStage[] = ['TRAVELLED', 'MONITORING'];
 
 const STUCK_DAYS = 14;
@@ -86,7 +86,7 @@ export default async function PipelineHealthPage({
     <div className="space-y-6">
       <PageHeader
         title="Pipeline Health"
-        description="Where every student sits in the enrollment pipeline — and who has been waiting too long."
+        description="Where every student sits in the enrollment pipeline - and who has been waiting too long."
       />
 
       {error && (
@@ -106,7 +106,7 @@ export default async function PipelineHealthPage({
         <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {stuck.length} student{stuck.length === 1 ? ' has' : 's have'} been in the
-          same stage for more than {STUCK_DAYS} days — follow up with the stage owner.
+          same stage for more than {STUCK_DAYS} days - follow up with the stage owner.
         </p>
       )}
 
@@ -177,10 +177,10 @@ export default async function PipelineHealthPage({
                       <p className="text-[11px] text-gray-400">{s.targetUniversity}</p>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-gray-600">
-                      {s.assignedAgentName ?? s.marketingStaffName ?? '—'}
+                      {s.assignedAgentName ?? s.marketingStaffName ?? '-'}
                     </td>
                     <td className="px-4 py-3.5 text-xs text-gray-600">
-                      {s.stageOwnerName ?? '—'}
+                      {s.stageOwnerName ?? '-'}
                     </td>
                   </tr>
                 );

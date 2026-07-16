@@ -105,7 +105,7 @@ export function MouTable({
                   )}
                 </td>
                 <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap">
-                  {m.signedDate ? formatDate(m.signedDate) : '—'}
+                  {m.signedDate ? formatDate(m.signedDate) : '-'}
                 </td>
                 <td className="px-4 py-3.5 text-xs whitespace-nowrap">
                   {m.expiryDate ? (
@@ -119,7 +119,7 @@ export function MouTable({
                       {formatDate(m.expiryDate)}
                     </span>
                   ) : (
-                    '—'
+                    '-'
                   )}
                 </td>
                 <td className="px-4 py-3.5">

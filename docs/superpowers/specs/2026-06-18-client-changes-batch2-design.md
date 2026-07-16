@@ -1,4 +1,4 @@
-# Client Changes Batch 2 — Design
+# Client Changes Batch 2 - Design
 
 Date: 2026-06-18 · Status: approved by Edward (chat) · Scope: ypit-frontend + ypit-backend
 
@@ -13,7 +13,7 @@ Decisions taken with the user:
 - Business Dev access: view MD + MARKETING_MANAGER + MARKETING_STAFF; write MD + MARKETING_MANAGER.
 - Data cleanup: **dry-run script first**, then apply against production with the user.
 
-## A. Relation Officer (OPERATIONS upgrade) — frontend only
+## A. Relation Officer (OPERATIONS upgrade) - frontend only
 1. Sidebar: add OPERATIONS to the Travel and Applications nav items (pages already permit).
 2. New page `/pipeline-health` (roles: OPERATIONS, MANAGING_DIRECTOR, MARKETING_MANAGER):
    - Fetch `GET /students?limit=500`; compute `daysInStage = now − stageEnteredAt` (fallback `createdAt`).
@@ -21,9 +21,9 @@ Decisions taken with the user:
    - Bands: red > 14 days, amber 7–14, gray < 7. Sorted oldest-first.
    - KPIs: in pipeline, stuck (>14d), average days in stage, longest waiting.
    - No backend change (list already returns `stageEnteredAt`).
-3. Subagent management: OPERATIONS already has read/write — no change.
+3. Subagent management: OPERATIONS already has read/write - no change.
 
-## B. Business Development — `/business-development`
+## B. Business Development - `/business-development`
 Backend `src/business-dev`, one migration `add_business_dev`:
 - `BdEvent`: name, type enum (SCHOOL_VISIT, EXPO, SEMINAR, OPEN_DAY, WEBINAR, OTHER),
   venue?, eventDate, endDate?, budget Int? (TZS), status enum (PLANNED, ONGOING, COMPLETED,
@@ -37,7 +37,7 @@ Backend `src/business-dev`, one migration `add_business_dev`:
 Frontend: page with `?tab=events|partnerships`; events table + slide-in form; partnerships
 table with status chips + edit/follow-up slide-in. Sidebar “Business Dev” (Briefcase).
 
-## C. MOU Documentation — `/mous` (Finance + CEO)
+## C. MOU Documentation - `/mous` (Finance + CEO)
 Backend `src/mous`, migration `add_mous`:
 - `Mou`: title, universityId? (FK SetNull) + partnerName (denormalized), description?,
   signedDate?, effectiveDate?, expiryDate?, status enum (DRAFT, ACTIVE, EXPIRED, TERMINATED),
@@ -45,13 +45,13 @@ Backend `src/mous`, migration `add_mous`:
   createdBy*, soft delete.
 - Files: reuse global `R2StorageService` presigned flow (key `mous/{id}/{rand}-{name}`,
   25 MB, PDF/Word/images). Routes: CRUD + `POST /mous/:id/upload-url`,
-  `POST /mous/:id/finalize`, `GET /mous/:id/download-url`. All `@Roles(FINANCE)` —
+  `POST /mous/:id/finalize`, `GET /mous/:id/download-url`. All `@Roles(FINANCE)` -
   Finance + CEO exactly (MD bypasses guards).
 Frontend: list + KPIs (total/active/expiring ≤60d/expired), create/edit slide-in with
 university picker (`GET /finance/universities`), XHR PUT upload with progress, download.
 Sidebar: add to FINANCE focused menu + MD list.
 
-## D. IT — Password Vault + staff email editing
+## D. IT - Password Vault + staff email editing
 Backend `src/vault`, migration `add_company_credentials`:
 - `CompanyCredential`: service, category enum (EMAIL, HOSTING, DOMAIN, SAAS, WIFI,
   SOCIAL_MEDIA, OTHER), username, secretCiphertext (AES-256-GCM, key = env
@@ -77,7 +77,7 @@ EditStaffForm gains an email field with a “this changes their login” warning
 - Run against prod by pointing `DATABASE_URL` at Railway, together with the user.
 
 ## Cross-cutting
-- Equipment tracking: already complete (IT + CEO) — no work.
+- Equipment tracking: already complete (IT + CEO) - no work.
 - Conventions: Zod DTOs (`createZodDto`), `@Roles` guard (MD bypasses), `AuditService.log`
   on all mutations, denormalized `*Name` columns, soft delete where listed.
 - Role gating updated in all three frontend places: Sidebar roles, page `allowedRoles`.

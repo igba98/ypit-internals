@@ -85,7 +85,7 @@ export async function updateStaff(
   formData: FormData,
 ): Promise<ActionResult> {
   const body: Record<string, unknown> = {};
-  // email edits reach the backend's IT_ADMIN-only PATCH — effective IT + CEO.
+  // email edits reach the backend's IT_ADMIN-only PATCH - effective IT + CEO.
   for (const f of ['fullName', 'email', 'role', 'department', 'phone'] as const) {
     const v = formStr(formData, f);
     if (v !== undefined) body[f] = v;

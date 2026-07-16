@@ -127,7 +127,7 @@ export async function importContacts(
   if (rows.length > 10000) {
     return {
       success: false,
-      message: 'Too many rows — split the file into batches of 10,000 or fewer.',
+      message: 'Too many rows - split the file into batches of 10,000 or fewer.',
     };
   }
 
@@ -149,7 +149,7 @@ export async function importContacts(
   if (!result.group) {
     return {
       success: false,
-      message: `No contacts imported — all ${result.rejected.length} rows failed validation.`,
+      message: `No contacts imported - all ${result.rejected.length} rows failed validation.`,
       result,
     };
   }
@@ -191,7 +191,7 @@ export async function createCampaign(input: {
   revalidatePath('/communication');
   return {
     success: true,
-    message: `Campaign sent — ${c.sentCount} delivered${
+    message: `Campaign sent - ${c.sentCount} delivered${
       c.failedCount ? `, ${c.failedCount} failed` : ''
     }${c.skippedCount ? `, ${c.skippedCount} skipped` : ''}.`,
     data: c,

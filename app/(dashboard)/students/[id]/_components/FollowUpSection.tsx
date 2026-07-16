@@ -62,7 +62,7 @@ export function FollowUpSection({
           <MessageSquarePlus className="w-4 h-4" /> Follow-ups
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          Relationship-officer engagement log — calls, messages, and meetings with this student.
+          Relationship-officer engagement log - calls, messages, and meetings with this student.
         </p>
       </div>
 
