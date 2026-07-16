@@ -82,3 +82,22 @@ export async function recordPayment(
   revalidatePath(`/students/${studentId}`);
   return { success: true, message: 'Payment recorded.' };
 }
+
+/**
+ * Sends the bilingual (Swahili + English) tuition payment reminder SMS/WhatsApp
+ * to the student and their primary parent.
+ */
+export async function sendTuitionReminder(
+  studentId: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(
+    `/finance/payments/${studentId}/tuition-reminder`,
+    { method: 'POST' },
+  );
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  const body = (await res.json()) as { outstanding: number };
+  return {
+    success: true,
+    message: `Tuition reminder sent (TZS ${body.outstanding.toLocaleString()} outstanding).`,
+  };
+}

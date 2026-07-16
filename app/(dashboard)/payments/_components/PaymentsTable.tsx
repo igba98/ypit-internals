@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
 import { PaymentRecord } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -7,10 +9,60 @@ import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
-import { Paperclip } from 'lucide-react';
+import { BellRing, Loader2, Paperclip } from 'lucide-react';
+import { sendTuitionReminder } from '@/lib/actions/paymentActions';
 
 interface PaymentsTableProps {
   data: PaymentRecord[];
+}
+
+/** Bell button — sends the bilingual tuition reminder for one student. */
+function TuitionReminderButton({ record }: { record: PaymentRecord }) {
+  const [busy, startTransition] = useTransition();
+  const [sent, setSent] = useState(false);
+  const outstanding = record.tuitionFee - record.tuitionFeePaid;
+  if (outstanding <= 0) return null;
+
+  const onSend = () => {
+    if (
+      !confirm(
+        `Send a tuition reminder SMS (TZS ${outstanding.toLocaleString()} outstanding) to ${record.studentName}?`,
+      )
+    )
+      return;
+    startTransition(async () => {
+      const res = await sendTuitionReminder(record.studentId);
+      if (res.success) {
+        toast.success(res.message);
+        setSent(true);
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={onSend}
+      disabled={busy || sent}
+      title={
+        sent
+          ? 'Reminder sent'
+          : `Send tuition reminder (TZS ${outstanding.toLocaleString()} due)`
+      }
+      className={`p-1.5 rounded-md transition-colors ${
+        sent
+          ? 'text-green-500'
+          : 'text-amber-500 hover:text-amber-700 hover:bg-amber-50'
+      }`}
+    >
+      {busy ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <BellRing className="w-4 h-4" />
+      )}
+    </button>
+  );
 }
 
 export function PaymentsTable({ data }: PaymentsTableProps) {
@@ -118,7 +170,12 @@ export function PaymentsTable({ data }: PaymentsTableProps) {
     },
     {
       id: 'actions',
-      cell: ({ row }) => <ActionDropdown basePath="/payments" record={row.original} />,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <TuitionReminderButton record={row.original} />
+          <ActionDropdown basePath="/payments" record={row.original} />
+        </div>
+      ),
     },
   ];
 
