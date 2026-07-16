@@ -723,6 +723,8 @@ export interface CashBookEntry {
   entityId?: string | null;
   entityType?: string | null;
   studentId?: string | null;
+  /** Leg of an internal transfer (bank ↔ petty cash) — not income/expense. */
+  internal?: boolean;
   reconciled: boolean;
   reconciledAt?: string | null;
   bankStatementRef?: string | null;
