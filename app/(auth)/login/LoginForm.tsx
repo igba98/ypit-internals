@@ -121,7 +121,7 @@ export default function LoginForm() {
         </div>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-gray-100">
+      <div className="mt-8 pt-[25px] border-t border-gray-100">
         <button
           onClick={() => setShowDemo(!showDemo)}
           className="flex items-center justify-between w-full text-sm text-gray-500 hover:text-gray-800 transition-colors"
