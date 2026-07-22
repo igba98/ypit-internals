@@ -90,9 +90,19 @@ export async function createInvoice(
   return { success: true, message: 'Invoice created.' };
 }
 
+/**
+ * One entry point for every choice in the status dropdown:
+ *   SENT            → POST /send
+ *   VOID            → POST /void
+ *   DRAFT, OVERDUE  → POST /status (no money involved)
+ *   PAID            → records a payment of the full remaining balance
+ *   PARTIAL         → records a payment of `opts.amount`
+ * PAID/PARTIAL auto-send a DRAFT invoice first (backend requires SENT).
+ */
 export async function updateInvoiceStatus(
   invoiceId: string,
   newStatus: InvoiceStatus | string,
+  opts?: { amount?: number; paymentMethod?: string },
 ): Promise<ActionResult> {
   if (newStatus === 'SENT') {
     const res = await backendFetch(`/finance/invoices/${invoiceId}/send`, { method: 'POST' });
@@ -103,11 +113,46 @@ export async function updateInvoiceStatus(
       body: JSON.stringify({ reason: 'Manually voided' }),
     });
     if (!res.ok) return { success: false, ...(await readError(res)) };
-  } else {
-    return {
-      success: false,
-      message: `Status ${newStatus} can't be set directly - use the payment dialog or backend transition endpoints.`,
+  } else if (newStatus === 'DRAFT' || newStatus === 'OVERDUE') {
+    const res = await backendFetch(`/finance/invoices/${invoiceId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!res.ok) return { success: false, ...(await readError(res)) };
+  } else if (newStatus === 'PAID' || newStatus === 'PARTIAL') {
+    // Load the invoice for its current status + remaining balance.
+    const invRes = await backendFetch(`/finance/invoices/${invoiceId}`);
+    if (!invRes.ok) return { success: false, ...(await readError(invRes)) };
+    const inv = (await invRes.json()) as {
+      status: string;
+      total: number;
+      paidAmount: number;
     };
+    const remaining = Math.max(0, inv.total - inv.paidAmount);
+    const amount = newStatus === 'PAID' ? remaining : (opts?.amount ?? 0);
+    if (amount <= 0) {
+      return { success: false, message: 'Nothing left to pay on this invoice.' };
+    }
+    if (inv.status === 'DRAFT') {
+      const sendRes = await backendFetch(`/finance/invoices/${invoiceId}/send`, { method: 'POST' });
+      if (!sendRes.ok) return { success: false, ...(await readError(sendRes)) };
+    }
+    const payRes = await backendFetch(`/finance/invoices/${invoiceId}/payment`, {
+      method: 'POST',
+      body: JSON.stringify({
+        amount,
+        paymentMethod: opts?.paymentMethod ?? 'BANK_TRANSFER',
+      }),
+    });
+    if (!payRes.ok) return { success: false, ...(await readError(payRes)) };
+    revalidatePath('/finance/invoices');
+    revalidatePath('/finance/cash-book');
+    return {
+      success: true,
+      message: `Payment of TSh ${amount.toLocaleString()} recorded${newStatus === 'PAID' ? ' — invoice fully paid' : ''}.`,
+    };
+  } else {
+    return { success: false, message: `Unknown status ${newStatus}.` };
   }
   revalidatePath('/finance/invoices');
   return { success: true, message: `Invoice marked ${newStatus.toLowerCase()}.` };

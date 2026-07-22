@@ -129,7 +129,12 @@ export default async function InvoicesPage() {
                       )}
                     </td>
                     <td className="px-5 py-3.5">
-                      <InvoiceStatusCell invoiceId={inv.id} value={inv.status} />
+                      <InvoiceStatusCell
+                        invoiceId={inv.id}
+                        value={inv.status}
+                        total={inv.total}
+                        paidAmount={inv.paidAmount}
+                      />
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <Link

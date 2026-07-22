@@ -18,6 +18,11 @@ function withRunningBalance(items: CashBookEntry[], opening: number) {
   });
 }
 
+/** Mirror of the cash-book screen: hide the bank-side leg of float top-ups. */
+function isHiddenBankLeg(e: CashBookEntry): boolean {
+  return Boolean(e.internal) && !['CASH', 'PETTY_CASH'].includes(e.paymentMethod);
+}
+
 async function load(from: string, to: string): Promise<{
   items: CashBookEntry[];
   summary: CashbookSummary | null;
@@ -48,7 +53,8 @@ export default async function CashbookPrintPage({
 
   const { items, summary } = await load(from, to);
 
-  const rows = withRunningBalance(items, summary?.openingBalance ?? 0);
+  const visible = items.filter((e) => !isHiddenBankLeg(e));
+  const rows = withRunningBalance(visible, summary?.openingBalance ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white">

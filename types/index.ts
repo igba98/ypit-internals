@@ -461,6 +461,12 @@ export interface Invoice {
 
 export type PayrollStatus = 'DRAFT' | 'APPROVED' | 'PAID' | 'CANCELLED';
 
+/** A named allowance line on a payslip, e.g. { name: "Transport", amount: 50000 }. */
+export interface AllowanceItem {
+  name: string;
+  amount: number;
+}
+
 export interface PayrollEntry {
   id: string;                       // PR-2026-MAR-001
   staffId: string;
@@ -470,12 +476,15 @@ export interface PayrollEntry {
   period: string;                   // "March 2026"
   periodStart: string;
   periodEnd: string;
-  baseSalary: number;
-  allowances: number;
-  deductions: number;
-  tax: number;                      // PAYE
-  pension: number;                  // NSSF
-  netPay: number;
+  baseSalary: number;               // Basic salary (before allowances)
+  allowanceItems?: AllowanceItem[] | null;
+  allowances: number;               // Total of allowance items
+  grossSalary: number;              // Basic + allowances
+  deductions: number;               // Other deductions (optional)
+  tax: number;                      // PAYE — entered by finance
+  pension: number;                  // NSSF — auto 10% of gross, editable
+  taxableSalary: number;            // Gross − NSSF
+  netPay: number;                   // Taxable − PAYE − other deductions
   status: PayrollStatus;
   paidDate?: string;
   paymentMethod?: PaymentMethod;

@@ -96,25 +96,36 @@ export async function generatePayroll(
 export async function updatePayrollEntry(
   payrollId: string,
   staffId: string,
-  formData: FormData,
+  input: {
+    baseSalary: number;
+    allowanceItems: { name: string; amount: number }[];
+    /** NSSF as shown in the dialog (auto 10% of gross unless overridden). */
+    nssf: number;
+    /** PAYE entered by finance. */
+    paye: number;
+    deductions?: number;
+    notes?: string;
+    persistSalary?: boolean;
+  },
 ): Promise<ActionResult> {
-  const baseSalary = Number(formData.get('baseSalary') ?? 0);
-  const allowances = Number(formData.get('allowances') ?? 0);
-  const deductions = Number(formData.get('deductions') ?? 0);
-  const notes = (formData.get('notes') as string | null)?.trim() || undefined;
-  const persist = formData.get('persistSalary') === 'on';
-
   const res = await backendFetch(`/finance/payroll/${payrollId}`, {
     method: 'PATCH',
-    body: JSON.stringify({ baseSalary, allowances, deductions, notes }),
+    body: JSON.stringify({
+      baseSalary: input.baseSalary,
+      allowanceItems: input.allowanceItems,
+      nssf: input.nssf,
+      paye: input.paye,
+      deductions: input.deductions ?? 0,
+      notes: input.notes,
+    }),
   });
   if (!res.ok) return { success: false, ...(await readError(res)) };
 
   let persistMsg = '';
-  if (persist && baseSalary > 0) {
+  if (input.persistSalary && input.baseSalary > 0) {
     const sres = await backendFetch(`/staff/${staffId}/salary`, {
       method: 'PATCH',
-      body: JSON.stringify({ baseSalary }),
+      body: JSON.stringify({ baseSalary: input.baseSalary }),
     });
     persistMsg = sres.ok ? ' Default salary saved for future months.' : ' (Could not save default salary.)';
   }

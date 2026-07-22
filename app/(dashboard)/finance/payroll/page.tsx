@@ -181,10 +181,12 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
           <tr className="bg-gray-50/50 text-[11px] uppercase tracking-wider text-gray-500">
             <th className="px-5 py-3 font-medium">Staff</th>
             <th className="px-5 py-3 font-medium">Department</th>
-            <th className="px-5 py-3 font-medium text-right">Base</th>
+            <th className="px-5 py-3 font-medium text-right">Basic</th>
             <th className="px-5 py-3 font-medium text-right">Allowances</th>
-            <th className="px-5 py-3 font-medium text-right">PAYE</th>
+            <th className="px-5 py-3 font-medium text-right">Gross</th>
             <th className="px-5 py-3 font-medium text-right">NSSF</th>
+            <th className="px-5 py-3 font-medium text-right">Taxable</th>
+            <th className="px-5 py-3 font-medium text-right">PAYE</th>
             <th className="px-5 py-3 font-medium text-right">Net Pay</th>
             <th className="px-5 py-3 font-medium">Status</th>
             <th className="px-5 py-3 font-medium text-right">Edit</th>
@@ -199,9 +201,21 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
               </td>
               <td className="px-5 py-3.5 text-gray-700">{e.department}</td>
               <td className="px-5 py-3.5 text-right text-gray-900">{formatCurrency(e.baseSalary)}</td>
-              <td className="px-5 py-3.5 text-right text-gray-700">{formatCurrency(e.allowances)}</td>
-              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.tax)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-700">
+                {formatCurrency(e.allowances)}
+                {(e.allowanceItems?.length ?? 0) > 0 && (
+                  <p
+                    className="text-[10px] text-gray-400 max-w-[140px] truncate ml-auto"
+                    title={e.allowanceItems!.map((a) => `${a.name}: ${formatCurrency(a.amount)}`).join(' · ')}
+                  >
+                    {e.allowanceItems!.map((a) => a.name).join(', ')}
+                  </p>
+                )}
+              </td>
+              <td className="px-5 py-3.5 text-right font-medium text-gray-900">{formatCurrency(e.grossSalary || e.baseSalary + e.allowances)}</td>
               <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.pension)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-700">{formatCurrency(e.taxableSalary || e.baseSalary + e.allowances - e.pension)}</td>
+              <td className="px-5 py-3.5 text-right text-gray-500">−{formatCurrency(e.tax)}</td>
               <td className="px-5 py-3.5 text-right font-bold text-gray-900">{formatCurrency(e.netPay)}</td>
               <td className="px-5 py-3.5">
                 <div className="flex flex-col items-start gap-1">

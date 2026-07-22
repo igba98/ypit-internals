@@ -18,6 +18,16 @@ import { AddManualEntryButton } from './_components/AddManualEntryButton';
 
 const CASH_METHODS = ['CASH', 'PETTY_CASH'];
 
+/**
+ * The cash book shows "our side" of the money only. A float top-up posts two
+ * legs internally (bank withdrawal + float receipt) so bank reconciliation
+ * stays truthful — but here we hide the bank-side leg and show just the
+ * top-up into the float, as the client requested.
+ */
+function isHiddenBankLeg(e: CashBookEntry): boolean {
+  return Boolean(e.internal) && !CASH_METHODS.includes(e.paymentMethod);
+}
+
 /** Plain helper (not a component) so the closure mutation is lint-legal. */
 function withRunningBalance(items: CashBookEntry[], opening: number) {
   let running = opening;
@@ -75,8 +85,10 @@ export default async function CashBookPage({
 
   const { items, summary, error } = await loadCashbook(from, to);
 
-  // Running balance starting from the opening balance.
-  const rows = withRunningBalance(items, summary?.openingBalance ?? 0);
+  // Hide the bank-side leg of float top-ups; the visible book walks its
+  // balance over what's shown (bank is treated as external here).
+  const visible = items.filter((e) => !isHiddenBankLeg(e));
+  const rows = withRunningBalance(visible, summary?.openingBalance ?? 0);
 
   return (
     <div className="space-y-6">
@@ -124,7 +136,7 @@ export default async function CashBookPage({
           <SummaryTile icon={ArrowUpCircle} label="Receipts" value={formatCurrency(summary.receiptsTotal, { compact: true })} tone="success" sub={`Bank ${formatCurrency(summary.bank.receipts, { compact: true })} · Cash ${formatCurrency(summary.cash.receipts, { compact: true })}`} />
           <SummaryTile icon={ArrowDownCircle} label="Payments" value={formatCurrency(summary.paymentsTotal, { compact: true })} tone="danger" sub={`Bank ${formatCurrency(summary.bank.payments, { compact: true })} · Cash ${formatCurrency(summary.cash.payments, { compact: true })}`} />
           <SummaryTile icon={Scale} label="Net Movement" value={formatCurrency(summary.net, { compact: true })} tone={summary.net >= 0 ? 'success' : 'danger'} sub={`Opening ${formatCurrency(summary.openingBalance, { compact: true })}`} />
-          <SummaryTile icon={Landmark} label="Closing Balance" value={formatCurrency(summary.closingBalance, { compact: true })} tone="default" sub={`${summary.unreconciledBankCount} unreconciled bank entr${summary.unreconciledBankCount === 1 ? 'y' : 'ies'}`} />
+          <SummaryTile icon={Landmark} label="Closing Balance" value={formatCurrency(rows.length ? rows[rows.length - 1].runningBalance : summary.openingBalance, { compact: true })} tone="default" sub={`${summary.unreconciledBankCount} unreconciled bank entr${summary.unreconciledBankCount === 1 ? 'y' : 'ies'}`} />
         </section>
       )}
 
@@ -160,7 +172,7 @@ export default async function CashBookPage({
                     <p className="text-gray-900 max-w-[320px] truncate" title={e.description}>{e.description}</p>
                     {e.internal ? (
                       <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">
-                        Internal transfer
+                        Float top-up from bank
                       </span>
                     ) : (
                       <p className="text-[11px] text-gray-500">{e.source.replace(/_/g, ' ').toLowerCase()}</p>
