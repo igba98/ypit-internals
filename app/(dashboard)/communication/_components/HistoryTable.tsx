@@ -1,6 +1,19 @@
-import { Megaphone, Phone, MessageSquare, Mail } from 'lucide-react';
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import {
+  Megaphone,
+  Phone,
+  MessageSquare,
+  Mail,
+  RefreshCw,
+  Loader2,
+} from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Campaign, CampaignChannel, CampaignStatus } from '@/types';
+import { retryCampaign } from '@/lib/actions/campaignActions';
 
 const CHANNEL_META: Record<
   CampaignChannel,
@@ -20,6 +33,30 @@ const STATUS_BADGE: Record<CampaignStatus, string> = {
 };
 
 export function HistoryTable({ campaigns }: { campaigns: Campaign[] }) {
+  const router = useRouter();
+  const [busy, startTransition] = useTransition();
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+
+  const onRetry = (c: Campaign) => {
+    if (
+      !confirm(
+        `Resend "${c.name}" (${c.channel}) to everyone in ${c.group?.name ?? 'this group'}? Every contact gets the message again.`,
+      )
+    )
+      return;
+    setRetryingId(c.id);
+    startTransition(async () => {
+      const res = await retryCampaign(c.id);
+      if (res.success) {
+        toast.success(res.message);
+        router.refresh();
+      } else {
+        toast.error(res.message);
+      }
+      setRetryingId(null);
+    });
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
       <div className="p-4 border-b border-gray-100 flex items-center gap-2">
@@ -39,6 +76,8 @@ export function HistoryTable({ campaigns }: { campaigns: Campaign[] }) {
           {campaigns.map((c) => {
             const meta = CHANNEL_META[c.channel];
             const Icon = meta.icon;
+            const canRetry =
+              c.status === 'FAILED' || c.status === 'PARTIAL' || c.status === 'SENT';
             return (
               <div key={c.id} className="px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -50,6 +89,25 @@ export function HistoryTable({ campaigns }: { campaigns: Campaign[] }) {
                   <p className="font-medium text-gray-900 truncate flex-1">
                     {c.name}
                   </p>
+                  {canRetry && (
+                    <button
+                      onClick={() => onRetry(c)}
+                      disabled={busy && retryingId === c.id}
+                      title="Resend this campaign to the group"
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors shrink-0 ${
+                        c.status === 'FAILED' || c.status === 'PARTIAL'
+                          ? 'text-primary hover:bg-primary/10'
+                          : 'text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      {busy && retryingId === c.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      )}
+                      Retry
+                    </button>
+                  )}
                   <span
                     className={`px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 ${STATUS_BADGE[c.status]}`}
                   >
@@ -58,7 +116,11 @@ export function HistoryTable({ campaigns }: { campaigns: Campaign[] }) {
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
                   <span>
-                    To <b className="text-gray-700">{c.group?.name ?? '-'}</b>
+                    To{' '}
+                    <b className="text-gray-700">
+                      {c.group?.name ?? c.groupName ?? '-'}
+                    </b>
+                    {!c.group && c.groupName ? ' (group deleted)' : ''}
                   </span>
                   <span className="text-emerald-600">{c.sentCount} sent</span>
                   {c.failedCount > 0 && (

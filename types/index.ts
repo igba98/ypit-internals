@@ -1029,6 +1029,8 @@ export interface Campaign {
   createdByName: string;
   createdAt: string;
   updatedAt: string;
+  /** Denormalized — survives group deletion. */
+  groupName?: string;
   /** Joined on list. */
   group?: { name: string } | null;
 }

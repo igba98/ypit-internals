@@ -6,6 +6,7 @@ import { backendFetch } from '@/lib/backend';
 import {
   ActionResult,
   CampaignChannel,
+  ContactGroupDetail,
   ImportResult,
 } from '@/types';
 
@@ -205,4 +206,32 @@ export async function deleteContactGroup(id: string): Promise<ActionResult> {
   if (!res.ok) return { success: false, message: await readError(res) };
   revalidatePath('/communication');
   return { success: true, message: 'Group deleted.' };
+}
+
+/** Load one group with its full member list (for the detail panel). */
+export async function getContactGroup(
+  id: string,
+): Promise<ActionResult & { group?: ContactGroupDetail }> {
+  const res = await backendFetch(`/campaigns/groups/${id}`);
+  if (!res.ok) return { success: false, message: await readError(res) };
+  const group = (await res.json()) as ContactGroupDetail;
+  return { success: true, message: 'OK', group };
+}
+
+/** Re-send an existing campaign to its group's current contacts. */
+export async function retryCampaign(id: string): Promise<ActionResult> {
+  const res = await backendFetch(`/campaigns/${id}/retry`, { method: 'POST' });
+  if (!res.ok) return { success: false, message: await readError(res) };
+  const c = (await res.json()) as {
+    sentCount: number;
+    failedCount: number;
+    skippedCount: number;
+  };
+  revalidatePath('/communication');
+  return {
+    success: true,
+    message: `Retry finished - ${c.sentCount} delivered${
+      c.failedCount ? `, ${c.failedCount} failed` : ''
+    }${c.skippedCount ? `, ${c.skippedCount} skipped` : ''}.`,
+  };
 }
