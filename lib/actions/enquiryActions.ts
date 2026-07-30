@@ -49,3 +49,39 @@ export async function convertEnquiryToLead(
   revalidatePath('/leads');
   return { success: true, message: 'Converted to a lead.', leadId: body.leadId };
 }
+
+/**
+ * Convert an enquiry (usually a website APPLICATION) straight into a Student.
+ * The applicant already supplied most details on the website form.
+ */
+export async function convertEnquiryToStudent(
+  enquiryId: string,
+  input: {
+    nationality: string;
+    gender: string;
+    dateOfBirth: string;
+    targetUniversity: string;
+    targetCountry: string;
+    targetProgram: string;
+    targetIntake: string;
+    whatsapp?: string;
+    passportNumber?: string;
+  },
+): Promise<ActionResult & { studentId?: string }> {
+  const res = await backendFetch(`/enquiries/${enquiryId}/convert-student`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  const body = (await res.json()) as {
+    studentId: string;
+    registrationNumber: string;
+  };
+  revalidatePath('/enquiries');
+  revalidatePath('/students');
+  return {
+    success: true,
+    message: `Student ${body.registrationNumber} created — pipeline starts at Counseling.`,
+    studentId: body.studentId,
+  };
+}

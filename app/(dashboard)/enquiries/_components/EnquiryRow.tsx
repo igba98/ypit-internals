@@ -20,6 +20,7 @@ import {
   convertEnquiryToLead,
   updateEnquiryStatus,
 } from '@/lib/actions/enquiryActions';
+import { ConvertToStudentButton } from './ConvertToStudentButton';
 
 const TYPE_BADGE: Record<EnquiryType, string> = {
   CONTACT: 'bg-blue-50 text-blue-700',
@@ -100,10 +101,11 @@ export function EnquiryRow({ enquiry }: { enquiry: WebsiteEnquiry }) {
                 <CheckCircle2 className="w-3.5 h-3.5" /> Contacted
               </Button>
             )}
+            {!isConverted && <ConvertToStudentButton enquiry={enquiry} />}
             {!isConverted && (
-              <Button size="sm" disabled={busy} onClick={() => act(() => convertEnquiryToLead(enquiry.id))} className="gap-1">
+              <Button size="sm" disabled={busy} onClick={() => act(() => convertEnquiryToLead(enquiry.id))} className="gap-1" title="Convert into a lead for follow-up first">
                 {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-                Convert
+                To Lead
               </Button>
             )}
             {enquiry.status !== 'ARCHIVED' && !isConverted && (

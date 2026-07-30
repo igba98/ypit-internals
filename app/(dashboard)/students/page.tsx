@@ -43,7 +43,9 @@ export default async function StudentsPage() {
   let fetchError: string | null = null;
   try {
     const params = new URLSearchParams({ limit: '200' });
-    if (['MARKETING_STAFF', 'SUB_AGENT'].includes(session.role)) {
+    // Sub-agents only see students attributed to them; internal marketing
+    // staff work the whole register.
+    if (session.role === 'SUB_AGENT') {
       params.set('assignedAgentId', session.userId);
     }
     const res = await backendFetch(`/students?${params.toString()}`);

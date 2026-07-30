@@ -970,6 +970,7 @@ export interface WebsiteEnquiry {
   handledByName?: string | null;
   internalNotes?: string | null;
   convertedLeadId?: string | null;
+  convertedStudentId?: string | null;
   /** Extra structured fields from richer forms (apply, booking). */
   extra?: Record<string, unknown> | null;
   createdAt: string;
