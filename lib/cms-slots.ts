@@ -116,6 +116,67 @@ export const CMS_SECTIONS: CmsSection[] = [
       { key: 'awards.gallery.6.image', label: 'Gallery photo 6', type: 'IMAGE', defaultValue: '/awardsimages/IMG_0325.JPG' },
     ],
   },
+  {
+    id: 'countries-page',
+    page: 'Countries',
+    title: 'Country cards',
+    description:
+      'The photo and "cost from" figure on each country card. Update the costs when tuition changes so students never see stale prices.',
+    slots: [
+      { key: 'countries.india.image', label: 'India — photo', type: 'IMAGE', defaultValue: '/pexels-keira-burton-6147369.jpg' },
+      { key: 'countries.india.cost', label: 'India — cost from', type: 'TEXT', defaultValue: '$3,500/yr' },
+      { key: 'countries.china.image', label: 'China — photo', type: 'IMAGE', defaultValue: '/pexels-oacthecreator-10604068.jpg' },
+      { key: 'countries.china.cost', label: 'China — cost from', type: 'TEXT', defaultValue: '$4,800/yr' },
+      { key: 'countries.united-kingdom.image', label: 'United Kingdom — photo', type: 'IMAGE', defaultValue: '/pexels-jibarofoto-13908956.jpg' },
+      { key: 'countries.united-kingdom.cost', label: 'United Kingdom — cost from', type: 'TEXT', defaultValue: '$14,000/yr' },
+      { key: 'countries.canada.image', label: 'Canada — photo', type: 'IMAGE', defaultValue: '/pexels-andy-barbour-6683894.jpg' },
+      { key: 'countries.canada.cost', label: 'Canada — cost from', type: 'TEXT', defaultValue: '$16,000/yr' },
+      { key: 'countries.malaysia.image', label: 'Malaysia — photo', type: 'IMAGE', defaultValue: '/pexels-domingos-henriques-3418942-17385732.jpg' },
+      { key: 'countries.malaysia.cost', label: 'Malaysia — cost from', type: 'TEXT', defaultValue: '$5,500/yr' },
+      { key: 'countries.germany.image', label: 'Germany — photo', type: 'IMAGE', defaultValue: '/pexels-domingos-henriques-3418942-17471233.jpg' },
+      { key: 'countries.germany.cost', label: 'Germany — cost from', type: 'TEXT', defaultValue: '$500/yr' },
+      { key: 'countries.united-states.image', label: 'United States — photo', type: 'IMAGE', defaultValue: '/pexels-rdne-7713173.jpg' },
+      { key: 'countries.united-states.cost', label: 'United States — cost from', type: 'TEXT', defaultValue: '$22,000/yr' },
+      { key: 'countries.australia.image', label: 'Australia — photo', type: 'IMAGE', defaultValue: '/pexels-gustavo-fring-8770974.jpg' },
+      { key: 'countries.australia.cost', label: 'Australia — cost from', type: 'TEXT', defaultValue: '$18,000/yr' },
+    ],
+  },
+  {
+    id: 'programs-page',
+    page: 'Programs',
+    title: 'Programme photos',
+    description:
+      'The photo shown on each programme listing. Prices and filters stay managed in the system, not here.',
+    slots: [
+      { key: 'programs.1.image', label: 'Parul University — B.Tech Mechanical', type: 'IMAGE', defaultValue: '/pexels-keira-burton-6147369.jpg' },
+      { key: 'programs.2.image', label: 'Nanjing University — BSc Computer Science', type: 'IMAGE', defaultValue: '/pexels-oacthecreator-10604068.jpg' },
+      { key: 'programs.3.image', label: 'Coventry University — BSc Civil Engineering', type: 'IMAGE', defaultValue: '/pexels-jibarofoto-13908956.jpg' },
+      { key: 'programs.4.image', label: 'Limkokwing University — BA UX Design', type: 'IMAGE', defaultValue: '/pexels-domingos-henriques-3418942-17385732.jpg' },
+      { key: 'programs.5.image', label: 'Sharda University — MBBS', type: 'IMAGE', defaultValue: '/pexels-gustavo-fring-8770974.jpg' },
+      { key: 'programs.6.image', label: 'Beijing Jiaotong — MEng Transport', type: 'IMAGE', defaultValue: '/pexels-andy-barbour-6683894.jpg' },
+      { key: 'programs.7.image', label: 'Trent University — BBA Business', type: 'IMAGE', defaultValue: '/pexels-rdne-7713173.jpg' },
+      { key: 'programs.8.image', label: 'TH Köln — MSc Renewable Energy', type: 'IMAGE', defaultValue: '/pexels-domingos-henriques-3418942-17471233.jpg' },
+    ],
+  },
+  {
+    id: 'scholarships-page',
+    page: 'Scholarships',
+    title: 'Scholarship deadlines',
+    description:
+      'Application deadlines shown on /scholarships. Refresh these each intake — expired dates make the site look abandoned.',
+    slots: [
+      { key: 'scholarships.1.deadline', label: 'YPIT–Parul Partnership Award — deadline', type: 'TEXT', defaultValue: 'Rolling' },
+      { key: 'scholarships.2.deadline', label: 'Chinese Government Scholarship (CSC) — deadline', type: 'TEXT', defaultValue: 'March 2027' },
+      { key: 'scholarships.3.deadline', label: 'YPIT–Coventry International — deadline', type: 'TEXT', defaultValue: 'Rolling' },
+      { key: 'scholarships.4.deadline', label: 'Confucius Institute Scholarship — deadline', type: 'TEXT', defaultValue: 'April 2027' },
+      { key: 'scholarships.5.deadline', label: 'YPIT–London Met Award — deadline', type: 'TEXT', defaultValue: 'Rolling' },
+      { key: 'scholarships.6.deadline', label: 'Chevening Scholarship — deadline', type: 'TEXT', defaultValue: 'Nov 2026' },
+      { key: 'scholarships.7.deadline', label: 'Commonwealth Shared — deadline', type: 'TEXT', defaultValue: 'Dec 2026' },
+      { key: 'scholarships.8.deadline', label: 'DAAD Scholarship — deadline', type: 'TEXT', defaultValue: 'Oct 2026' },
+      { key: 'scholarships.9.deadline', label: 'Australia Awards — deadline', type: 'TEXT', defaultValue: 'April 2027' },
+      { key: 'scholarships.10.deadline', label: 'YPIT–Limkokwing Award — deadline', type: 'TEXT', defaultValue: 'Rolling' },
+    ],
+  },
 ];
 
 export const ALL_CMS_SLOTS: CmsSlot[] = CMS_SECTIONS.flatMap((s) => s.slots);
