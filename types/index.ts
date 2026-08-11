@@ -461,6 +461,46 @@ export interface Invoice {
 
 export type PayrollStatus = 'DRAFT' | 'APPROVED' | 'PAID' | 'CANCELLED';
 
+// ── Printable Leads & Admissions analytics (PDF report) ───────────
+
+export interface LeadsAnalyticsMonth {
+  key: string;
+  label: string;
+  short: string;
+  leads: number;
+  converted: number;
+  students: number;
+  enquiries: number;
+}
+
+export interface LeadsAnalytics {
+  year: number;
+  months: LeadsAnalyticsMonth[];
+  bestMonth: { label: string; leads: number; students: number } | null;
+  bestStudentMonth: { label: string; students: number } | null;
+  totals: {
+    leads: number;
+    converted: number;
+    lost: number;
+    open: number;
+    students: number;
+    enquiries: number;
+    conversionRate: number;
+    monthlyAverage: number;
+  };
+  sources: { key: string; count: number }[];
+  statuses: { key: string; count: number }[];
+  destinations: { key: string; count: number }[];
+  enquiryTypes: { key: string; count: number }[];
+  agents: {
+    name: string;
+    leads: number;
+    converted: number;
+    conversionRate: number;
+  }[];
+  generatedAt: string;
+}
+
 /** A named allowance line on a payslip, e.g. { name: "Transport", amount: 50000 }. */
 export interface AllowanceItem {
   name: string;

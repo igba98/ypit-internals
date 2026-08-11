@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ReportsDashboard } from './_components/ReportsDashboard';
 import { ExportReportButton } from './_components/ExportReportButton';
+import { GenerateReportCard } from './_components/GenerateReportCard';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { backendFetch } from '@/lib/backend';
@@ -37,6 +38,8 @@ export default async function ReportsPage() {
           {error}
         </p>
       )}
+
+      <GenerateReportCard currentYear={new Date().getFullYear()} />
 
       {data && <ReportsDashboard data={data} role={session.role} />}
     </div>
