@@ -27,6 +27,7 @@ import {
   GraduationCap,
   Gauge,
   KeyRound,
+  Globe,
   ScrollText,
   Briefcase,
 } from 'lucide-react';
@@ -82,6 +83,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Password Vault', href: '/it-vault', icon: KeyRound, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
+      { label: 'Website Content', href: '/website-cms', icon: Globe, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Audit Logs', href: '/audit-logs', icon: Shield, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
     ];
 
