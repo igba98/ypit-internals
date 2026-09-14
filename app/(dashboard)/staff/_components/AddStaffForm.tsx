@@ -81,7 +81,7 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       {isAssistant(role) && (
-        <PermissionMatrix assistantType={role as 'IT_ASSISTANT' | 'MARKETING_ASSISTANT'} />
+        <PermissionMatrix assistantType={role} />
       )}
 
       <div className="space-y-2">

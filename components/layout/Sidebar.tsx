@@ -58,6 +58,9 @@ const MODULE_ICONS: Record<string, typeof LayoutDashboard> = {
   website: Globe,
   vault: KeyRound,
   audit: Shield,
+  catalog: Landmark,
+  letters: FileSignature,
+  finance: Wallet,
 };
 
 export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
@@ -83,7 +86,9 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       ];
       for (const m of MODULES) {
         if (!granted[m.key]) continue;
-        items.push({ label: m.label, href: m.href, icon: MODULE_ICONS[m.key] ?? LayoutDashboard });
+        for (const h of m.hrefs) {
+          items.push({ label: h.label, href: h.href, icon: MODULE_ICONS[m.key] ?? LayoutDashboard });
+        }
       }
       return items;
     }
@@ -100,6 +105,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },
         { label: 'Reports', href: '/reports', icon: BarChart3 },
+        { label: 'My Assistants', href: '/staff', icon: UserPlus },
       ];
     }
 
@@ -113,6 +119,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },
         { label: 'Reports', href: '/reports', icon: BarChart3 },
+        { label: 'My Assistants', href: '/staff', icon: UserPlus },
       ];
     }
 
@@ -140,7 +147,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
       { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['ALL'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
-      { label: 'My Assistants', href: '/staff', icon: UserPlus, roles: ['MARKETING_MANAGER'] },
+      { label: 'My Assistants', href: '/staff', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Password Vault', href: '/it-vault', icon: KeyRound, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Website Content', href: '/website-cms', icon: Globe, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },

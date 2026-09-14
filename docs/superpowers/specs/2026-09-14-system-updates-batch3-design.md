@@ -6,15 +6,22 @@ with its own menu.
 
 ## 1–2. Interns / assistants (IT + Marketing)
 
-- New roles `IT_ASSISTANT`, `MARKETING_ASSISTANT`. `User.permissions` (JSON) holds
+- Assistant roles for every department except the MD (and external sub-agents):
+  `IT_ASSISTANT`, `MARKETING_ASSISTANT` (Marketing Manager's), `MARKETING_STAFF_ASSISTANT`,
+  `FINANCE_ASSISTANT`, `ADMISSIONS_ASSISTANT`, `TRAVEL_ASSISTANT`, `OPERATIONS_ASSISTANT`,
+  `BUSINESS_DEVELOPMENT_ASSISTANT`. An assistant is offered exactly its parent role's
+  modules (`ROLE_MODULES` in lib/permissions.ts) and starts at Edit on all of them
+  (sensitive ones at None); the manager narrows. `User.permissions` (JSON) holds
   `{ moduleKey: VIEW | EDIT | FULL }`; modules absent from the map are inaccessible.
 - Backend `RolesGuard` (src/common/guards/roles.guard.ts): for assistant roles the request
   path is mapped to a module key (`src/common/permissions.ts`), the HTTP verb to a level
   (GET→VIEW, POST/PUT/PATCH→EDIT, DELETE→FULL), and the matrix must grant it. The matrix
   can only narrow: an endpoint must also be open to the assistant's parent role
   (IT_ASSISTANT→IT_ADMIN, MARKETING_ASSISTANT→MARKETING_MANAGER).
-- Marketing Manager may create/edit/deactivate/reset only `MARKETING_ASSISTANT` accounts
-  (`assertActorMayManage` in staff.service). IT Admin + MD manage everyone.
+- Every department head may create/edit/deactivate/reset only their own department's
+  assistant role (`assertActorMayManage` in staff.service); the Staff page shows them just
+  that roster ("My Assistants"). IT Admin + MD manage everyone. Re-adding a deactivated
+  email revives the account instead of failing on the unique index.
 - Frontend: `lib/permissions.ts` (module registry, `can`, `pageAllowed`, `canEdit`);
   every page gate now goes through `pageAllowed(session, moduleKey, roles)`; assistant
   sidebars are generated from the matrix; `PermissionMatrix` in the staff forms.
@@ -52,7 +59,14 @@ with its own menu.
 
 ## Deployment
 
-1. `prisma migrate deploy` (3 migrations: assistant roles, system_updates_batch, backfill).
+1. `prisma migrate deploy` (4 migrations: assistant roles, system_updates_batch, backfill, assistant_roles_all_departments).
 2. Re-run the seed on production only if the demo accounts are wanted; otherwise create the
    Business Development user and assistants from Staff (IT Admin / Marketing Manager).
 3. No new environment variables.
+
+## Finance data reset (done 2026-09-14 on production)
+
+`scripts/cleanup-finance-data.mjs --apply --keep-student-money` wiped the trial finance
+books (cash book 48, bank reconciliations 2, petty cash 14, expenses 7, invoices 3,
+payroll 28) so Finance can enter real figures. The 56 student payment records were kept
+(six carried real amounts).

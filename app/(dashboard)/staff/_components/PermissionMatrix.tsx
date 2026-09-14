@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
-import { MODULES } from '@/lib/permissions';
+import { modulesForAssistant } from '@/lib/permissions';
 import { PermissionLevel, PermissionMap } from '@/types';
 
 const LEVELS: { value: PermissionLevel | 'NONE'; label: string; hint: string }[] = [
@@ -21,18 +21,21 @@ export function PermissionMatrix({
   assistantType,
   initial,
 }: {
-  assistantType: 'IT_ASSISTANT' | 'MARKETING_ASSISTANT';
+  assistantType: string;
+  /** Existing matrix when editing. Undefined = new account → starts "just like the main role" (Edit everywhere). */
   initial?: PermissionMap | null;
 }) {
+  const offered = modulesForAssistant(assistantType);
   const [values, setValues] = useState<Record<string, PermissionLevel | 'NONE'>>(
     () => {
       const v: Record<string, PermissionLevel | 'NONE'> = {};
-      for (const m of MODULES) v[m.key] = initial?.[m.key] ?? 'NONE';
+      for (const m of offered) {
+        v[m.key] = initial === undefined ? (m.sensitive ? 'NONE' : 'EDIT') : (initial?.[m.key] ?? 'NONE');
+      }
       return v;
     },
   );
 
-  const offered = MODULES.filter((m) => m.audience.includes(assistantType));
   const granted = offered.filter((m) => values[m.key] !== 'NONE').length;
 
   return (
@@ -88,8 +91,9 @@ export function PermissionMatrix({
         ))}
       </div>
       <p className="px-3 py-2 text-[11px] text-gray-500 bg-gray-50 border-t border-gray-100">
-        Modules set to <b>None</b> are hidden from this person entirely. Sensitive
-        modules are flagged — grant them only when specifically authorised.
+        The assistant is offered the same areas as the main role. Modules set to{' '}
+        <b>None</b> are hidden from this person entirely; sensitive modules start
+        at None — grant them only when specifically authorised.
       </p>
     </div>
   );

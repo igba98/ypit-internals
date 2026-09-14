@@ -19,6 +19,12 @@ const roleColors: Record<Role, { text: string; bg: string }> = {
   BUSINESS_DEVELOPMENT: { text: "#ffffff", bg: "#1e3a8a" },
   IT_ASSISTANT: { text: "#1d4ed8", bg: "#eff6ff" },
   MARKETING_ASSISTANT: { text: "#9c003d", bg: "#fdf2f8" },
+  FINANCE_ASSISTANT: { text: "#15803d", bg: "#f0fdf4" },
+  ADMISSIONS_ASSISTANT: { text: "#7c3aed", bg: "#f5f3ff" },
+  TRAVEL_ASSISTANT: { text: "#0e7490", bg: "#ecfeff" },
+  OPERATIONS_ASSISTANT: { text: "#c2410c", bg: "#fff7ed" },
+  MARKETING_STAFF_ASSISTANT: { text: "#b45309", bg: "#fffbeb" },
+  BUSINESS_DEVELOPMENT_ASSISTANT: { text: "#1e3a8a", bg: "#eff6ff" },
 };
 
 export function RoleBadge({ role, className }: RoleBadgeProps) {

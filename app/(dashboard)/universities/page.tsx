@@ -7,9 +7,8 @@ import { pageAllowed } from '@/lib/permissions';
 import { Session, University } from '@/types';
 import { Landmark, Globe2, Handshake, GraduationCap } from 'lucide-react';
 import { UniversitiesTable } from './_components/UniversitiesTable';
+import { UNI_READ_ROLES, UNI_WRITE_ROLES } from './_components/roles';
 
-export const UNI_READ_ROLES = ['BUSINESS_DEVELOPMENT', 'MARKETING_MANAGER', 'FINANCE', 'ADMISSIONS', 'MANAGING_DIRECTOR'];
-export const UNI_WRITE_ROLES = ['BUSINESS_DEVELOPMENT', 'FINANCE', 'MANAGING_DIRECTOR'];
 
 async function load(): Promise<{ universities: University[]; error: string | null }> {
   try {
@@ -27,7 +26,7 @@ export default async function UniversitiesPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!pageAllowed(session, 'business-dev', UNI_READ_ROLES)) redirect('/dashboard');
+  if (!pageAllowed(session, 'catalog', UNI_READ_ROLES)) redirect('/dashboard');
   const canEdit = UNI_WRITE_ROLES.includes(session.role);
 
   const { universities, error } = await load();

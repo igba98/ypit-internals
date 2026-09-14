@@ -7,7 +7,7 @@ import { pageAllowed } from '@/lib/permissions';
 import { Mou, Package, Session, University, UniversityPartnership } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { ArrowLeft, Globe, GraduationCap, Handshake, Mail, MapPin, Phone, ScrollText, Sparkles, UserRound } from 'lucide-react';
-import { UNI_READ_ROLES, UNI_WRITE_ROLES } from '../page';
+import { UNI_READ_ROLES, UNI_WRITE_ROLES } from '../_components/roles';
 import { EditUniversityButton } from './_components/EditUniversityButton';
 
 const PARTNERSHIP_LABEL: Record<string, string> = {
@@ -31,7 +31,7 @@ export default async function UniversityDetailPage({ params }: { params: Promise
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!pageAllowed(session, 'business-dev', UNI_READ_ROLES)) redirect('/dashboard');
+  if (!pageAllowed(session, 'catalog', UNI_READ_ROLES)) redirect('/dashboard');
   const canEdit = UNI_WRITE_ROLES.includes(session.role);
 
   const { id } = await params;

@@ -119,7 +119,7 @@ function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => voi
       {isAssistant(role) && (
         <PermissionMatrix
           key={role}
-          assistantType={role as 'IT_ASSISTANT' | 'MARKETING_ASSISTANT'}
+          assistantType={role}
           initial={staff.permissions}
         />
       )}

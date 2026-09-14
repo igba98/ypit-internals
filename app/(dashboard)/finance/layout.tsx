@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { FinanceSubNav } from './_components/FinanceSubNav';
-import { Role } from '@/types';
+import { PermissionMap, Role } from '@/types';
+import { pageAllowed } from '@/lib/permissions';
 
 const ALLOWED_ROLES: Role[] = ['FINANCE', 'MANAGING_DIRECTOR'];
 
@@ -10,14 +11,15 @@ export default async function FinanceLayout({ children }: { children: React.Reac
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
 
-  let session: { role: Role };
+  let session: { role: Role; permissions?: PermissionMap };
   try {
     session = JSON.parse(sessionCookie.value);
   } catch {
     redirect('/login');
   }
 
-  if (!ALLOWED_ROLES.includes(session.role)) {
+  // Finance + MD natively; a Finance Assistant needs the 'finance' module granted.
+  if (!pageAllowed(session, 'finance', ALLOWED_ROLES)) {
     redirect('/dashboard');
   }
 
