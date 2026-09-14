@@ -3,6 +3,7 @@ import { KPICard } from '@/components/shared/KPICard';
 import { MonitoringTable } from './_components/MonitoringTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { Activity, AlertTriangle, CheckCircle2, Users } from 'lucide-react';
 import { OperationsRecord, Session } from '@/types';
 import { backendFetch } from '@/lib/backend';
@@ -37,7 +38,7 @@ export default async function MonitoringPage() {
   const session = JSON.parse(sessionCookie.value) as Session;
 
   const allowedRoles = ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'monitoring', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadMonitoring();
 

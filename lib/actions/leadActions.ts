@@ -97,6 +97,7 @@ export async function createStudentLead(
     interestedCountry,
     whatsapp: get('whatsapp'),
     nationality: get('nationality'),
+    countryOfOrigin: get('countryOfOrigin'),
     passportNumber: get('passportNumber'),
     gender: get('gender'),
     dateOfBirth: get('dateOfBirth'),

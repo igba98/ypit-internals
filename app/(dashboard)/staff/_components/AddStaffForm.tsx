@@ -8,9 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Copy, KeyRound, Mail, MailWarning } from 'lucide-react';
+import { useSession } from '@/hooks/useSession';
+import { assignableRoles, isAssistant, ROLE_LABELS } from '@/lib/permissions';
+import { PermissionMatrix } from './PermissionMatrix';
 
 export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, formAction, isPending] = useActionState(addStaff, null);
+  const { session } = useSession();
+  // Marketing Manager can only onboard their own assistants.
+  const roles = assignableRoles(session?.role ?? '');
+  const [role, setRole] = useState<string>(roles.includes('MARKETING_STAFF') ? 'MARKETING_STAFF' : roles[0]);
 
   useEffect(() => {
     if (state?.success) {
@@ -59,16 +66,10 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="role">Role *</Label>
-          <Select id="role" name="role" required defaultValue="MARKETING_STAFF">
-            <option value="MANAGING_DIRECTOR">Managing Director</option>
-            <option value="IT_ADMIN">IT Admin</option>
-            <option value="MARKETING_MANAGER">Marketing Manager</option>
-            <option value="MARKETING_STAFF">Marketing Staff</option>
-            <option value="FINANCE">Finance</option>
-            <option value="ADMISSIONS">Admissions</option>
-            <option value="TRAVEL">Travel</option>
-            <option value="OPERATIONS">Operations</option>
-            <option value="SUB_AGENT">Sub Agent</option>
+          <Select id="role" name="role" required value={role} onChange={(e) => setRole(e.target.value)}>
+            {roles.map((r) => (
+              <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+            ))}
           </Select>
           {errors.role && <p className="text-red-500 text-xs">{errors.role[0]}</p>}
         </div>
@@ -78,6 +79,10 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
           {errors.department && <p className="text-red-500 text-xs">{errors.department[0]}</p>}
         </div>
       </div>
+
+      {isAssistant(role) && (
+        <PermissionMatrix assistantType={role as 'IT_ASSISTANT' | 'MARKETING_ASSISTANT'} />
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="baseSalary">Monthly Base Salary (TSh)</Label>

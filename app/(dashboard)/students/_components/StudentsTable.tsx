@@ -45,6 +45,14 @@ export function StudentsTable({ data }: StudentsTableProps) {
     {
       accessorKey: 'nationality',
       header: 'Nationality',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="text-gray-900">{row.original.nationality}</span>
+          {row.original.countryOfOrigin && (
+            <span className="text-xs text-gray-500">from {row.original.countryOfOrigin}</span>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: 'targetUniversity',

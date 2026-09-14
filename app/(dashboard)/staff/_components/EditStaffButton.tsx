@@ -14,6 +14,9 @@ import {
   deactivateStaff,
   resetStaffPassword,
 } from '@/lib/actions/staffActions';
+import { useSession } from '@/hooks/useSession';
+import { assignableRoles, isAssistant, ROLE_LABELS } from '@/lib/permissions';
+import { PermissionMatrix } from './PermissionMatrix';
 
 interface Props {
   staff: User;
@@ -53,6 +56,9 @@ function EditStaffPanel({ staff, onClose }: { staff: User; onClose: () => void }
 }
 
 function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => void }) {
+  const { session } = useSession();
+  const roles = assignableRoles(session?.role ?? '');
+  const [role, setRole] = useState<string>(staff.role);
   const [state, formAction, isPending] = useActionState(
     async (_prev: ActionResult | null, formData: FormData): Promise<ActionResult> =>
       updateStaff(staff.id, _prev, formData),
@@ -96,16 +102,10 @@ function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => voi
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="role">Role</Label>
-          <Select id="role" name="role" defaultValue={staff.role}>
-            <option value="MANAGING_DIRECTOR">Managing Director</option>
-            <option value="IT_ADMIN">IT Admin</option>
-            <option value="MARKETING_MANAGER">Marketing Manager</option>
-            <option value="MARKETING_STAFF">Marketing Staff</option>
-            <option value="FINANCE">Finance</option>
-            <option value="ADMISSIONS">Admissions</option>
-            <option value="TRAVEL">Travel</option>
-            <option value="OPERATIONS">Operations</option>
-            <option value="SUB_AGENT">Sub Agent</option>
+          <Select id="role" name="role" value={role} onChange={(e) => setRole(e.target.value)}>
+            {roles.map((r) => (
+              <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+            ))}
           </Select>
           {errors.role && <p className="text-red-500 text-xs">{errors.role[0]}</p>}
         </div>
@@ -115,6 +115,14 @@ function EditStaffForm({ staff, onSuccess }: { staff: User; onSuccess: () => voi
           {errors.department && <p className="text-red-500 text-xs">{errors.department[0]}</p>}
         </div>
       </div>
+
+      {isAssistant(role) && (
+        <PermissionMatrix
+          key={role}
+          assistantType={role as 'IT_ASSISTANT' | 'MARKETING_ASSISTANT'}
+          initial={staff.permissions}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">

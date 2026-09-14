@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { canEdit } from '@/lib/permissions';
 import { cookies } from 'next/headers';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, GraduationCap, Calendar, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -28,7 +29,7 @@ import { TravelChecklistCard } from '@/components/pipeline/TravelChecklistCard';
 import { ActivityEvent, buildActivity } from '@/lib/studentDetail';
 import { backendFetch } from '@/lib/backend';
 import { listStudentDocuments } from '@/lib/actions/documentActions';
-import { listStudentFollowUps } from '@/lib/actions/studentFollowUpActions';
+import { listStudentFollowUps, listAssignableStaff } from '@/lib/actions/studentFollowUpActions';
 import { FollowUpSection } from './_components/FollowUpSection';
 
 interface DetailResponse extends Student {
@@ -53,10 +54,11 @@ export default async function StudentDetailPage({
 
   const { id } = await params;
 
-  const [res, documents, followUps] = await Promise.all([
+  const [res, documents, followUps, staff] = await Promise.all([
     backendFetch(`/students/${id}/detail`),
     listStudentDocuments(id),
     listStudentFollowUps(id),
+    listAssignableStaff(),
   ]);
   if (res.status === 404) notFound();
   if (!res.ok) {
@@ -246,7 +248,8 @@ export default async function StudentDetailPage({
       <FollowUpSection
         studentId={student.id}
         followUps={followUps}
-        canEdit={['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'].includes(session.role)}
+        staff={staff}
+        canEdit={canEdit(session, 'students', ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'])}
       />
 
       <Card>

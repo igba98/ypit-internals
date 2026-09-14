@@ -14,6 +14,9 @@ export const ROLE_BASE_SALARY: Record<Role, number> = {
   OPERATIONS: 2200000,
   MARKETING_STAFF: 1500000,
   SUB_AGENT: 0, // commission-based, no base salary
+  BUSINESS_DEVELOPMENT: 2800000,
+  IT_ASSISTANT: 800000,
+  MARKETING_ASSISTANT: 800000,
 };
 
 const computeNet = (base: number, allowances = 0, deductions = 0) => {

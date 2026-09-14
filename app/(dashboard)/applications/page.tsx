@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { ApplicationsTable } from './_components/ApplicationsTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { MyQueue } from '@/components/pipeline/MyQueue';
 import { Application, ApplicationStatus, Session } from '@/types';
 import { backendFetch } from '@/lib/backend';
@@ -42,7 +43,7 @@ export default async function ApplicationsPage() {
   const session = JSON.parse(sessionCookie.value) as Session;
 
   const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'applications', allowedRoles)) redirect('/dashboard');
 
   const { items: applications, error } = await loadApplications();
 

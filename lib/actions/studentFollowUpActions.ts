@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { ActionResult, StudentFollowUp } from '@/types';
+import { ActionResult, StudentFollowUp, User } from '@/types';
 import { backendFetch } from '@/lib/backend';
 
 async function readError(res: Response): Promise<{
@@ -31,6 +31,20 @@ export async function listStudentFollowUps(studentId: string): Promise<StudentFo
   return body.items ?? [];
 }
 
+/** Staff who can own a pending action. Empty for roles without directory access. */
+export async function listAssignableStaff(): Promise<Pick<User, 'id' | 'fullName' | 'role'>[]> {
+  try {
+    const res = await backendFetch('/staff?limit=100&status=ACTIVE');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: User[] };
+    return (body.items ?? [])
+      .filter((u) => u.role !== 'SUB_AGENT')
+      .map((u) => ({ id: u.id, fullName: u.fullName, role: u.role }));
+  } catch {
+    return [];
+  }
+}
+
 export async function addStudentFollowUp(
   studentId: string,
   _prev: unknown,
@@ -42,10 +56,13 @@ export async function addStudentFollowUp(
   const body: Record<string, unknown> = {
     type: formStr(formData, 'type') ?? 'NOTE',
     outcome: formStr(formData, 'outcome') ?? 'NEUTRAL',
+    party: formStr(formData, 'party') ?? 'STUDENT',
     notes,
   };
-  const nextFollowUp = formStr(formData, 'nextFollowUp');
-  if (nextFollowUp) body.nextFollowUp = nextFollowUp;
+  for (const k of ['nextFollowUp', 'contactName', 'pendingAction', 'assignedToId'] as const) {
+    const v = formStr(formData, k);
+    if (v) body[k] = v;
+  }
 
   const res = await backendFetch(`/students/${studentId}/follow-ups`, {
     method: 'POST',
@@ -53,5 +70,36 @@ export async function addStudentFollowUp(
   });
   if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath(`/students/${studentId}`);
-  return { success: true, message: 'Follow-up logged.' };
+  revalidatePath('/follow-ups');
+  return {
+    success: true,
+    message: body.pendingAction ? 'Follow-up logged and action added to the board.' : 'Follow-up logged.',
+  };
+}
+
+export async function completeFollowUpAction(
+  id: string,
+  studentId?: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(`/follow-ups/${id}/complete`, { method: 'PATCH' });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/follow-ups');
+  if (studentId) revalidatePath(`/students/${studentId}`);
+  return { success: true, message: 'Marked as done.' };
+}
+
+export async function fetchFollowUpBoard(
+  status: 'OPEN' | 'DONE' | 'ALL' = 'OPEN',
+  assignedToId?: string,
+): Promise<StudentFollowUp[]> {
+  const params = new URLSearchParams({ status, limit: '500' });
+  if (assignedToId) params.set('assignedToId', assignedToId);
+  try {
+    const res = await backendFetch(`/follow-ups/board?${params.toString()}`);
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: StudentFollowUp[] };
+    return body.items ?? [];
+  } catch {
+    return [];
+  }
 }

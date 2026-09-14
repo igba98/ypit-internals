@@ -3,6 +3,7 @@ import { KPICard } from '@/components/shared/KPICard';
 import { TravelTable } from './_components/TravelTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { Plane, CheckCircle2, Calendar, Car } from 'lucide-react';
 import { MyQueue } from '@/components/pipeline/MyQueue';
@@ -49,7 +50,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
   const session = JSON.parse(sessionCookie.value) as Session;
 
   const allowedRoles = ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'OPERATIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'travel', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadTravel();
 

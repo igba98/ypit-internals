@@ -16,6 +16,7 @@ export function setSession(user: User): void {
     role: user.role,
     department: user.department,
     avatar: user.avatar,
+    permissions: user.permissions ?? undefined,
   };
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('ypit_session', JSON.stringify(session));

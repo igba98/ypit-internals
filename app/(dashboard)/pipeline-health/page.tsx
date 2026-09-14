@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
@@ -44,7 +45,7 @@ export default async function PipelineHealthPage({
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'monitoring', ALLOWED)) redirect('/dashboard');
 
   const { stage = 'active' } = await searchParams;
   const { items, error } = await loadStudents();

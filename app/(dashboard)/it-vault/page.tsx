@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { backendFetch } from '@/lib/backend';
@@ -38,7 +39,7 @@ export default async function ItVaultPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'vault', ALLOWED)) redirect('/dashboard');
 
   const { items, configured, error } = await load();
   const categories = new Set(items.map((c) => c.category)).size;

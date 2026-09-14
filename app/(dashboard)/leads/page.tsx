@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { Users, Trophy, AlertCircle, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,7 +74,7 @@ export default async function LeadsPage() {
     'MANAGING_DIRECTOR',
     'IT_ADMIN',
   ];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'leads', allowedRoles)) redirect('/dashboard');
 
   const { marketers, students, error } = await loadData();
 

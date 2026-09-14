@@ -3,6 +3,7 @@ import { AuditLogTable } from './_components/AuditLogTable';
 import { mockAuditLogs } from '@/lib/mock/mockAuditLogs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 
 export default async function AuditLogsPage() {
   const cookieStore = await cookies();
@@ -15,8 +16,8 @@ export default async function AuditLogsPage() {
   const session = JSON.parse(sessionCookie.value);
   
   // Role check
-  const allowedRoles = ['MANAGING_DIRECTOR'];
-  if (!allowedRoles.includes(session.role)) {
+  const allowedRoles = ['MANAGING_DIRECTOR', 'IT_ADMIN'];
+  if (!pageAllowed(session, 'audit', allowedRoles)) {
     redirect('/dashboard');
   }
 

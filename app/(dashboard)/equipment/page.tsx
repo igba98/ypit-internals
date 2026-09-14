@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { backendFetch } from '@/lib/backend';
@@ -44,7 +45,7 @@ export default async function EquipmentPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!['IT_ADMIN', 'MANAGING_DIRECTOR'].includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'equipment', ['IT_ADMIN', 'MANAGING_DIRECTOR'])) redirect('/dashboard');
 
   const { items, board, staff, error } = await load();
 

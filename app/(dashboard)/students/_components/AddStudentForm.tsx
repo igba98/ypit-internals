@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { AFRICAN_COUNTRIES_SORTED } from '@/lib/countries-africa';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
@@ -59,6 +60,19 @@ export function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
         <div className="space-y-2">
           <Label htmlFor="passportNumber">Passport Number</Label>
           <Input id="passportNumber" name="passportNumber" placeholder="Optional" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="countryOfOrigin">Country of origin *</Label>
+          <Select id="countryOfOrigin" name="countryOfOrigin" defaultValue="Tanzania" required>
+            {AFRICAN_COUNTRIES_SORTED.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+            <option value="Other (non-African)">Other (non-African)</option>
+          </Select>
+          <p className="text-[11px] text-gray-500">Where the student was recruited from - drives the African recruitment report.</p>
         </div>
       </div>
 

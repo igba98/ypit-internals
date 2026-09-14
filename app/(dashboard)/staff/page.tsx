@@ -3,6 +3,7 @@ import { KPICard } from '@/components/shared/KPICard';
 import { StaffTable } from './_components/StaffTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { Users, UserCheck, UserX, Shield } from 'lucide-react';
 import { AddStaffButton } from './_components/AddStaffButton';
 import { backendFetch } from '@/lib/backend';
@@ -31,9 +32,14 @@ export default async function StaffPage() {
 
   const session = JSON.parse(sessionCookie.value);
   const allowedRoles = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'IT_ADMIN'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'staff', allowedRoles)) redirect('/dashboard');
 
-  const { items: staff, error } = await loadStaff();
+  const { items: allStaff, error } = await loadStaff();
+  // Marketing Manager's version of this page is their assistant roster only.
+  const staff =
+    session.role === 'MARKETING_MANAGER'
+      ? allStaff.filter((u) => u.role === 'MARKETING_ASSISTANT')
+      : allStaff;
 
   const totalStaff = staff.length;
   const activeStaff = staff.filter(u => u.status === 'ACTIVE').length;

@@ -52,14 +52,14 @@ export function StudentTabs({ detail, userRole }: StudentTabsProps) {
       label: 'Travel',
       icon: Plane,
       badge: detail.travel?.travelStatus === 'TRAVELLED' ? 'Travelled' : detail.travel?.travelStatus === 'READY' ? 'Ready' : undefined,
-      roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'TRAVEL', 'MARKETING_STAFF', 'SUB_AGENT'],
+      roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'TRAVEL', 'MARKETING_STAFF', 'SUB_AGENT', 'OPERATIONS'],
     },
     {
       id: 'documents',
       label: 'Documents',
       icon: File,
       count: detail.documents.length || undefined,
-      roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'MARKETING_STAFF', 'SUB_AGENT'],
+      roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'TRAVEL', 'MARKETING_STAFF', 'SUB_AGENT', 'OPERATIONS'],
     },
     {
       id: 'activity',

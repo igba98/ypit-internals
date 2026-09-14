@@ -3,6 +3,7 @@ import { KPICard } from '@/components/shared/KPICard';
 import { PaymentsTable } from './_components/PaymentsTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { RecordPaymentButton } from './_components/RecordPaymentButton';
 import { formatCurrency } from '@/lib/format';
@@ -48,7 +49,7 @@ export default async function PaymentsPage() {
   const session = JSON.parse(sessionCookie.value);
 
   const allowedRoles = ['FINANCE', 'MANAGING_DIRECTOR'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'finance', allowedRoles)) redirect('/dashboard');
 
   const [{ items: payments, error }, studentOptions] = await Promise.all([
     loadPayments(),

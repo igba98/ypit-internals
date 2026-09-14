@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { formatCurrency } from '@/lib/format';
 import { formatDate } from '@/lib/utils';
@@ -75,7 +76,7 @@ export default async function ReconciliationPage({
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'finance', ['FINANCE', 'MANAGING_DIRECTOR'])) redirect('/dashboard');
 
   const params = await searchParams;
   const mode = params.mode === 'month' ? 'month' : 'day';

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
@@ -14,8 +15,8 @@ import {
 import { EventsSection } from './_components/EventsSection';
 import { PartnershipsSection } from './_components/PartnershipsSection';
 
-const ALLOWED = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'];
-const CAN_EDIT = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'];
+const ALLOWED = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'BUSINESS_DEVELOPMENT'];
+const CAN_EDIT = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'BUSINESS_DEVELOPMENT'];
 
 async function load(): Promise<{
   events: BdEvent[];
@@ -55,7 +56,7 @@ export default async function BusinessDevelopmentPage({
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'business-dev', ALLOWED)) redirect('/dashboard');
   const canEdit = CAN_EDIT.includes(session.role);
 
   const { tab = 'events' } = await searchParams;

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
@@ -74,7 +75,7 @@ export default async function StudentLeadsPage({
     role: string;
     userId: string;
   };
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'leads', ALLOWED)) redirect('/dashboard');
 
   const { status = 'all' } = await searchParams;
   const { items, error } = await load(status);

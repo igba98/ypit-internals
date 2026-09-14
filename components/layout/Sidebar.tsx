@@ -30,9 +30,35 @@ import {
   Globe,
   ScrollText,
   Briefcase,
+  School,
+  Building2,
+  Landmark,
+  ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MODULES, isAssistant } from '@/lib/permissions';
 import { useState, useEffect } from 'react';
+
+const MODULE_ICONS: Record<string, typeof LayoutDashboard> = {
+  students: Users,
+  leads: UserPlus,
+  enquiries: Inbox,
+  communication: MessageSquare,
+  'business-dev': Briefcase,
+  subagents: Users,
+  partners: School,
+  mous: ScrollText,
+  applications: FileText,
+  travel: Plane,
+  monitoring: Activity,
+  tasks: CheckSquare,
+  reports: BarChart3,
+  staff: Users,
+  equipment: Laptop,
+  website: Globe,
+  vault: KeyRound,
+  audit: Shield,
+};
 
 export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
   const { session } = useSession();
@@ -48,6 +74,35 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
   if (!session) return null;
 
   const getNavItems = () => {
+    // Assistants / interns: the menu IS their permission matrix — a module
+    // appears only when their manager granted at least View.
+    if (isAssistant(session.role)) {
+      const granted = session.permissions ?? {};
+      const items: { label: string; href: string; icon: typeof LayoutDashboard }[] = [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      ];
+      for (const m of MODULES) {
+        if (!granted[m.key]) continue;
+        items.push({ label: m.label, href: m.href, icon: MODULE_ICONS[m.key] ?? LayoutDashboard });
+      }
+      return items;
+    }
+
+    // Business team: a separate interface from the RO/Operations one.
+    if (session.role === 'BUSINESS_DEVELOPMENT') {
+      return [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'Business Dev', href: '/business-development', icon: Briefcase },
+        { label: 'Subagents', href: '/subagents', icon: Users },
+        { label: 'Schools & Contracts', href: '/schools', icon: School },
+        { label: 'Universities', href: '/universities', icon: Landmark },
+        { label: 'Company Collaborations', href: '/companies', icon: Building2 },
+        { label: 'MOUs', href: '/mous', icon: ScrollText },
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { label: 'Reports', href: '/reports', icon: BarChart3 },
+      ];
+    }
+
     // FINANCE role gets a focused sidebar: just the things relevant to them.
     if (session.role === 'FINANCE') {
       return [
@@ -69,6 +124,9 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'] },
       { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
       { label: 'Business Dev', href: '/business-development', icon: Briefcase, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
+      { label: 'Schools & Contracts', href: '/schools', icon: School, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Universities', href: '/universities', icon: Landmark, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Company Collaborations', href: '/companies', icon: Building2, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
@@ -77,10 +135,12 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Admission Letters', href: '/admission-letters', icon: FileSignature, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'] },
       { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Follow-ups', href: '/follow-ups', icon: ListChecks, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL'] },
       { label: 'Pipeline Health', href: '/pipeline-health', icon: Gauge, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
       { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['ALL'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
+      { label: 'My Assistants', href: '/staff', icon: UserPlus, roles: ['MARKETING_MANAGER'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Password Vault', href: '/it-vault', icon: KeyRound, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Website Content', href: '/website-cms', icon: Globe, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },

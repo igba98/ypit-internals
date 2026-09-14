@@ -32,6 +32,9 @@ const ROLE_SECTIONS: Record<Role, SectionId[]> = {
   TRAVEL: ['trend', 'destinations', 'pipeline'],
   OPERATIONS: ['wellbeing', 'pipeline', 'trend'],
   IT_ADMIN: ['trend', 'pipeline'],
+  BUSINESS_DEVELOPMENT: ['trend', 'destinations', 'pipeline'],
+  IT_ASSISTANT: ['trend', 'pipeline'],
+  MARKETING_ASSISTANT: ['trend', 'pipeline', 'destinations'],
 };
 
 export function ReportsDashboard({ data, role }: { data: ReportsOverview; role: Role }) {

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { backendFetch } from '@/lib/backend';
@@ -8,7 +9,7 @@ import { ScrollText, CheckCircle2, AlertTriangle, CalendarX } from 'lucide-react
 import { MouTable } from './_components/MouTable';
 import { AddMouButton } from './_components/MouForm';
 
-const ALLOWED = ['FINANCE', 'MANAGING_DIRECTOR'];
+const ALLOWED = ['FINANCE', 'MANAGING_DIRECTOR', 'BUSINESS_DEVELOPMENT'];
 const EXPIRY_WARN_DAYS = 60;
 
 /** Module-level so the component render stays pure (react-hooks/purity). */
@@ -70,8 +71,10 @@ export default async function MousPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'mous', ALLOWED)) redirect('/dashboard');
 
+  // Business Development reads MOUs; only Finance + CEO create/edit them.
+  const canWrite = ['FINANCE', 'MANAGING_DIRECTOR'].includes(session.role);
   const { mous, universities, error } = await load();
   const { active, expiringSoon, expired } = computeExpiryStats(mous);
 
@@ -79,8 +82,8 @@ export default async function MousPage() {
     <div className="space-y-6">
       <PageHeader
         title="MOU Documents"
-        description="Memorandums of Understanding with universities - visible to Finance and the CEO only."
-        actions={<AddMouButton universities={universities} />}
+        description="Memorandums of Understanding with universities - managed by Finance and the CEO; Business Development can view."
+        actions={canWrite ? <AddMouButton universities={universities} /> : undefined}
       />
 
       {error && (

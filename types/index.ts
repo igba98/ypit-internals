@@ -7,9 +7,16 @@ export const ROLES = {
   TRAVEL: 'TRAVEL',
   OPERATIONS: 'OPERATIONS',
   MARKETING_STAFF: 'MARKETING_STAFF',
-  SUB_AGENT: 'SUB_AGENT'
+  SUB_AGENT: 'SUB_AGENT',
+  BUSINESS_DEVELOPMENT: 'BUSINESS_DEVELOPMENT',
+  IT_ASSISTANT: 'IT_ASSISTANT',
+  MARKETING_ASSISTANT: 'MARKETING_ASSISTANT',
 } as const;
 export type Role = typeof ROLES[keyof typeof ROLES];
+
+/** Assistant accounts: per-module access set by their manager. */
+export type PermissionLevel = 'VIEW' | 'EDIT' | 'FULL';
+export type PermissionMap = Record<string, PermissionLevel>;
 
 export const PIPELINE_STAGES = {
   LEAD: 'LEAD',
@@ -76,6 +83,8 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   /** Default monthly base salary in TZS - used by payroll generation. */
   baseSalary?: number;
+  /** Assistant roles only: manager-set module matrix. */
+  permissions?: PermissionMap | null;
   lastLogin?: string;
   createdAt: string;
   createdBy?: string;
@@ -88,9 +97,13 @@ export interface Session {
   role: Role;
   department: string;
   avatar?: string;
+  /** Present for assistant roles only. */
+  permissions?: PermissionMap;
 }
 
 export interface Student {
+  /** Normalised recruitment country (African recruitment tracking). */
+  countryOfOrigin?: string | null;
   id: string;
   fullName: string;
   avatar?: string;
@@ -122,6 +135,7 @@ export interface Student {
 }
 
 export interface Lead {
+  countryOfOrigin?: string | null;
   id: string;
   fullName: string;
   phone: string;
@@ -628,6 +642,13 @@ export type StudyLevel = 'FOUNDATION' | 'BACHELOR' | 'MASTERS' | 'PHD' | 'DIPLOM
 export type CatalogStatus = 'ACTIVE' | 'ARCHIVED';
 
 export interface University {
+  /** Local (Tanzania) vs international - University Management. */
+  scope?: 'LOCAL' | 'INTERNATIONAL';
+  partnership?: { status: PartnershipStatus; lastContactAt?: string | null } | null;
+  _count?: { packages: number; mous: number };
+  website?: string | null;
+  programsSummary?: string | null;
+  scholarshipNotes?: string | null;
   id: string;                       // uni_coventry_london
   name: string;                     // "Coventry University London"
   country: string;                  // "United Kingdom"
@@ -979,6 +1000,9 @@ export interface ReportsOverview {
 export type FollowUpType = 'CALL' | 'WHATSAPP' | 'EMAIL' | 'MEETING' | 'NOTE';
 export type FollowUpOutcome = 'POSITIVE' | 'NEUTRAL' | 'NEEDS_ATTENTION' | 'NO_RESPONSE';
 
+export type FollowUpParty = 'STUDENT' | 'PARENT' | 'UNIVERSITY' | 'INTERNAL';
+export type FollowUpActionStatus = 'OPEN' | 'DONE';
+
 export interface StudentFollowUp {
   id: string;
   studentId: string;
@@ -986,8 +1010,26 @@ export interface StudentFollowUp {
   outcome: FollowUpOutcome;
   notes: string;
   nextFollowUp?: string | null;
+  /** RO chain: who was contacted. */
+  party: FollowUpParty;
+  contactName?: string | null;
+  /** Pending action + owner. Null action = pure log entry. */
+  pendingAction?: string | null;
+  actionStatus?: FollowUpActionStatus | null;
+  assignedToId?: string | null;
+  assignedToName?: string | null;
+  completedAt?: string | null;
   createdByName: string;
   createdAt: string;
+  /** Joined on the cross-student board. */
+  student?: {
+    id: string;
+    fullName: string;
+    registrationNumber: string;
+    pipelineStage: PipelineStage;
+    phone: string;
+    targetUniversity: string;
+  };
 }
 
 // ── Phase 9: Website enquiries (public site → back-office) ───────
@@ -1216,4 +1258,107 @@ export interface CompanyCredential {
   updatedByName?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// ── System updates batch: Schools & Companies ─────────────────────
+
+export type PartnerKind = 'SCHOOL' | 'COMPANY';
+export type PartnerStatus = 'PROSPECT' | 'ACTIVE' | 'INACTIVE' | 'ENDED';
+export type PartnerContractStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED';
+
+export interface PartnerContract {
+  id: string;
+  partnerId: string;
+  title: string;
+  description?: string | null;
+  status: PartnerContractStatus;
+  signedDate?: string | null;
+  startDate?: string | null;
+  expiryDate?: string | null;
+  storageKey?: string | null;
+  originalName?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByName?: string | null;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PartnerFollowUp {
+  id: string;
+  partnerId: string;
+  notes: string;
+  nextActionAt?: string | null;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface Partner {
+  id: string;
+  kind: PartnerKind;
+  name: string;
+  category?: string | null;
+  country?: string | null;
+  city?: string | null;
+  address?: string | null;
+  website?: string | null;
+  contactName?: string | null;
+  contactRole?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  status: PartnerStatus;
+  startDate?: string | null;
+  expiryDate?: string | null;
+  notes?: string | null;
+  lastContactAt?: string | null;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+  /** List view: light contract summary. Detail view: full rows. */
+  contracts?: Pick<PartnerContract, 'id' | 'status' | 'expiryDate'>[] | PartnerContract[];
+  followUps?: PartnerFollowUp[];
+  _count?: { followUps: number };
+}
+
+// ── System updates batch: new printable reports ───────────────────
+
+export interface RecruitmentReport {
+  year: number;
+  months: { key: string; label: string; short: string; students: number; leads: number }[];
+  countries: {
+    country: string;
+    students: number;
+    leads: number;
+    travelled: number;
+    leadsConverted: number;
+    byMonth: number[];
+  }[];
+  activities: { country: string; events: number; leadsGenerated: number }[];
+  topCountry: { country: string; students: number } | null;
+  totals: { students: number; leads: number; countries: number; unspecified: number; events: number };
+  generatedAt: string;
+}
+
+export interface SubagentReport {
+  year: number;
+  months: { key: string; label: string; short: string; students: number }[];
+  agents: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    contractStatus: string | null;
+    contractEnd?: string | null;
+    commissionTerms?: string | null;
+    studentTarget: number;
+    leads: number;
+    leadsConverted: number;
+    students: number;
+    travelled: number;
+    progressPct: number | null;
+  }[];
+  topAgent: { name: string; students: number } | null;
+  totals: { agents: number; activeContracts: number; students: number; travelled: number; leads: number };
+  generatedAt: string;
 }

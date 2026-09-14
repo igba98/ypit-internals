@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { SubagentsList } from './_components/SubagentsList';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { backendFetch } from '@/lib/backend';
 import { Session, SubAgentSummary } from '@/types';
 import { KPICard } from '@/components/shared/KPICard';
@@ -24,8 +25,8 @@ export default async function SubagentsPage() {
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
+  if (!pageAllowed(session, 'subagents', allowedRoles)) redirect('/dashboard');
 
   const { items: subagents, error } = await loadSubagents();
 

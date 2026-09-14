@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
@@ -57,7 +58,7 @@ export default async function EnquiriesPage({
   const session = JSON.parse(sessionCookie.value) as Session;
 
   const allowed = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'];
-  if (!allowed.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'enquiries', allowed)) redirect('/dashboard');
 
   const { status = 'all', type = 'all' } = await searchParams;
   const { items, newCount, error } = await load(status, type);

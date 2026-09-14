@@ -15,7 +15,10 @@ const roleColors: Record<Role, { text: string; bg: string }> = {
   TRAVEL: { text: "#0e7490", bg: "#cffafe" },
   OPERATIONS: { text: "#c2410c", bg: "#ffedd5" },
   MARKETING_STAFF: { text: "#b45309", bg: "#fef3c7" },
-  SUB_AGENT: { text: "#374151", bg: "#f3f4f6" }
+  SUB_AGENT: { text: "#374151", bg: "#f3f4f6" },
+  BUSINESS_DEVELOPMENT: { text: "#ffffff", bg: "#1e3a8a" },
+  IT_ASSISTANT: { text: "#1d4ed8", bg: "#eff6ff" },
+  MARKETING_ASSISTANT: { text: "#9c003d", bg: "#fdf2f8" },
 };
 
 export function RoleBadge({ role, className }: RoleBadgeProps) {

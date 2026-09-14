@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { Session } from '@/types';
@@ -15,7 +16,7 @@ export default async function WebsiteCmsPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!ALLOWED.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'website', ALLOWED)) redirect('/dashboard');
 
   const rows = await listSiteContent();
   const byKey = new Map(rows.map((r) => [r.key, r]));

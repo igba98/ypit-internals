@@ -24,6 +24,7 @@ interface LoginResponse {
     department: string;
     avatar: string | null;
     mustChangePassword: boolean;
+    permissions?: Record<string, 'VIEW' | 'EDIT' | 'FULL'>;
   };
 }
 
@@ -68,6 +69,8 @@ export async function validateLogin(formData: FormData): Promise<ActionResult> {
     role: body.user.role,
     department: body.user.department,
     avatar: body.user.avatar ?? undefined,
+    // Assistants: manager-set module matrix (drives sidebar + page gates).
+    permissions: body.user.permissions,
   };
 
   const cookieStore = await cookies();
@@ -100,6 +103,7 @@ export async function validateLogin(formData: FormData): Promise<ActionResult> {
       department: body.user.department,
       avatar: body.user.avatar ?? undefined,
       mustChangePassword: body.user.mustChangePassword,
+      permissions: body.user.permissions,
     },
   };
 }

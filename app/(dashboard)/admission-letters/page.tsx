@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { backendFetch } from '@/lib/backend';
@@ -61,7 +62,7 @@ export default async function AdmissionLettersPage() {
   const session = JSON.parse(sessionCookie.value) as Session;
 
   const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  if (!pageAllowed(session, 'letters', allowedRoles)) redirect('/dashboard');
   const canEdit = ['ADMISSIONS', 'MANAGING_DIRECTOR'].includes(session.role);
 
   const { templates, notices, students, error } = await load();

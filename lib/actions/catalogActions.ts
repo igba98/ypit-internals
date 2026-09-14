@@ -57,6 +57,10 @@ export async function createUniversity(
     contactName: formStr(formData, 'contactName'),
     contactEmail: formStr(formData, 'contactEmail'),
     contactPhone: formStr(formData, 'contactPhone'),
+    scope: formStr(formData, 'scope') ?? 'INTERNATIONAL',
+    website: formStr(formData, 'website'),
+    programsSummary: formStr(formData, 'programsSummary'),
+    scholarshipNotes: formStr(formData, 'scholarshipNotes'),
   };
   const months = formArr(formData, 'defaultReportingMonths');
   if (months.length > 0) body.defaultReportingMonths = months;
@@ -67,6 +71,7 @@ export async function createUniversity(
   });
   if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/catalog');
+  revalidatePath('/universities');
   return { success: true, message: 'University added.' };
 }
 
@@ -75,9 +80,13 @@ export async function updateUniversity(
   formData: FormData,
 ): Promise<ActionResult> {
   const body: Record<string, unknown> = {};
-  for (const f of ['name', 'country', 'city', 'contactName', 'contactEmail', 'contactPhone']) {
+  for (const f of ['name', 'country', 'city', 'contactName', 'contactEmail', 'contactPhone', 'scope']) {
     const v = formStr(formData, f);
     if (v !== undefined) body[f] = v;
+  }
+  // Long-text fields: an emptied textarea clears the value (null), not "unchanged".
+  for (const f of ['website', 'programsSummary', 'scholarshipNotes']) {
+    if (formData.has(f)) body[f] = formStr(formData, f) ?? null;
   }
   const months = formArr(formData, 'defaultReportingMonths');
   if (months.length > 0) body.defaultReportingMonths = months;
@@ -88,6 +97,7 @@ export async function updateUniversity(
   });
   if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidatePath('/finance/catalog');
+  revalidatePath('/universities');
   return { success: true, message: 'University updated.' };
 }
 

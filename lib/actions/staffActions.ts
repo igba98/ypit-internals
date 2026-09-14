@@ -17,6 +17,15 @@ async function readError(res: Response): Promise<{
   };
 }
 
+/** Collect `perm.<module>` inputs from the PermissionMatrix into a map. */
+function formPermissions(formData: FormData): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of formData.entries()) {
+    if (k.startsWith('perm.') && typeof v === 'string' && v) out[k.slice(5)] = v;
+  }
+  return out;
+}
+
 function formStr(formData: FormData, key: string): string | undefined {
   const v = formData.get(key);
   if (typeof v !== 'string') return undefined;
@@ -42,6 +51,10 @@ export async function addStaff(
     department: formStr(formData, 'department'),
     phone: formStr(formData, 'phone'),
   };
+  const role = formStr(formData, 'role');
+  if (role === 'IT_ASSISTANT' || role === 'MARKETING_ASSISTANT') {
+    body.permissions = formPermissions(formData);
+  }
 
   const res = await backendFetch('/staff', {
     method: 'POST',
@@ -93,6 +106,12 @@ export async function updateStaff(
   const status = formStr(formData, 'status');
   if (status === 'ACTIVE' || status === 'INACTIVE' || status === 'SUSPENDED') {
     body.status = status;
+  }
+  // Always send the matrix for assistants — an empty map means "revoke all",
+  // which is a deliberate manager action, not a missing field.
+  const role = formStr(formData, 'role');
+  if (role === 'IT_ASSISTANT' || role === 'MARKETING_ASSISTANT') {
+    body.permissions = formPermissions(formData);
   }
 
   const res = await backendFetch(`/staff/${staffId}`, {

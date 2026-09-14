@@ -1,6 +1,7 @@
 import { Avatar } from '@/components/shared/Avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { notFound, redirect } from 'next/navigation';
+import { pageAllowed } from '@/lib/permissions';
 import { cookies } from 'next/headers';
 import { Mail, Phone, Calendar, Plane, Target, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
@@ -46,10 +47,10 @@ export default async function SubagentDetailsPage({
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'];
-  if (!allowedRoles.includes(session.role)) redirect('/dashboard');
+  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
+  if (!pageAllowed(session, 'subagents', allowedRoles)) redirect('/dashboard');
 
-  const canEdit = ['MANAGING_DIRECTOR', 'OPERATIONS'].includes(session.role);
+  const canEdit = ['MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'].includes(session.role);
 
   const { id } = await params;
   const { view = 'all' } = await searchParams;
