@@ -1,5 +1,7 @@
+import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { SubagentsList } from './_components/SubagentsList';
+import { AddSubagentButton } from './_components/AddSubagentButton';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { pageAllowed } from '@/lib/permissions';
@@ -28,6 +30,7 @@ export default async function SubagentsPage() {
   const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
   if (!pageAllowed(session, 'subagents', allowedRoles)) redirect('/dashboard');
 
+  const canAdd = ['BUSINESS_DEVELOPMENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'IT_ADMIN'].includes(session.role);
   const { items: subagents, error } = await loadSubagents();
 
   const activeContracts = subagents.filter((s) => s.contract?.status === 'ACTIVE').length;
@@ -38,7 +41,8 @@ export default async function SubagentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Subagents Management"
-        description="Contracts, KPI targets, and student attribution for partner agents."
+        description="Recruit sub-agents, share their application link, and track contracts and KPIs."
+        actions={canAdd ? <AddSubagentButton /> : undefined}
       />
 
       {error && (
@@ -53,6 +57,12 @@ export default async function SubagentsPage() {
         <KPICard label="Students Recruited" value={totalRecruited} icon={Target} />
         <KPICard label="Students Travelled" value={totalTravelled} icon={Plane} />
       </div>
+
+      <p className="text-xs text-gray-600 bg-blue-50/60 border border-blue-100 rounded-lg px-3 py-2">
+        Share each agent&apos;s <b>application link</b> - applications submitted through it (or with the agent code typed in)
+        arrive in Website Enquiries already credited to that agent. Full KPIs are under{' '}
+        <Link href="/leads?kind=SUB_AGENT" className="text-primary hover:underline">Sub-agent KPIs</Link>.
+      </p>
 
       <SubagentsList subagents={subagents} />
     </div>

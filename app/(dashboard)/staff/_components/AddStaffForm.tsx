@@ -11,12 +11,20 @@ import { Copy, KeyRound, Mail, MailWarning } from 'lucide-react';
 import { useSession } from '@/hooks/useSession';
 import { assignableRoles, isAssistant, ROLE_LABELS } from '@/lib/permissions';
 import { PermissionMatrix } from './PermissionMatrix';
+import { Role } from '@/types';
 
-export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
+export function AddStaffForm({
+  onSuccess,
+  presetRole,
+}: {
+  onSuccess: () => void;
+  /** Lock the role (e.g. SUB_AGENT from the Subagents page). */
+  presetRole?: string;
+}) {
   const [state, formAction, isPending] = useActionState(addStaff, null);
   const { session } = useSession();
-  // Marketing Manager can only onboard their own assistants.
-  const roles = assignableRoles(session?.role ?? '');
+  // Department heads can only onboard their own assistants (BD / MM also sub-agents).
+  const roles = presetRole ? [presetRole as Role] : assignableRoles(session?.role ?? '');
   const [role, setRole] = useState<string>(roles.includes('MARKETING_STAFF') ? 'MARKETING_STAFF' : roles[0]);
 
   useEffect(() => {
@@ -75,7 +83,7 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="department">Department *</Label>
-          <Input id="department" name="department" placeholder="e.g. Marketing" required />
+          <Input id="department" name="department" placeholder="e.g. Marketing" defaultValue={presetRole === 'SUB_AGENT' ? 'Sub-agents' : undefined} required />
           {errors.department && <p className="text-red-500 text-xs">{errors.department[0]}</p>}
         </div>
       </div>
@@ -84,7 +92,7 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
         <PermissionMatrix assistantType={role} />
       )}
 
-      <div className="space-y-2">
+      {role !== 'SUB_AGENT' && <div className="space-y-2">
         <Label htmlFor="baseSalary">Monthly Base Salary (TSh)</Label>
         <Input
           id="baseSalary"
@@ -97,7 +105,13 @@ export function AddStaffForm({ onSuccess }: { onSuccess: () => void }) {
         <p className="text-[11px] text-gray-500">
           Used by payroll generation. Leave blank to set later.
         </p>
-      </div>
+      </div>}
+      {role === 'SUB_AGENT' && (
+        <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
+          An <b>agent code</b> is generated automatically. Students who apply on the website with that code
+          (or through the agent&apos;s application link) are credited to this sub-agent.
+        </p>
+      )}
 
       <div className="rounded-lg bg-blue-50/60 border border-blue-100 p-3 text-xs text-blue-900 flex items-start gap-2">
         <KeyRound className="w-4 h-4 mt-0.5 shrink-0" />

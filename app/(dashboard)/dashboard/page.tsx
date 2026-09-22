@@ -19,7 +19,9 @@ import { formatDate } from '@/lib/utils';
 import { MyQueue } from '@/components/pipeline/MyQueue';
 import { Avatar } from '@/components/shared/Avatar';
 import { backendFetch } from '@/lib/backend';
-import { ReportsOverview, Session, Student } from '@/types';
+import { PerformanceReport, ReportsOverview, Session, Student } from '@/types';
+import { PerformanceStrip } from '@/components/performance/PerformanceStrip';
+import { isRO } from '@/lib/permissions';
 import { MonthlyIntakeChart, PipelineDonut } from './_components/DashboardCharts';
 
 async function loadOverview(): Promise<ReportsOverview | null> {
@@ -45,6 +47,16 @@ async function loadRecentStudents(): Promise<Student[]> {
   }
 }
 
+async function loadMyPerformance(kind: 'RO' | 'SUB_AGENT'): Promise<PerformanceReport | null> {
+  try {
+    const res = await backendFetch(`/reports/performance?kind=${kind}`);
+    if (!res.ok) return null;
+    return (await res.json()) as PerformanceReport;
+  } catch {
+    return null;
+  }
+}
+
 /** "+3 vs last month" style delta from the last two trend buckets. */
 function delta(series: number[]): { trend?: string; direction?: 'up' | 'down' } {
   if (series.length < 2) return {};
@@ -63,9 +75,11 @@ export default async function DashboardPage() {
   const session = JSON.parse(sessionCookie.value) as Session;
   const today = format(new Date(), 'EEEE, MMMM d, yyyy');
 
-  const [overview, recentStudents] = await Promise.all([
+  const perfKind = isRO(session.role) ? 'RO' : session.role === 'SUB_AGENT' ? 'SUB_AGENT' : null;
+  const [overview, recentStudents, myPerf] = await Promise.all([
     loadOverview(),
     loadRecentStudents(),
+    perfKind ? loadMyPerformance(perfKind) : Promise.resolve(null),
   ]);
 
   const m = overview?.keyMetrics;
@@ -80,6 +94,8 @@ export default async function DashboardPage() {
         title={`Welcome back, ${session.fullName.split(' ')[0]}`}
         description={today}
       />
+
+      {myPerf?.rows[0] && <PerformanceStrip row={myPerf.rows[0]} subtitle="All time" />}
 
       <MyQueue session={session} />
 

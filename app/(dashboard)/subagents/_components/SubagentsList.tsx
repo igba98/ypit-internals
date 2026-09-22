@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ContractStatus, SubAgentSummary } from '@/types';
 import { Avatar } from '@/components/shared/Avatar';
+import { AgentLink } from '@/components/shared/AgentLink';
 import { Mail, Phone, ExternalLink, Plane } from 'lucide-react';
 
 const CONTRACT_BADGE: Record<ContractStatus, string> = {
@@ -28,6 +29,7 @@ export function SubagentsList({ subagents }: { subagents: SubAgentSummary[] }) {
           <thead>
             <tr className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
               <th className="px-5 py-3 font-medium">Subagent</th>
+              <th className="px-5 py-3 font-medium">Agent code</th>
               <th className="px-5 py-3 font-medium">Contact</th>
               <th className="px-5 py-3 font-medium">Contract</th>
               <th className="px-5 py-3 font-medium">KPI Progress</th>
@@ -51,6 +53,9 @@ export function SubagentsList({ subagents }: { subagents: SubAgentSummary[] }) {
                         </span>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <AgentLink code={agent.agentCode} />
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-col gap-1 text-xs text-gray-600">

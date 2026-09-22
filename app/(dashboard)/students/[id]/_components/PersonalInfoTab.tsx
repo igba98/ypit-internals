@@ -1,5 +1,6 @@
 import { Student } from '@/types';
 import { formatDate } from '@/lib/utils';
+import { BackgroundEditor } from './BackgroundEditor';
 import {
   User as UserIcon,
   Mail,
@@ -18,6 +19,7 @@ import {
 
 interface PersonalInfoTabProps {
   student: Student;
+  canEditBackground?: boolean;
 }
 
 interface InfoRowProps {
@@ -61,7 +63,7 @@ function SectionHeader({ icon: Icon, title, description }: { icon: React.Element
   );
 }
 
-export function PersonalInfoTab({ student }: PersonalInfoTabProps) {
+export function PersonalInfoTab({ student, canEditBackground = false }: PersonalInfoTabProps) {
   return (
     <div className="space-y-8">
       <section>
@@ -73,6 +75,10 @@ export function PersonalInfoTab({ student }: PersonalInfoTabProps) {
           <InfoRow icon={Calendar} label="Date of Birth" value={`${formatDate(student.dateOfBirth)} · ${student.age} yrs`} />
           <InfoRow icon={UserIcon} label="Gender" value={student.gender.charAt(0) + student.gender.slice(1).toLowerCase()} />
           <InfoRow icon={IdCard} label="Passport No." value={student.passportNumber} />
+          <InfoRow icon={MapPin} label="Country of origin" value={student.countryOfOrigin} />
+        </div>
+        <div className="mt-3">
+          <BackgroundEditor studentId={student.id} previousSchool={student.previousSchool} canEdit={canEditBackground} />
         </div>
       </section>
 

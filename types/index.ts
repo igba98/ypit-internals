@@ -78,6 +78,8 @@ export type ReportPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
 export type NotificationType = 'TASK_ASSIGNED' | 'REPORT_SUBMITTED' | 'TASK_REVIEWED' | 'STAGE_CHANGED' | 'PAYMENT_RECORDED' | 'SYSTEM_ALERT' | 'DOCUMENT_UPLOADED' | 'CHECK_IN_LOGGED';
 
 export interface User {
+  /** SUB_AGENT only: code students type on the website application. */
+  agentCode?: string | null;
   id: string;
   fullName: string;
   email: string;
@@ -108,6 +110,8 @@ export interface Session {
 }
 
 export interface Student {
+  /** School / college attended before applying. */
+  previousSchool?: string | null;
   /** Normalised recruitment country (African recruitment tracking). */
   countryOfOrigin?: string | null;
   id: string;
@@ -141,6 +145,7 @@ export interface Student {
 }
 
 export interface Lead {
+  previousSchool?: string | null;
   countryOfOrigin?: string | null;
   id: string;
   fullName: string;
@@ -731,6 +736,7 @@ export interface StudentFeeLedger {
 export type GuardianRelation = 'MOTHER' | 'FATHER' | 'GUARDIAN' | 'SPONSOR' | 'OTHER';
 
 export interface Guardian {
+  occupation?: string | null;
   id: string;
   studentId: string;
   fullName: string;
@@ -918,6 +924,7 @@ export interface SubAgentStats {
 }
 
 export interface SubAgentSummary {
+  agentCode?: string | null;
   id: string;
   fullName: string;
   email: string;
@@ -1044,6 +1051,9 @@ export type EnquiryType = 'CONTACT' | 'BOOKING' | 'APPLICATION';
 export type EnquiryStatus = 'NEW' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED';
 
 export interface WebsiteEnquiry {
+  agentCode?: string | null;
+  agentId?: string | null;
+  agentName?: string | null;
   id: string;
   reference: string;                // WEB-2026-0001
   type: EnquiryType;
@@ -1367,4 +1377,100 @@ export interface SubagentReport {
   topAgent: { name: string; students: number } | null;
   totals: { agents: number; activeContracts: number; students: number; travelled: number; leads: number };
   generatedAt: string;
+}
+
+// ── System updates 2.0 ────────────────────────────────────────────
+
+export interface PerformanceRow {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  agentCode?: string | null;
+  leadsGiven: number;
+  contacted: number;
+  converted: number;
+  enrolled: number;
+  travelled: number;
+  lost: number;
+  conversionRate: number;
+  studentTarget: number | null;
+  targetProgressPct: number | null;
+}
+
+export interface PerformanceReport {
+  kind: 'RO' | 'SUB_AGENT';
+  year: number | null;
+  rows: PerformanceRow[];
+  totals: { people: number; leadsGiven: number; contacted: number; converted: number; enrolled: number; travelled: number };
+  generatedAt: string;
+}
+
+export type CommissionStatus = 'EXPECTED' | 'INVOICED' | 'RECEIVED' | 'CANCELLED';
+
+export interface UniversityCommission {
+  id: string;
+  universityId: string;
+  university: { id: string; name: string; country: string };
+  studentId?: string | null;
+  studentName?: string | null;
+  intake?: string | null;
+  amount: number;
+  currency: Currency;
+  status: CommissionStatus;
+  dueDate?: string | null;
+  invoicedAt?: string | null;
+  receivedAt?: string | null;
+  reference?: string | null;
+  notes?: string | null;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface CommissionBucket { expected: number; invoiced: number; received: number }
+
+export interface CommissionLedger {
+  items: UniversityCommission[];
+  byUniversity: { universityId: string; name: string; country: string; count: number; byCurrency: Record<string, CommissionBucket> }[];
+  totals: Record<string, CommissionBucket>;
+}
+
+export type AssetCategory = 'FURNITURE' | 'ELECTRONICS' | 'OFFICE_EQUIPMENT' | 'VEHICLE' | 'PROPERTY' | 'OTHER';
+export type AssetStatus = 'IN_USE' | 'IN_STORAGE' | 'UNDER_REPAIR' | 'DISPOSED';
+
+export interface CompanyAsset {
+  id: string;
+  assetTag: string;
+  name: string;
+  category: AssetCategory;
+  serialNumber?: string | null;
+  location?: string | null;
+  custodian?: string | null;
+  purchaseDate?: string | null;
+  purchaseCost?: number | null;
+  condition: 'NEW' | 'GOOD' | 'FAIR' | 'DAMAGED';
+  status: AssetStatus;
+  notes?: string | null;
+  createdByName: string;
+  createdAt: string;
+}
+
+export type AdminDocCategory = 'COMPANY' | 'EMPLOYEE' | 'INTERN' | 'FIELD';
+
+export interface AdminDocument {
+  id: string;
+  category: AdminDocCategory;
+  title: string;
+  docType?: string | null;
+  staffId?: string | null;
+  personName?: string | null;
+  issuedDate?: string | null;
+  expiryDate?: string | null;
+  notes?: string | null;
+  storageKey?: string | null;
+  originalName?: string | null;
+  sizeBytes?: number | null;
+  uploadedByName?: string | null;
+  createdByName: string;
+  createdAt: string;
 }

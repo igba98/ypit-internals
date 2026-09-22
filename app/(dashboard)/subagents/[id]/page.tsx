@@ -1,5 +1,6 @@
 import { Avatar } from '@/components/shared/Avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { AgentLink } from '@/components/shared/AgentLink';
 import { notFound, redirect } from 'next/navigation';
 import { pageAllowed } from '@/lib/permissions';
 import { cookies } from 'next/headers';
@@ -91,6 +92,10 @@ export default async function SubagentDetailsPage({
               </div>
             </div>
             <div className="space-y-4">
+              <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Agent code · website application link</p>
+                <AgentLink code={subagent.agentCode} />
+              </div>
               <div className="flex items-center gap-3 text-sm text-gray-600">
                 <Mail className="w-4 h-4 text-gray-400" />
                 {subagent.email}

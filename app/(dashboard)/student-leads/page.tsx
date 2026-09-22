@@ -1,24 +1,41 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { pageAllowed } from '@/lib/permissions';
+import { isRO, LEAD_DISTRIBUTOR_ROLES, pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { backendFetch } from '@/lib/backend';
-import { Lead, LeadSource } from '@/types';
-import { formatDate } from '@/lib/utils';
-import { GraduationCap, UserPlus, CheckCircle2, Mail, Phone } from 'lucide-react';
+import { Lead, User } from '@/types';
+import { GraduationCap, UserPlus, CheckCircle2 } from 'lucide-react';
 import { AddStudentLeadButton } from './_components/AddStudentLeadButton';
+import { LeadsTable, Officer } from './_components/LeadsTable';
 
 const ALLOWED = [
   'SUB_AGENT',
   'MARKETING_MANAGER',
   'MARKETING_STAFF',
+  'TRAVEL',
   'MANAGING_DIRECTOR',
+  'IT_ADMIN',
 ];
 
 interface LeadsResponse {
   items: (Lead & { createdById?: string })[];
+}
+
+/** Relations Officers + sub-agents who can receive leads. */
+async function loadOfficers(): Promise<Officer[]> {
+  try {
+    const res = await backendFetch('/staff?limit=500&status=ACTIVE');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: User[] };
+    return (body.items ?? [])
+      .filter((u) => ['MARKETING_STAFF', 'TRAVEL', 'SUB_AGENT'].includes(u.role))
+      .sort((a, b) => (a.role === 'SUB_AGENT' ? 1 : 0) - (b.role === 'SUB_AGENT' ? 1 : 0) || a.fullName.localeCompare(b.fullName))
+      .map((u) => ({ id: u.id, fullName: u.fullName, role: u.role }));
+  } catch {
+    return [];
+  }
 }
 
 async function load(
@@ -26,7 +43,8 @@ async function load(
 ): Promise<{ items: (Lead & { createdById?: string })[]; error: string | null }> {
   try {
     const params = new URLSearchParams({ limit: '500' });
-    if (status && status !== 'all') params.set('status', status);
+    if (status === 'unassigned') params.set('unassigned', 'true');
+    else if (status && status !== 'all') params.set('status', status);
     const res = await backendFetch(`/leads?${params.toString()}`);
     if (!res.ok)
       return { items: [], error: `Failed to load leads (HTTP ${res.status}).` };
@@ -39,29 +57,13 @@ async function load(
 
 const STATUS_TABS = [
   { key: 'all', label: 'All' },
+  { key: 'unassigned', label: 'Unassigned' },
   { key: 'NEW', label: 'New' },
   { key: 'CONTACTED', label: 'Contacted' },
   { key: 'COUNSELED', label: 'Counseled' },
   { key: 'CONVERTED', label: 'Converted' },
   { key: 'LOST', label: 'Lost' },
 ];
-
-const STATUS_BADGE: Record<string, string> = {
-  NEW: 'bg-amber-100 text-amber-800',
-  CONTACTED: 'bg-blue-100 text-blue-800',
-  COUNSELED: 'bg-indigo-100 text-indigo-800',
-  CONVERTED: 'bg-green-100 text-green-800',
-  LOST: 'bg-gray-100 text-gray-600',
-};
-
-const SOURCE_LABEL: Record<LeadSource, string> = {
-  SOCIAL_MEDIA: 'Social Media',
-  SCHOOL_VISIT: 'School Visit',
-  SUB_AGENT: 'Sub Agent',
-  REFERRAL: 'Referral',
-  WALK_IN: 'Walk In',
-  WEBSITE: 'Website',
-};
 
 export default async function StudentLeadsPage({
   searchParams,
@@ -78,7 +80,12 @@ export default async function StudentLeadsPage({
   if (!pageAllowed(session, 'leads', ALLOWED)) redirect('/dashboard');
 
   const { status = 'all' } = await searchParams;
-  const { items, error } = await load(status);
+  const canDistribute = LEAD_DISTRIBUTOR_ROLES.includes(session.role);
+  const [{ items, error }, officers] = await Promise.all([
+    load(status),
+    canDistribute ? loadOfficers() : Promise.resolve([] as Officer[]),
+  ]);
+  const ro = isRO(session.role);
 
   // Sub-agents only see the leads they own.
   const visible =
@@ -98,8 +105,12 @@ export default async function StudentLeadsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Student Leads"
-        description="Capture prospective students and track them through the leads pipeline."
+        title={ro ? 'My Leads' : 'Student Leads'}
+        description={
+          ro
+            ? 'Leads handed to you by IT, plus the ones you capture. Move them through Contacted → Counseled, then convert to a student.'
+            : 'Capture prospective students, hand them to Relations Officers and track them through the pipeline.'
+        }
         actions={<AddStudentLeadButton />}
       />
 
@@ -116,8 +127,8 @@ export default async function StudentLeadsPage({
       </div>
 
       <div className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
-        <div className="p-3 border-b border-gray-100 flex items-center gap-1 overflow-x-auto">
-          {STATUS_TABS.map((t) => (
+        <div className="p-3 flex items-center gap-1 overflow-x-auto">
+          {STATUS_TABS.filter((t) => canDistribute || t.key !== 'unassigned').map((t) => (
             <Link
               key={t.key}
               href={t.key === 'all' ? '/student-leads' : `/student-leads?status=${t.key}`}
@@ -130,78 +141,14 @@ export default async function StudentLeadsPage({
           ))}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
-                <th className="px-4 py-3 font-medium">Student</th>
-                <th className="px-4 py-3 font-medium">Contact</th>
-                <th className="px-4 py-3 font-medium">Interested In</th>
-                <th className="px-4 py-3 font-medium">Source</th>
-                <th className="px-4 py-3 font-medium">Owner</th>
-                <th className="px-4 py-3 font-medium">Added</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {visible.map((l) => (
-                <tr key={l.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="px-4 py-3.5">
-                    <p className="font-semibold text-gray-900">{l.fullName}</p>
-                    {l.nationality && (
-                      <p className="text-[11px] text-gray-500">{l.nationality}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex flex-col gap-0.5 text-[11px] text-gray-500">
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {l.phone}
-                      </span>
-                      {l.email && (
-                        <span className="inline-flex items-center gap-1">
-                          <Mail className="w-3 h-3" /> {l.email}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <p className="text-sm text-gray-900">{l.interestedIn}</p>
-                    {l.interestedCountry && (
-                      <p className="text-[11px] text-gray-500">{l.interestedCountry}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-gray-600">
-                    {SOURCE_LABEL[l.source]}
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-gray-600">
-                    {l.assignedToName ?? '-'}
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap">
-                    {formatDate(l.createdAt)}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        STATUS_BADGE[l.status] ?? 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {l.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {visible.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
-                    No student leads{status !== 'all' ? ` with status ${status.toLowerCase()}` : ''} yet.
-                    Use “Add Student Lead” to capture one.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </div>
+
+      <LeadsTable
+        leads={visible}
+        officers={officers}
+        canDistribute={canDistribute}
+        canWork
+      />
     </div>
   );
 }

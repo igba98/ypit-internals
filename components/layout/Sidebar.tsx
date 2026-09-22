@@ -34,6 +34,10 @@ import {
   Building2,
   Landmark,
   ListChecks,
+  Boxes,
+  FolderLock,
+  HandCoins,
+  FileCheck2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MODULES, isAssistant } from '@/lib/permissions';
@@ -61,6 +65,10 @@ const MODULE_ICONS: Record<string, typeof LayoutDashboard> = {
   catalog: Landmark,
   letters: FileSignature,
   finance: Wallet,
+  documents: FileCheck2,
+  commissions: HandCoins,
+  assets: Boxes,
+  records: FolderLock,
 };
 
 export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
@@ -93,14 +101,51 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       return items;
     }
 
-    // Business team: a separate interface from the RO/Operations one.
+    // Relations Officer interface (system updates 2.0 §2-3). Each RO works
+    // their own book; Travel was folded in, so the travel desk gets it too.
+    if (session.role === 'MARKETING_STAFF' || session.role === 'TRAVEL') {
+      return [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'My Leads', href: '/student-leads', icon: GraduationCap },
+        { label: 'My Students', href: '/students', icon: Users },
+        { label: 'Follow-ups', href: '/follow-ups', icon: ListChecks },
+        { label: 'Passport & Visa', href: '/travel', icon: Plane },
+        ...(session.role === 'MARKETING_STAFF'
+          ? [
+              { label: 'Website Enquiries', href: '/enquiries', icon: Inbox },
+              { label: 'Communication', href: '/communication', icon: MessageSquare },
+            ]
+          : [{ label: 'Applications', href: '/applications', icon: FileText }]),
+        { label: 'My Performance', href: '/leads', icon: Gauge },
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { label: 'Reports', href: '/reports', icon: BarChart3 },
+        { label: 'My Assistants', href: '/staff', icon: UserPlus },
+      ];
+    }
+
+    // Administrator (formerly Operations) - company assets and records.
+    if (session.role === 'OPERATIONS') {
+      return [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'Company Assets', href: '/assets', icon: Boxes },
+        { label: 'Company Records', href: '/records', icon: FolderLock },
+        { label: 'IT Equipment', href: '/equipment', icon: Laptop },
+        { label: 'Monitoring', href: '/monitoring', icon: Activity },
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { label: 'Reports', href: '/reports', icon: BarChart3 },
+        { label: 'My Assistants', href: '/staff', icon: UserPlus },
+      ];
+    }
+
+    // Business team: a separate interface from the RO one.
     if (session.role === 'BUSINESS_DEVELOPMENT') {
       return [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { label: 'Business Dev', href: '/business-development', icon: Briefcase },
         { label: 'Subagents', href: '/subagents', icon: Users },
-        { label: 'Schools & Contracts', href: '/schools', icon: School },
         { label: 'Universities', href: '/universities', icon: Landmark },
+        { label: 'Commissions', href: '/commissions', icon: HandCoins },
+        { label: 'Schools & Contracts', href: '/schools', icon: School },
         { label: 'Company Collaborations', href: '/companies', icon: Building2 },
         { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },
@@ -116,6 +161,7 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         { label: 'Students', href: '/students', icon: Users },
         { label: 'Finance Hub', href: '/finance', icon: Wallet },
         { label: 'Student Payments', href: '/payments', icon: CreditCard },
+        { label: 'Commissions', href: '/commissions', icon: HandCoins },
         { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },
         { label: 'Reports', href: '/reports', icon: BarChart3 },
@@ -125,29 +171,33 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
     const items = [
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ALL'] },
-      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
-      { label: 'Leads', href: '/leads', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT', 'IT_ADMIN'] },
-      { label: 'Student Leads', href: '/student-leads', icon: GraduationCap, roles: ['SUB_AGENT', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'MANAGING_DIRECTOR'] },
-      { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'IT_ADMIN'] },
-      { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
-      { label: 'Business Dev', href: '/business-development', icon: Briefcase, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF'] },
+      { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS'] },
+      { label: 'Student Leads', href: '/student-leads', icon: GraduationCap, roles: ['SUB_AGENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'IT_ADMIN'] },
+      { label: 'RO Performance', href: '/leads', icon: Gauge, roles: ['MARKETING_MANAGER', 'SUB_AGENT', 'IT_ADMIN', 'MANAGING_DIRECTOR'] },
+      { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['MARKETING_MANAGER', 'IT_ADMIN'] },
+      { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Business Dev', href: '/business-development', icon: Briefcase, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Schools & Contracts', href: '/schools', icon: School, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Universities', href: '/universities', icon: Landmark, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Commissions', href: '/commissions', icon: HandCoins, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
       { label: 'Company Collaborations', href: '/companies', icon: Building2, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
-      { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
+      { label: 'Subagents', href: '/subagents', icon: Users, roles: ['MARKETING_MANAGER', 'MANAGING_DIRECTOR'] },
       { label: 'Finance', href: '/finance', icon: Wallet, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['MANAGING_DIRECTOR'] },
       { label: 'MOUs', href: '/mous', icon: ScrollText, roles: ['MANAGING_DIRECTOR'] },
-      { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'] },
+      { label: 'Applications', href: '/applications', icon: FileText, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Student Documents', href: '/documents', icon: FileCheck2, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR'] },
       { label: 'Admission Letters', href: '/admission-letters', icon: FileSignature, roles: ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
-      { label: 'Travel', href: '/travel', icon: Plane, roles: ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'] },
-      { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
-      { label: 'Follow-ups', href: '/follow-ups', icon: ListChecks, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL'] },
-      { label: 'Pipeline Health', href: '/pipeline-health', icon: Gauge, roles: ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Travel', href: '/travel', icon: Plane, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Monitoring', href: '/monitoring', icon: Activity, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Follow-ups', href: '/follow-ups', icon: ListChecks, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS'] },
+      { label: 'Pipeline Health', href: '/pipeline-health', icon: Gauge, roles: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER'] },
+      { label: 'Company Assets', href: '/assets', icon: Boxes, roles: ['MANAGING_DIRECTOR', 'IT_ADMIN'] },
+      { label: 'Company Records', href: '/records', icon: FolderLock, roles: ['MANAGING_DIRECTOR'] },
       { label: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['ALL'] },
       { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['ALL'] },
       { label: 'Staff', href: '/staff', icon: Users, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
-      { label: 'My Assistants', href: '/staff', icon: UserPlus, roles: ['MARKETING_MANAGER', 'MARKETING_STAFF', 'ADMISSIONS', 'TRAVEL', 'OPERATIONS'] },
+      { label: 'My Assistants', href: '/staff', icon: UserPlus, roles: ['MARKETING_MANAGER', 'ADMISSIONS'] },
       { label: 'Equipment', href: '/equipment', icon: Laptop, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Password Vault', href: '/it-vault', icon: KeyRound, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Website Content', href: '/website-cms', icon: Globe, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR'] },

@@ -1,5 +1,6 @@
 import { Role } from '@/types';
 import { cn } from '@/lib/utils';
+import { ROLE_LABELS } from '@/lib/permissions';
 
 interface RoleBadgeProps {
   role: Role;
@@ -28,8 +29,8 @@ const roleColors: Record<Role, { text: string; bg: string }> = {
 };
 
 export function RoleBadge({ role, className }: RoleBadgeProps) {
-  const colors = roleColors[role];
-  const formattedRole = role.replace(/_/g, ' ').replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+  const colors = roleColors[role] ?? { text: '#374151', bg: '#f3f4f6' };
+  const formattedRole = ROLE_LABELS[role] ?? role.replace(/_/g, ' ');
 
   return (
     <span

@@ -45,7 +45,9 @@ export default async function EquipmentPage() {
   const sessionCookie = cookieStore.get('ypit_session');
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
-  if (!pageAllowed(session, 'equipment', ['IT_ADMIN', 'MANAGING_DIRECTOR'])) redirect('/dashboard');
+  // The Administrator sees the IT register read-only (company asset overview).
+  if (!pageAllowed(session, 'equipment', ['IT_ADMIN', 'MANAGING_DIRECTOR', 'OPERATIONS'])) redirect('/dashboard');
+  const readOnly = session.role === 'OPERATIONS';
 
   const { items, board, staff, error } = await load();
 
@@ -59,7 +61,7 @@ export default async function EquipmentPage() {
       <PageHeader
         title="Equipment Register"
         description="Track assets issued to staff, record returns and faults, and clear leavers."
-        actions={<IssueEquipmentButton staff={staff} />}
+        actions={readOnly ? undefined : <IssueEquipmentButton staff={staff} />}
       />
 
       {error && (
@@ -77,7 +79,7 @@ export default async function EquipmentPage() {
 
       <ClearanceBoard board={board} />
 
-      <EquipmentTable items={items} />
+      <EquipmentTable items={items} readOnly={readOnly} />
     </div>
   );
 }

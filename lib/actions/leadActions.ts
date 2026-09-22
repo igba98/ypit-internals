@@ -98,6 +98,7 @@ export async function createStudentLead(
     whatsapp: get('whatsapp'),
     nationality: get('nationality'),
     countryOfOrigin: get('countryOfOrigin'),
+    previousSchool: get('previousSchool'),
     passportNumber: get('passportNumber'),
     gender: get('gender'),
     dateOfBirth: get('dateOfBirth'),
@@ -125,4 +126,65 @@ export async function createStudentLead(
 
   revalidatePath('/student-leads');
   return { success: true, message: `${fullName} added as a student lead.` };
+}
+
+// ── System updates 2.0: working and distributing leads ─────────────
+
+async function leadError(res: Response): Promise<string> {
+  const b = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+  return b?.error?.message ?? `Request failed (${res.status}).`;
+}
+
+/** Status / assignee change. ROs change status on their own leads; only IT, MM, MD reassign. */
+export async function updateLead(
+  id: string,
+  patch: { status?: string; assignedToId?: string | null; notes?: string | null; followUpDate?: string | null },
+): Promise<ActionResult> {
+  const res = await backendFetch(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+  if (!res.ok) return { success: false, message: await leadError(res) };
+  revalidatePath('/student-leads');
+  revalidatePath('/leads');
+  return { success: true, message: patch.assignedToId !== undefined ? 'Lead reassigned.' : 'Lead updated.' };
+}
+
+/** IT → Relations Officers. Several officers = balanced round-robin. */
+export async function distributeLeads(
+  leadIds: string[],
+  officerIds: string[],
+): Promise<ActionResult & { assigned?: number }> {
+  const res = await backendFetch('/leads/distribute', {
+    method: 'POST',
+    body: JSON.stringify({ leadIds, officerIds }),
+  });
+  if (!res.ok) return { success: false, message: await leadError(res) };
+  const body = (await res.json()) as {
+    assigned: number;
+    summary: { officerName: string; assigned: number }[];
+  };
+  revalidatePath('/student-leads');
+  revalidatePath('/leads');
+  return {
+    success: true,
+    assigned: body.assigned,
+    message: `Assigned ${body.assigned} lead(s): ${body.summary.map((s) => `${s.officerName} ${s.assigned}`).join(', ')}.`,
+  };
+}
+
+export async function convertLeadToStudent(
+  id: string,
+  input: Record<string, string | undefined>,
+): Promise<ActionResult & { studentId?: string }> {
+  const body: Record<string, string> = {};
+  for (const [k, v] of Object.entries(input)) if (v && v.trim()) body[k] = v.trim();
+  const res = await backendFetch(`/leads/${id}/convert`, { method: 'POST', body: JSON.stringify(body) });
+  if (!res.ok) return { success: false, message: await leadError(res) };
+  const out = (await res.json()) as { student: { id: string; registrationNumber: string } };
+  revalidatePath('/student-leads');
+  revalidatePath('/students');
+  revalidatePath('/leads');
+  return {
+    success: true,
+    studentId: out.student.id,
+    message: `Converted - student ${out.student.registrationNumber} created.`,
+  };
 }

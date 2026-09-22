@@ -65,6 +65,11 @@ export function EnquiryRow({ enquiry }: { enquiry: WebsiteEnquiry }) {
             <div>
               <p className="font-semibold text-gray-900">{enquiry.fullName}</p>
               <p className="text-[11px] text-gray-500 font-mono">{enquiry.reference}</p>
+              {enquiry.agentCode && (
+                <p className={`text-[11px] font-medium ${enquiry.agentName ? 'text-indigo-700' : 'text-amber-700'}`} title={enquiry.agentName ? 'Credited to this sub-agent' : 'Code did not match any active sub-agent'}>
+                  {enquiry.agentName ? `via ${enquiry.agentName}` : 'unknown agent code'} · {enquiry.agentCode}
+                </p>
+              )}
             </div>
           </div>
         </td>

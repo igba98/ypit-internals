@@ -115,7 +115,12 @@ export function StudentTabs({ detail, userRole }: StudentTabsProps) {
       </div>
 
       <div className="p-6 md:p-8">
-        {activeTab === 'personal' && <PersonalInfoTab student={detail.student} />}
+        {activeTab === 'personal' && (
+          <PersonalInfoTab
+            student={detail.student}
+            canEditBackground={['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'MARKETING_STAFF', 'TRAVEL'].includes(userRole)}
+          />
+        )}
         {activeTab === 'payments' && <PaymentsTab payment={detail.payment} userRole={userRole} />}
         {activeTab === 'application' && <ApplicationTab application={detail.application} userRole={userRole} />}
         {activeTab === 'travel' && <TravelTab travel={detail.travel} userRole={userRole} />}

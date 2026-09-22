@@ -74,6 +74,10 @@ export function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
           </Select>
           <p className="text-[11px] text-gray-500">Where the student was recruited from - drives the African recruitment report.</p>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="previousSchool">Previous school / college</Label>
+          <Input id="previousSchool" name="previousSchool" placeholder="e.g. Feza Boys Secondary School" />
+        </div>
       </div>
 
       {/* Contact Info */}

@@ -36,6 +36,10 @@ export const MODULES: ModuleDef[] = [
   { key: 'website', label: 'Website Content', description: 'Public website images and text', hrefs: [{ label: 'Website Content', href: '/website-cms' }] },
   { key: 'vault', label: 'Password Vault', description: 'Company credentials — highly sensitive', hrefs: [{ label: 'Password Vault', href: '/it-vault' }], sensitive: true },
   { key: 'audit', label: 'Audit Logs', description: 'System activity history', hrefs: [{ label: 'Audit Logs', href: '/audit-logs' }], sensitive: true },
+  { key: 'documents', label: 'Student Documents', description: 'Review and verify uploaded student documents', hrefs: [{ label: 'Student Documents', href: '/documents' }] },
+  { key: 'commissions', label: 'University Commissions', description: 'Commissions owed and received from universities', hrefs: [{ label: 'Commissions', href: '/commissions' }], sensitive: true },
+  { key: 'assets', label: 'Company Assets', description: 'Company-wide asset register', hrefs: [{ label: 'Company Assets', href: '/assets' }] },
+  { key: 'records', label: 'Company Records', description: 'Company documents and personnel files (employees, interns, field)', hrefs: [{ label: 'Company Records', href: '/records' }], sensitive: true },
 ];
 
 /**
@@ -44,13 +48,15 @@ export const MODULES: ModuleDef[] = [
  */
 export const ROLE_MODULES: Partial<Record<Role, string[]>> = {
   IT_ADMIN: ['leads', 'enquiries', 'staff', 'equipment', 'website', 'vault', 'audit', 'tasks', 'reports'],
-  MARKETING_MANAGER: ['students', 'leads', 'enquiries', 'communication', 'business-dev', 'catalog', 'subagents', 'partners', 'applications', 'letters', 'travel', 'monitoring', 'tasks', 'reports'],
-  MARKETING_STAFF: ['students', 'leads', 'enquiries', 'communication', 'business-dev', 'partners', 'tasks', 'reports'],
-  FINANCE: ['students', 'finance', 'catalog', 'mous', 'partners', 'tasks', 'reports'],
-  ADMISSIONS: ['students', 'applications', 'letters', 'catalog', 'travel', 'monitoring', 'tasks', 'reports'],
-  TRAVEL: ['students', 'travel', 'applications', 'letters', 'tasks', 'reports'],
-  OPERATIONS: ['students', 'subagents', 'applications', 'letters', 'travel', 'monitoring', 'tasks', 'reports'],
-  BUSINESS_DEVELOPMENT: ['business-dev', 'subagents', 'partners', 'catalog', 'mous', 'tasks', 'reports'],
+  MARKETING_MANAGER: ['students', 'leads', 'enquiries', 'communication', 'business-dev', 'catalog', 'subagents', 'partners', 'commissions', 'applications', 'letters', 'travel', 'monitoring', 'tasks', 'reports'],
+  // Relations Officers (renamed from Marketing Staff) - travel folded in.
+  MARKETING_STAFF: ['students', 'leads', 'enquiries', 'communication', 'travel', 'tasks', 'reports'],
+  TRAVEL: ['students', 'leads', 'travel', 'applications', 'letters', 'tasks', 'reports'],
+  FINANCE: ['students', 'finance', 'catalog', 'mous', 'partners', 'commissions', 'tasks', 'reports'],
+  ADMISSIONS: ['students', 'applications', 'documents', 'letters', 'catalog', 'travel', 'monitoring', 'tasks', 'reports'],
+  // Administrator (formerly Operations).
+  OPERATIONS: ['assets', 'records', 'equipment', 'staff', 'monitoring', 'tasks', 'reports'],
+  BUSINESS_DEVELOPMENT: ['business-dev', 'subagents', 'partners', 'catalog', 'mous', 'commissions', 'tasks', 'reports'],
 };
 
 /** assistant role → the main role it shadows. Every role except MD / sub-agent. */
@@ -133,20 +139,31 @@ export const ROLE_LABELS: Record<Role, string> = {
   IT_ADMIN: 'IT Admin',
   FINANCE: 'Finance',
   ADMISSIONS: 'Admissions',
-  TRAVEL: 'Travel',
-  OPERATIONS: 'Relation Officer (Operations)',
-  MARKETING_STAFF: 'Marketing Staff',
+  // System updates 2.0: Marketing → Relations Officer; Travel folded into RO;
+  // Operations → Administrator. Enum values unchanged, only the names.
+  TRAVEL: 'Relations Officer (Travel)',
+  OPERATIONS: 'Administrator',
+  MARKETING_STAFF: 'Relations Officer (RO)',
   SUB_AGENT: 'Sub Agent',
   BUSINESS_DEVELOPMENT: 'Business Development',
   IT_ASSISTANT: 'IT Assistant',
   MARKETING_ASSISTANT: 'Marketing Manager Assistant',
   FINANCE_ASSISTANT: 'Finance Assistant',
   ADMISSIONS_ASSISTANT: 'Admissions Assistant',
-  TRAVEL_ASSISTANT: 'Travel Assistant',
-  OPERATIONS_ASSISTANT: 'Relation Officer Assistant',
-  MARKETING_STAFF_ASSISTANT: 'Marketing Staff Assistant',
+  TRAVEL_ASSISTANT: 'RO (Travel) Assistant',
+  OPERATIONS_ASSISTANT: 'Administrator Assistant',
+  MARKETING_STAFF_ASSISTANT: 'RO Assistant',
   BUSINESS_DEVELOPMENT_ASSISTANT: 'Business Development Assistant',
 };
+
+/** Relations Officers work only their own book of leads and students. */
+export const RO_ROLES: string[] = ['MARKETING_STAFF', 'TRAVEL', 'MARKETING_STAFF_ASSISTANT', 'TRAVEL_ASSISTANT'];
+export function isRO(role: string | undefined): boolean {
+  return Boolean(role && RO_ROLES.includes(role));
+}
+
+/** Who may hand leads to ROs (system updates 2.0 §1). */
+export const LEAD_DISTRIBUTOR_ROLES: string[] = ['IT_ADMIN', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR'];
 
 /** Roles an actor may assign when creating / editing staff. */
 export function assignableRoles(actorRole: Role | string): Role[] {
@@ -154,7 +171,10 @@ export function assignableRoles(actorRole: Role | string): Role[] {
     return Object.keys(ROLE_LABELS) as Role[];
   }
   const own = assistantRoleFor(actorRole);
-  return own ? [own] : [];
+  const roles: Role[] = own ? [own] : [];
+  // Business Development (and the Marketing Manager) recruit sub-agents.
+  if (actorRole === 'BUSINESS_DEVELOPMENT' || actorRole === 'MARKETING_MANAGER') roles.push('SUB_AGENT');
+  return roles;
 }
 
 /** Roles that can open the Staff page (to manage at least their own assistants). */

@@ -64,6 +64,7 @@ export function GuardiansSection({ studentId, guardians }: Props) {
                 {g.isPrimary && <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">Primary</span>}
               </p>
               <p className="text-xs text-gray-500">{g.phone}{g.whatsapp ? ` · WhatsApp ${g.whatsapp}` : ''}{g.email ? ` · ${g.email}` : ''}</p>
+              {g.occupation && <p className="text-xs text-gray-600">Occupation: <span className="font-medium">{g.occupation}</span></p>}
             </div>
             <div className="flex items-center gap-1">
               {!g.isPrimary && <Button size="sm" variant="ghost" onClick={() => handleMakePrimary(g.id)} disabled={isPending} title="Make primary"><Star size={14} /></Button>}
@@ -87,6 +88,7 @@ export function GuardiansSection({ studentId, guardians }: Props) {
             <div><Label>Phone *</Label><Input name="phone" required placeholder="+255..." /></div>
             <div><Label>WhatsApp (if different)</Label><Input name="whatsapp" placeholder="+255..." /></div>
             <div><Label>Email</Label><Input name="email" type="email" /></div>
+            <div><Label>Occupation</Label><Input name="occupation" placeholder="e.g. Teacher, Business owner, Farmer" /></div>
             <div className="flex items-center gap-2"><input type="checkbox" id="isPrimary" name="isPrimary" /><Label htmlFor="isPrimary">Mark as primary contact</Label></div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

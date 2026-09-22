@@ -92,9 +92,9 @@ export const EDIT_PERMISSIONS = {
   pipelineStage: ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS'] as Role[],
   paymentStatus: ['MANAGING_DIRECTOR', 'FINANCE'] as Role[],
   applicationStatus: ['MANAGING_DIRECTOR', 'ADMISSIONS'] as Role[],
-  travelStatus: ['MANAGING_DIRECTOR', 'TRAVEL'] as Role[],
-  visaStatus: ['MANAGING_DIRECTOR', 'TRAVEL'] as Role[],
-  passportStatus: ['MANAGING_DIRECTOR', 'TRAVEL'] as Role[],
+  travelStatus: ['MANAGING_DIRECTOR', 'TRAVEL', 'MARKETING_STAFF'] as Role[],
+  visaStatus: ['MANAGING_DIRECTOR', 'TRAVEL', 'MARKETING_STAFF'] as Role[],
+  passportStatus: ['MANAGING_DIRECTOR', 'TRAVEL', 'MARKETING_STAFF'] as Role[],
   documentVerified: ['MANAGING_DIRECTOR', 'ADMISSIONS', 'TRAVEL'] as Role[],
 };
 

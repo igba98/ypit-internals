@@ -49,7 +49,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
 
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['TRAVEL', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'OPERATIONS'];
+  const allowedRoles = ['TRAVEL', 'MARKETING_STAFF', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'OPERATIONS'];
   if (!pageAllowed(session, 'travel', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadTravel();
@@ -74,8 +74,8 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Travel Management"
-        description="Manage student visas, flights, and accommodation."
+        title={session.role === 'MARKETING_STAFF' ? 'Passport & Visa' : 'Travel Management'}
+        description={session.role === 'MARKETING_STAFF' ? 'Passport and visa follow-up for your students.' : 'Manage student visas, flights, and accommodation.'}
       />
 
       {error && (

@@ -33,7 +33,14 @@ const CONDITION_BADGE: Record<EquipmentCondition, string> = {
   DAMAGED: 'bg-red-50 text-red-700',
 };
 
-export function EquipmentTable({ items }: { items: EquipmentAssignment[] }) {
+export function EquipmentTable({
+  items,
+  readOnly = false,
+}: {
+  items: EquipmentAssignment[];
+  /** Administrator view: see the IT register, no hand-in / loss actions. */
+  readOnly?: boolean;
+}) {
   const [returningItem, setReturningItem] = useState<EquipmentAssignment | null>(null);
   const router = useRouter();
   const [busy, startTransition] = useTransition();
@@ -119,7 +126,7 @@ export function EquipmentTable({ items }: { items: EquipmentAssignment[] }) {
                   )}
                 </td>
                 <td className="px-4 py-3.5 text-right">
-                  {e.status === 'ASSIGNED' && (
+                  {!readOnly && e.status === 'ASSIGNED' && (
                     <div className="flex items-center justify-end gap-1.5">
                       <Button variant="outline" size="sm" onClick={() => setReturningItem(e)} className="gap-1">
                         <PackageCheck className="w-3.5 h-3.5" /> Return
@@ -142,7 +149,7 @@ export function EquipmentTable({ items }: { items: EquipmentAssignment[] }) {
             {items.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-12 text-gray-500">
-                  No equipment recorded yet. Click <strong>Issue Equipment</strong> to start.
+                  No equipment recorded yet.{!readOnly && <> Click <strong>Issue Equipment</strong> to start.</>}
                 </td>
               </tr>
             )}
