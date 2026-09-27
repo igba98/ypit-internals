@@ -3,7 +3,7 @@ import { KPICard } from '@/components/shared/KPICard';
 import { TravelTable } from './_components/TravelTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { pageAllowed } from '@/lib/permissions';
+import { isRO, pageAllowed } from '@/lib/permissions';
 import Link from 'next/link';
 import { Plane, CheckCircle2, Calendar, Car } from 'lucide-react';
 import { MyQueue } from '@/components/pipeline/MyQueue';
@@ -49,7 +49,8 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
 
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['TRAVEL', 'MARKETING_STAFF', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS', 'OPERATIONS'];
+  // Every Relations Officer follows up passport + visa for their own students.
+  const allowedRoles = ['TRAVEL', 'MARKETING_STAFF', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS', 'OPERATIONS'];
   if (!pageAllowed(session, 'travel', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadTravel();
@@ -74,8 +75,8 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-6">
       <PageHeader
-        title={session.role === 'MARKETING_STAFF' ? 'Passport & Visa' : 'Travel Management'}
-        description={session.role === 'MARKETING_STAFF' ? 'Passport and visa follow-up for your students.' : 'Manage student visas, flights, and accommodation.'}
+        title={isRO(session.role) && session.role !== 'TRAVEL' ? 'Passport & Visa' : 'Travel Management'}
+        description={isRO(session.role) && session.role !== 'TRAVEL' ? 'Passport and visa follow-up for your students.' : 'Manage student visas, flights, and accommodation.'}
       />
 
       {error && (

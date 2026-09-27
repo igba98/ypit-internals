@@ -27,10 +27,10 @@ export default async function SubagentsPage() {
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
+  const allowedRoles = ['MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
   if (!pageAllowed(session, 'subagents', allowedRoles)) redirect('/dashboard');
 
-  const canAdd = ['BUSINESS_DEVELOPMENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'IT_ADMIN'].includes(session.role);
+  const canAdd = ['BUSINESS_DEVELOPMENT', 'MANAGING_DIRECTOR', 'IT_ADMIN'].includes(session.role);
   const { items: subagents, error } = await loadSubagents();
 
   const activeContracts = subagents.filter((s) => s.contract?.status === 'ACTIVE').length;

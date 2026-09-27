@@ -37,7 +37,7 @@ export default async function MonitoringPage() {
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'ADMISSIONS'];
+  const allowedRoles = ['OPERATIONS', 'MANAGING_DIRECTOR', 'ADMISSIONS'];
   if (!pageAllowed(session, 'monitoring', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadMonitoring();

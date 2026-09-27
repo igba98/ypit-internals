@@ -7,7 +7,7 @@ import { listCommissions } from '@/lib/actions/commissionActions';
 import { Session, Student, University } from '@/types';
 import { CommissionsBoard } from './_components/CommissionsBoard';
 
-const READ = ['BUSINESS_DEVELOPMENT', 'FINANCE', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR'];
+const READ = ['BUSINESS_DEVELOPMENT', 'FINANCE', 'MANAGING_DIRECTOR'];
 const WRITE = ['BUSINESS_DEVELOPMENT', 'FINANCE', 'MANAGING_DIRECTOR'];
 
 async function options(): Promise<{ universities: University[]; students: Pick<Student, 'id' | 'fullName' | 'registrationNumber' | 'targetUniversity'>[] }> {

@@ -188,3 +188,37 @@ export async function convertLeadToStudent(
     message: `Converted - student ${out.student.registrationNumber} created.`,
   };
 }
+
+/**
+ * IT's fast capture: one row - name, phone, interest - handed straight to an
+ * RO (system updates 2.0 §1, clarified by voice note 2026-09-24).
+ */
+export async function quickAddLead(input: {
+  fullName: string;
+  phone: string;
+  interestedIn: string;
+  interestedCountry?: string;
+  assignedToId?: string;
+  source?: string;
+}): Promise<ActionResult> {
+  const res = await backendFetch('/leads', {
+    method: 'POST',
+    body: JSON.stringify({
+      fullName: input.fullName.trim(),
+      phone: input.phone.trim(),
+      interestedIn: input.interestedIn.trim() || 'General enquiry',
+      interestedCountry: input.interestedCountry?.trim() || undefined,
+      source: input.source ?? 'WALK_IN',
+      assignedToId: input.assignedToId || undefined,
+    }),
+  });
+  if (!res.ok) return { success: false, message: await leadError(res) };
+  revalidatePath('/student-leads');
+  revalidatePath('/leads');
+  return {
+    success: true,
+    message: input.assignedToId
+      ? `${input.fullName.trim()} added and assigned.`
+      : `${input.fullName.trim()} added to the unassigned queue.`,
+  };
+}

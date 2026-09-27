@@ -10,8 +10,8 @@ import { PartnersTable } from './PartnersTable';
 import { AddPartnerButton } from './PartnerForm';
 import { EXPIRY_WARN_DAYS, PARTNER_KIND } from './partner-config';
 
-export const PARTNER_READ_ROLES = ['BUSINESS_DEVELOPMENT', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'FINANCE', 'MANAGING_DIRECTOR'];
-export const PARTNER_WRITE_ROLES = ['BUSINESS_DEVELOPMENT', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR'];
+export const PARTNER_READ_ROLES = ['BUSINESS_DEVELOPMENT', 'MARKETING_STAFF', 'FINANCE', 'MANAGING_DIRECTOR'];
+export const PARTNER_WRITE_ROLES = ['BUSINESS_DEVELOPMENT', 'MANAGING_DIRECTOR'];
 
 /** Module-level so the render stays pure (react-hooks/purity). */
 function expiringSoon(partners: Partner[]): number {

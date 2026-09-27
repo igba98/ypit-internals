@@ -42,7 +42,7 @@ export default async function ApplicationsPage() {
 
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'];
+  const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'OPERATIONS'];
   if (!pageAllowed(session, 'applications', allowedRoles)) redirect('/dashboard');
 
   const { items: applications, error } = await loadApplications();

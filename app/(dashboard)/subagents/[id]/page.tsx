@@ -48,7 +48,7 @@ export default async function SubagentDetailsPage({
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
+  const allowedRoles = ['MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'];
   if (!pageAllowed(session, 'subagents', allowedRoles)) redirect('/dashboard');
 
   const canEdit = ['MANAGING_DIRECTOR', 'OPERATIONS', 'BUSINESS_DEVELOPMENT'].includes(session.role);

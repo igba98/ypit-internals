@@ -15,8 +15,8 @@ import {
 import { EventsSection } from './_components/EventsSection';
 import { PartnershipsSection } from './_components/PartnershipsSection';
 
-const ALLOWED = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'BUSINESS_DEVELOPMENT'];
-const CAN_EDIT = ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'BUSINESS_DEVELOPMENT'];
+const ALLOWED = ['MANAGING_DIRECTOR', 'MARKETING_STAFF', 'BUSINESS_DEVELOPMENT'];
+const CAN_EDIT = ['MANAGING_DIRECTOR', 'BUSINESS_DEVELOPMENT'];
 
 async function load(): Promise<{
   events: BdEvent[];

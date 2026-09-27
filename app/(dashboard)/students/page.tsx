@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { StudentsTable } from './_components/StudentsTable';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { pageAllowed } from '@/lib/permissions';
+import { isRO, pageAllowed } from '@/lib/permissions';
 import { AddStudentButton } from './_components/AddStudentButton';
 import { Student, PipelineStage } from '@/types';
 import { backendFetch } from '@/lib/backend';
@@ -91,12 +91,16 @@ export default async function StudentsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Students"
-        description="Manage all student records and their pipeline status."
+        title={isRO(session.role) ? 'My Students' : 'Students'}
+        description={
+          isRO(session.role)
+            ? 'The students you brought in - their stage, university and follow-ups.'
+            : 'Manage all student records and their pipeline status.'
+        }
         actions={
-          ['MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'MARKETING_STAFF', 'SUB_AGENT'].includes(
-            session.role,
-          ) && <AddStudentButton />
+          (isRO(session.role) || ['MANAGING_DIRECTOR', 'SUB_AGENT'].includes(session.role)) && (
+            <AddStudentButton />
+          )
         }
       />
 

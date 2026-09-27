@@ -9,7 +9,7 @@ import { PIPELINE_ORDER, PipelineStage, Session, Student } from '@/types';
 import { getPipelineStageLabel } from '@/lib/utils';
 import { Gauge, AlertTriangle, Clock, Users } from 'lucide-react';
 
-const ALLOWED = ['OPERATIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER'];
+const ALLOWED = ['OPERATIONS', 'MANAGING_DIRECTOR'];
 
 /** Stages where "days waiting" stops being meaningful - student has arrived. */
 const ARRIVED_STAGES: PipelineStage[] = ['TRAVELLED', 'MONITORING'];

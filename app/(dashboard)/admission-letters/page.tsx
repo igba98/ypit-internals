@@ -61,7 +61,7 @@ export default async function AdmissionLettersPage() {
   if (!sessionCookie) redirect('/login');
   const session = JSON.parse(sessionCookie.value) as Session;
 
-  const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'OPERATIONS'];
+  const allowedRoles = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'OPERATIONS'];
   if (!pageAllowed(session, 'letters', allowedRoles)) redirect('/dashboard');
   const canEdit = ['ADMISSIONS', 'MANAGING_DIRECTOR'].includes(session.role);
 

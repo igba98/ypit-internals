@@ -8,7 +8,7 @@ import { Session } from '@/types';
 import { CheckCircle2, Clock, FileCheck2, XCircle } from 'lucide-react';
 import { DocumentsQueue, QueueDoc } from './_components/DocumentsQueue';
 
-const READ = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'MARKETING_MANAGER', 'TRAVEL', 'FINANCE'];
+const READ = ['ADMISSIONS', 'MANAGING_DIRECTOR', 'TRAVEL', 'FINANCE'];
 const VERIFY = ['ADMISSIONS', 'MANAGING_DIRECTOR'];
 
 async function load(status: string): Promise<{ items: QueueDoc[]; counts: Record<string, number> }> {

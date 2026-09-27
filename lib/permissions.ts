@@ -48,7 +48,7 @@ export const MODULES: ModuleDef[] = [
  */
 export const ROLE_MODULES: Partial<Record<Role, string[]>> = {
   IT_ADMIN: ['leads', 'enquiries', 'staff', 'equipment', 'website', 'vault', 'audit', 'tasks', 'reports'],
-  MARKETING_MANAGER: ['students', 'leads', 'enquiries', 'communication', 'business-dev', 'catalog', 'subagents', 'partners', 'commissions', 'applications', 'letters', 'travel', 'monitoring', 'tasks', 'reports'],
+  MARKETING_MANAGER: ['students', 'leads', 'enquiries', 'communication', 'travel', 'documents', 'tasks', 'reports'],
   // Relations Officers (renamed from Marketing Staff) - travel folded in.
   MARKETING_STAFF: ['students', 'leads', 'enquiries', 'communication', 'travel', 'tasks', 'reports'],
   TRAVEL: ['students', 'leads', 'travel', 'applications', 'letters', 'tasks', 'reports'],
@@ -135,7 +135,7 @@ export function canEdit(
 
 export const ROLE_LABELS: Record<Role, string> = {
   MANAGING_DIRECTOR: 'Managing Director',
-  MARKETING_MANAGER: 'Marketing Manager',
+  MARKETING_MANAGER: 'Relations Officer (Marketing)',
   IT_ADMIN: 'IT Admin',
   FINANCE: 'Finance',
   ADMISSIONS: 'Admissions',
@@ -147,7 +147,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   SUB_AGENT: 'Sub Agent',
   BUSINESS_DEVELOPMENT: 'Business Development',
   IT_ASSISTANT: 'IT Assistant',
-  MARKETING_ASSISTANT: 'Marketing Manager Assistant',
+  MARKETING_ASSISTANT: 'RO (Marketing) Assistant',
   FINANCE_ASSISTANT: 'Finance Assistant',
   ADMISSIONS_ASSISTANT: 'Admissions Assistant',
   TRAVEL_ASSISTANT: 'RO (Travel) Assistant',
@@ -157,13 +157,21 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 /** Relations Officers work only their own book of leads and students. */
-export const RO_ROLES: string[] = ['MARKETING_STAFF', 'TRAVEL', 'MARKETING_STAFF_ASSISTANT', 'TRAVEL_ASSISTANT'];
+export const RO_ROLES: string[] = [
+  'MARKETING_STAFF',
+  'TRAVEL',
+  // The former Marketing Manager is the fourth Relations Officer.
+  'MARKETING_MANAGER',
+  'MARKETING_STAFF_ASSISTANT',
+  'TRAVEL_ASSISTANT',
+  'MARKETING_ASSISTANT',
+];
 export function isRO(role: string | undefined): boolean {
   return Boolean(role && RO_ROLES.includes(role));
 }
 
 /** Who may hand leads to ROs (system updates 2.0 §1). */
-export const LEAD_DISTRIBUTOR_ROLES: string[] = ['IT_ADMIN', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR'];
+export const LEAD_DISTRIBUTOR_ROLES: string[] = ['IT_ADMIN', 'MANAGING_DIRECTOR'];
 
 /** Roles an actor may assign when creating / editing staff. */
 export function assignableRoles(actorRole: Role | string): Role[] {
@@ -172,8 +180,8 @@ export function assignableRoles(actorRole: Role | string): Role[] {
   }
   const own = assistantRoleFor(actorRole);
   const roles: Role[] = own ? [own] : [];
-  // Business Development (and the Marketing Manager) recruit sub-agents.
-  if (actorRole === 'BUSINESS_DEVELOPMENT' || actorRole === 'MARKETING_MANAGER') roles.push('SUB_AGENT');
+  // Business Development recruits sub-agents.
+  if (actorRole === 'BUSINESS_DEVELOPMENT') roles.push('SUB_AGENT');
   return roles;
 }
 

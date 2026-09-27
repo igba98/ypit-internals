@@ -9,6 +9,7 @@ import { Lead, User } from '@/types';
 import { GraduationCap, UserPlus, CheckCircle2 } from 'lucide-react';
 import { AddStudentLeadButton } from './_components/AddStudentLeadButton';
 import { LeadsTable, Officer } from './_components/LeadsTable';
+import { QuickAddLead } from './_components/QuickAddLead';
 
 const ALLOWED = [
   'SUB_AGENT',
@@ -142,6 +143,8 @@ export default async function StudentLeadsPage({
         </div>
 
       </div>
+
+      {canDistribute && <QuickAddLead officers={officers} />}
 
       <LeadsTable
         leads={visible}

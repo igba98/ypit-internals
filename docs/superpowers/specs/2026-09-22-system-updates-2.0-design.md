@@ -59,3 +59,61 @@ their own book; university commissions tracked as a per-student ledger.
    Events") to BUSINESS_DEVELOPMENT if he is the BD officer; create the four RO accounts.
 3. Backoffice env (optional): `NEXT_PUBLIC_WEBSITE_URL` for agent application links
    (defaults to https://www.ypitconsultancies.com).
+
+---
+
+## Follow-up: client voice notes, 2026-09-24 (decisions confirmed 2026-09-27)
+
+**1. Four Relations Officers — the Marketing account is one of them.**
+`MARKETING_MANAGER` joined `RO_ROLES` (backend `src/common/scope.ts`, frontend `lib/permissions.ts`),
+so it gets the RO menu and own-book scoping like Marketing Staff and Travel; label
+"Relations Officer (Marketing)". Its manager-only grants were removed — business-dev, partners
+(schools/companies), commissions, catalog/universities, sub-agents, monitoring, letters,
+applications, payments, invoices, and lead distribution. Documents were opened to every RO instead
+(they upload their own students' papers). Overseeing the ROs now sits with IT and the CEO;
+`/reports/performance?kind=RO` covers all four RO roles. Sub-agent recruitment is BD-only.
+
+**2. IT captures and hands out leads.** A "Add a lead" row on Student Leads (name, phone, interest,
+Relations Officer, source) creates and assigns in one step, keeping the officer selected for a batch.
+The existing distribute panel still handles the unassigned queue.
+
+**3. Website CMS (voice note 3).** 118 slots, grouped into per-page tabs:
+- **Testimonials** — six stories, each with photo, name, course, university, scholarship badge and quote.
+  Data moved to `components/shared/testimonials-data.ts` (a `"use client"` module cannot hand an array
+  to a server page — same trap as the programmes list).
+- **Site-wide contact details** — address, short address, two phones, email, WhatsApp; read by the
+  footer (server) and passed to the Navbar from the root layout.
+- **Wording** — homepage About heading/paragraph and the closing call-to-action, so IT/CEO can fix
+  copy and punctuation themselves. Long fields render as textareas (`multiline`).
+- **Image resizing** (`lib/image-resize.ts`) — every picked image is shrunk to the slot's `maxWidth`
+  and cropped to the shape that slot actually renders at (hero 16:9, tiles 4:3, country cards 3:2,
+  testimonial photos square, logos uncropped). The uploader shows a preview with before/after size
+  and a top/centre/bottom crop choice plus "don't crop", and only uploads on confirmation.
+
+Note: website content changes appear on the next-but-one request after the 60s window
+(stale-while-revalidate) — the first request after an edit can still show the old value.
+
+### Relations Officer roster (client, 2026-09-27)
+
+The four ROs are **Faraja Mlumba, Lilian Masine, Yuda Ngao, Elida Nickson**. Wisdom Mwaipape stays
+on as a fifth RO (the travel desk). Fanuel Mlumba is *not* Faraja — he becomes the Business
+Development officer, matching his department; he owns no leads or students, so nothing needs
+reassigning.
+
+| Account | Person | Role | Action |
+|---|---|---|---|
+| `marketing@` | Lilian Masine | RO (Marketing) | none — becomes an RO on deploy |
+| `travel@` | Wisdom Mwaipape | RO (Travel) | none — fifth RO |
+| `RO@` | Fanuel Mlumba | Business Development | re-role (plan below) |
+| new | Faraja Mlumba | RO | create in Staff → Add Staff |
+| new | Yuda Ngao | RO | create in Staff → Add Staff |
+| new | Elida Nickson | RO | create in Staff → Add Staff |
+
+`scripts/setup-relations-officers.mjs` audits the roster (no arguments) and applies renames /
+re-roles from a plan file (`scripts/ro-roster.json`), dry-run by default. New officers are
+deliberately *not* created by the script — make them in the back office so each gets the welcome
+email with a temporary password. All three RO role values (MARKETING_STAFF / TRAVEL /
+MARKETING_MANAGER) behave identically, so new officers get "Relations Officer (RO)".
+
+Production already had every migration through `system_updates_v2` on 2026-09-22; the
+2026-09-24 voice-note work adds no schema changes, so it is a code deploy only.
