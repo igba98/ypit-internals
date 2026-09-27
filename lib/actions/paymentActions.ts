@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { ActionResult, PaymentStatus } from '@/types';
+import { ActionResult, PaymentRecord, PaymentStatus } from '@/types';
 import { backendFetch } from '@/lib/backend';
 
 async function readError(res: Response) {
@@ -99,5 +99,62 @@ export async function sendTuitionReminder(
   return {
     success: true,
     message: `Tuition reminder sent (TZS ${body.outstanding.toLocaleString()} outstanding).`,
+  };
+}
+
+// ── Multi-fee recording (client feedback, Sept 2026) ───────────────
+
+export interface PaymentLineInput {
+  bucket: 'AGENCY' | 'APPLICATION' | 'TUITION' | 'HOSTEL';
+  /** Absolute fee for this type. Omit to leave it alone. */
+  fee?: number;
+  /** Money received now for this type. */
+  amount?: number;
+}
+
+/** A student's current record, or null when they have none yet. */
+export async function getPaymentRecord(
+  studentId: string,
+): Promise<PaymentRecord | null> {
+  try {
+    const res = await backendFetch(`/finance/payments/${studentId}`);
+    if (!res.ok) return null;
+    return (await res.json()) as PaymentRecord;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save several fee types at once. The backend works out total paid, balance
+ * and status, and writes one cash-book receipt for the money received.
+ */
+export async function recordPayments(
+  studentId: string,
+  input: {
+    lines: PaymentLineInput[];
+    receiptNumber?: string;
+    paymentMethod?: string;
+    paymentDate?: string;
+    notes?: string;
+  },
+): Promise<ActionResult & { record?: PaymentRecord }> {
+  const res = await backendFetch(`/finance/payments/${studentId}/record-many`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  const record = (await res.json()) as PaymentRecord;
+  revalidatePath('/payments');
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath('/finance/cash-book');
+  const received = input.lines.reduce((n, l) => n + (l.amount ?? 0), 0);
+  return {
+    success: true,
+    record,
+    message:
+      received > 0
+        ? `Recorded TSh ${received.toLocaleString('en-US')}. Balance now TSh ${record.balance.toLocaleString('en-US')}.`
+        : 'Fees updated.',
   };
 }

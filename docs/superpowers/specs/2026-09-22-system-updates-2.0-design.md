@@ -117,3 +117,30 @@ MARKETING_MANAGER) behave identically, so new officers get "Relations Officer (R
 
 Production already had every migration through `system_updates_v2` on 2026-09-22; the
 2026-09-24 voice-note work adds no schema changes, so it is a code deploy only.
+
+---
+
+## Finance payment recording — client video feedback, 2026-09-27
+
+Three complaints, all reproducible:
+
+1. **"record not found" when editing fees.** `PaymentsService.update()` read the record with
+   `getByStudent()`, which throws 404 when the student has none — and after the finance data reset
+   no student had one. It now uses `getOrCreateForStudent()`, so editing bootstraps the record.
+2. **Only one fee type per save.** The old form posted a single `{bucket, amount}` to
+   `POST :studentId/record`. New endpoint `POST :studentId/record-many` takes
+   `{ lines: [{ bucket, fee?, amount? }], receiptNumber?, paymentMethod, paymentDate?, notes? }` —
+   `fee` is absolute, `amount` is added to what was already paid. A fee left unset becomes what was
+   paid, so the balance never reads negative.
+3. **Totals typed by hand.** `totalDue`, `totalPaid`, `balance` and `status` are computed server-side
+   on every save, and the new sheet shows them live as Finance types (per-fee balance plus Total
+   fees / Total paid / Amount due / resulting status).
+
+Other decisions:
+- **One cash-book receipt per payment**, not one per fee type — a line per fee type would read as the
+  duplicate entries the client complained about in petty cash. Description lists the split.
+- Payment method and date are now on the form (they were hard-coded to bank transfer).
+- Guards: paid over an explicit fee → 400 naming the fee type and both amounts; money without a
+  receipt number → 422; non-Finance → 403. Fee-only edits need no receipt.
+- UI: `PaymentSheet` replaces `RecordPaymentForm`; reachable from "Record Payment" and from a
+  per-row "Fees & payments" action (the row passes its record in, so no extra round-trip).

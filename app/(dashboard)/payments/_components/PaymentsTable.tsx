@@ -9,11 +9,15 @@ import { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
-import { BellRing, Loader2, Paperclip } from 'lucide-react';
+import { SlideInPanel } from '@/components/shared/SlideInPanel';
+import { PaymentSheet, StudentOption } from './PaymentSheet';
+import { BellRing, Loader2, Paperclip, Wallet } from 'lucide-react';
 import { sendTuitionReminder } from '@/lib/actions/paymentActions';
 
 interface PaymentsTableProps {
   data: PaymentRecord[];
+  /** Needed by the fees & payments sheet; optional so other callers keep working. */
+  students?: StudentOption[];
 }
 
 /** Bell button - sends the bilingual tuition reminder for one student. */
@@ -65,7 +69,8 @@ function TuitionReminderButton({ record }: { record: PaymentRecord }) {
   );
 }
 
-export function PaymentsTable({ data }: PaymentsTableProps) {
+export function PaymentsTable({ data, students = [] }: PaymentsTableProps) {
+  const [editing, setEditing] = useState<PaymentRecord | null>(null);
   const columns: ColumnDef<PaymentRecord>[] = [
     {
       accessorKey: 'lastPaymentDate',
@@ -172,6 +177,13 @@ export function PaymentsTable({ data }: PaymentsTableProps) {
       id: 'actions',
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => setEditing(row.original)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline px-1.5"
+            title="Set fees and record payments"
+          >
+            <Wallet className="w-3.5 h-3.5" /> Fees &amp; payments
+          </button>
           <TuitionReminderButton record={row.original} />
           <ActionDropdown basePath="/payments" record={row.original} />
         </div>
@@ -180,10 +192,28 @@ export function PaymentsTable({ data }: PaymentsTableProps) {
   ];
 
   return (
+    <>
     <DataTable 
       columns={columns} 
       data={data} 
       searchKey="studentName" 
     />
+
+      <SlideInPanel
+        isOpen={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `Fees & payments · ${editing.studentName}` : 'Fees & payments'}
+        description="Set each fee and record what has been paid - all fee types in one save."
+      >
+        {editing && (
+          <PaymentSheet
+            students={students}
+            initialStudentId={editing.studentId}
+            initialRecord={editing}
+            onDone={() => setEditing(null)}
+          />
+        )}
+      </SlideInPanel>
+    </>
   );
 }

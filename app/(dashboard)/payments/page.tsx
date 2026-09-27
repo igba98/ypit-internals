@@ -9,7 +9,7 @@ import { RecordPaymentButton } from './_components/RecordPaymentButton';
 import { formatCurrency } from '@/lib/format';
 import { PaymentRecord, Student } from '@/types';
 import { backendFetch } from '@/lib/backend';
-import { StudentOption } from './_components/RecordPaymentForm';
+import { StudentOption } from './_components/PaymentSheet';
 
 interface PaymentsListResponse {
   items: PaymentRecord[];
@@ -87,7 +87,7 @@ export default async function PaymentsPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-card p-6">
-        <PaymentsTable data={payments} />
+        <PaymentsTable data={payments} students={studentOptions} />
       </div>
     </div>
   );

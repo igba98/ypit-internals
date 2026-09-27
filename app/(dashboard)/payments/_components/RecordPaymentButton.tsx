@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SlideInPanel } from '@/components/shared/SlideInPanel';
-import { RecordPaymentForm, StudentOption } from './RecordPaymentForm';
+import { PaymentSheet, StudentOption } from './PaymentSheet';
 import { DollarSign } from 'lucide-react';
 
 export function RecordPaymentButton({ students }: { students: StudentOption[] }) {
@@ -19,10 +19,10 @@ export function RecordPaymentButton({ students }: { students: StudentOption[] })
       <SlideInPanel
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Record New Payment"
-        description="Log a financial transaction against a student's standing balance."
+        title="Fees &amp; payments"
+        description="Set each fee and record what has been paid - all fee types in one save."
       >
-        <RecordPaymentForm students={students} onSuccess={() => setIsOpen(false)} />
+        <PaymentSheet students={students} onDone={() => setIsOpen(false)} />
       </SlideInPanel>
     </>
   );
