@@ -1,76 +1,66 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { pageAllowed } from '@/lib/permissions';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { formatCurrency } from '@/lib/format';
 import { formatDate } from '@/lib/utils';
 import { backendFetch } from '@/lib/backend';
+import { pageAllowed } from '@/lib/permissions';
 import { BankReconciliation, CashBookEntry, CashbookSummary, Session } from '@/types';
-import { ArrowDownCircle, ArrowUpCircle, CalendarDays, CheckCircle2, History, Info, Landmark, Scale } from 'lucide-react';
-import { ReconcileRow } from './_components/ReconcileRow';
+import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  CalendarDays,
+  History,
+  Info,
+  Landmark,
+  Scale,
+} from 'lucide-react';
 import { NewReconciliationForm } from './_components/NewReconciliationForm';
+import { ReconcileRegister, RegisterRow } from './_components/ReconcileRegister';
 
-const CASH_METHODS = ['CASH', 'PETTY_CASH'];
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Month boundaries, computed outside the component so render stays pure. */
+function monthRange(offset = 0): { from: string; to: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return { from: iso(start), to: iso(end) };
 }
 
-/** Resolve the selected period (day or whole month) into a from/to range. */
-function resolveRange(mode: string, day: string, month: string): {
-  from: string;
-  to: string;
-  label: string;
-} {
-  if (mode === 'month') {
-    const [y, m] = month.split('-').map(Number);
-    const last = new Date(y, m, 0).getDate();
-    return {
-      from: `${month}-01`,
-      to: `${month}-${String(last).padStart(2, '0')}`,
-      label: new Date(y, m - 1, 1).toLocaleDateString('en-GB', {
-        month: 'long',
-        year: 'numeric',
-      }),
-    };
+function dayBefore(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function periodLabel(from: string, to: string): string {
+  const a = new Date(`${from}T00:00:00`);
+  const b = new Date(`${to}T00:00:00`);
+  const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+  const firstOfMonth = a.getDate() === 1;
+  const lastOfMonth = new Date(b.getFullYear(), b.getMonth() + 1, 0).getDate() === b.getDate();
+  if (sameMonth && firstOfMonth && lastOfMonth) {
+    return a.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   }
-  return { from: day, to: day, label: formatDate(day) };
+  return `${formatDate(from)} - ${formatDate(to)}`;
 }
 
-async function load(from: string, to: string): Promise<{
-  unreconciled: CashBookEntry[];
-  reconciled: CashBookEntry[];
-  periodEntries: CashBookEntry[];
-  summary: CashbookSummary | null;
-  sessions: BankReconciliation[];
-  error: string | null;
-}> {
+async function getJson<T>(path: string, fallback: T): Promise<T> {
   try {
-    const [unrecRes, recRes, periodRes, summaryRes, sessionsRes] = await Promise.all([
-      backendFetch('/finance/cashbook?column=bank&reconciled=false&limit=200'),
-      backendFetch('/finance/cashbook?column=bank&reconciled=true&limit=50'),
-      backendFetch(`/finance/cashbook?from=${from}&to=${to}&limit=500`),
-      backendFetch('/finance/cashbook/summary'),
-      backendFetch('/finance/cashbook/reconciliations'),
-    ]);
-    if (!unrecRes.ok) {
-      return { unreconciled: [], reconciled: [], periodEntries: [], summary: null, sessions: [], error: `Failed to load (HTTP ${unrecRes.status})` };
-    }
-    const unreconciled = ((await unrecRes.json()) as { items: CashBookEntry[] }).items ?? [];
-    const reconciled = recRes.ok ? ((await recRes.json()) as { items: CashBookEntry[] }).items ?? [] : [];
-    const periodEntries = periodRes.ok ? ((await periodRes.json()) as { items: CashBookEntry[] }).items ?? [] : [];
-    const summary = summaryRes.ok ? ((await summaryRes.json()) as CashbookSummary) : null;
-    const sessions = sessionsRes.ok ? ((await sessionsRes.json()) as { items: BankReconciliation[] }).items ?? [] : [];
-    return { unreconciled, reconciled, periodEntries, summary, sessions, error: null };
+    const res = await backendFetch(path);
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
   } catch {
-    return { unreconciled: [], reconciled: [], periodEntries: [], summary: null, sessions: [], error: 'Unable to reach the backend.' };
+    return fallback;
   }
 }
 
 export default async function ReconciliationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mode?: string; day?: string; month?: string }>;
+  searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ypit_session');
@@ -79,272 +69,168 @@ export default async function ReconciliationPage({
   if (!pageAllowed(session, 'finance', ['FINANCE', 'MANAGING_DIRECTOR'])) redirect('/dashboard');
 
   const params = await searchParams;
-  const mode = params.mode === 'month' ? 'month' : 'day';
-  const day = params.day ?? todayISO();
-  const month = params.month ?? todayISO().slice(0, 7);
-  const { from, to, label } = resolveRange(mode, day, month);
+  const thisMonth = monthRange(0);
+  const from = params.from ?? thisMonth.from;
+  const to = params.to ?? thisMonth.to;
+  const label = periodLabel(from, to);
+  const lastMonth = monthRange(-1);
 
-  const { unreconciled, reconciled, periodEntries, summary, sessions, error } = await load(from, to);
+  // Everything the register needs: this period's bank entries, whatever is
+  // still unmatched from before it, the cash rows we deliberately exclude,
+  // the book balance AS AT the period end, and past snapshots.
+  const [periodRes, carryRes, cashRes, asAt, periodSummary, sessionsRes] = await Promise.all([
+    getJson<{ items: CashBookEntry[] }>(`/finance/cashbook?column=bank&from=${from}&to=${to}&limit=500`, { items: [] }),
+    getJson<{ items: CashBookEntry[] }>(`/finance/cashbook?column=bank&reconciled=false&to=${dayBefore(from)}&limit=500`, { items: [] }),
+    getJson<{ items: CashBookEntry[] }>(`/finance/cashbook?column=cash&from=${from}&to=${to}&limit=200`, { items: [] }),
+    getJson<CashbookSummary | null>(`/finance/cashbook/summary?to=${to}`, null),
+    getJson<CashbookSummary | null>(`/finance/cashbook/summary?from=${from}&to=${to}`, null),
+    getJson<{ items: BankReconciliation[] }>('/finance/cashbook/reconciliations', { items: [] }),
+  ]);
 
-  const bookBankBalance = summary ? summary.bank.net : 0;
+  const carried: RegisterRow[] = carryRes.items.map((e) => ({ ...e, broughtForward: true }));
+  const rows: RegisterRow[] = [...carried, ...periodRes.items];
+  const excluded = cashRes.items;
 
-  // Bank reconciliation only deals with entries that touch the bank account.
-  // Cash / petty-cash rows live in their own ledgers and are listed separately
-  // so it's clear why they are not part of this screen.
-  const bankEntries = periodEntries.filter((e) => !CASH_METHODS.includes(e.paymentMethod));
-  const excludedEntries = periodEntries.filter((e) => CASH_METHODS.includes(e.paymentMethod));
-
-  const bankReceipts = bankEntries.filter((e) => e.type === 'RECEIPT');
-  const bankPayments = bankEntries.filter((e) => e.type === 'PAYMENT');
-  const bankReceiptTotal = bankReceipts.reduce((s, e) => s + e.amount, 0);
-  const bankPaymentTotal = bankPayments.reduce((s, e) => s + e.amount, 0);
+  // Balance the bank statement is compared against: the book's bank position
+  // at the end of the period (not today's), so a past month can be closed.
+  const bookBankBalance = asAt?.bank.net ?? 0;
+  const unreconciledCount = rows.filter((r) => !r.reconciled).length;
+  const receipts = periodSummary?.bank.receipts ?? 0;
+  const payments = periodSummary?.bank.payments ?? 0;
+  const sessions = sessionsRes.items;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Bank Reconciliation"
-        description="Only bank-account entries appear here. Tick them off against the bank statement, then snapshot the reconciliation."
+        description="Compare the bank column of the cash book against the bank statement for a period, tick off what matches, then snapshot the result."
       />
 
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
-          {error}
+      {/* ── Period picker ── */}
+      <section className="bg-white rounded-xl shadow-card border border-gray-100 p-4">
+        <form method="GET" className="flex flex-wrap items-end gap-3">
+          <div className="space-y-1">
+            <label htmlFor="from" className="text-[11px] font-bold uppercase tracking-wider text-gray-500">From</label>
+            <input id="from" name="from" type="date" defaultValue={from} className="block rounded-md border border-gray-200 px-3 py-1.5 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="to" className="text-[11px] font-bold uppercase tracking-wider text-gray-500">To</label>
+            <input id="to" name="to" type="date" defaultValue={to} className="block rounded-md border border-gray-200 px-3 py-1.5 text-sm" />
+          </div>
+          <button type="submit" className="rounded-md bg-primary hover:bg-primary-light text-white text-sm font-medium px-4 py-1.5">
+            View
+          </button>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-gray-400">Quick:</span>
+            <Link href={`/finance/reconciliation?from=${thisMonth.from}&to=${thisMonth.to}`} className="px-2.5 py-1 rounded-md border border-gray-200 hover:border-primary text-gray-600">This month</Link>
+            <Link href={`/finance/reconciliation?from=${lastMonth.from}&to=${lastMonth.to}`} className="px-2.5 py-1 rounded-md border border-gray-200 hover:border-primary text-gray-600">Last month</Link>
+          </div>
+          <div className="flex-1" />
+          <p className="text-xs text-gray-500 flex items-center gap-1.5">
+            <CalendarDays className="w-3.5 h-3.5" /> Showing <b className="text-gray-900">{label}</b>
+          </p>
+        </form>
+      </section>
+
+      {/* ── Period totals + the balance the statement is checked against ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-px bg-gray-100 rounded-xl overflow-hidden border border-gray-100">
+        <div className="bg-white p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><ArrowUpCircle className="w-3.5 h-3.5 text-green-600" /> Bank receipts</p>
+          <p className="text-lg font-bold text-green-700 mt-1">{formatCurrency(receipts)}</p>
+          <p className="text-[11px] text-gray-500">{periodRes.items.filter((e) => e.type === 'RECEIPT').length} in · {label}</p>
+        </div>
+        <div className="bg-white p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><ArrowDownCircle className="w-3.5 h-3.5 text-red-600" /> Bank payments</p>
+          <p className="text-lg font-bold text-red-600 mt-1">{formatCurrency(payments)}</p>
+          <p className="text-[11px] text-gray-500">{periodRes.items.filter((e) => e.type === 'PAYMENT').length} out · {label}</p>
+        </div>
+        <div className="bg-white p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><Scale className="w-3.5 h-3.5" /> Movement</p>
+          <p className={`text-lg font-bold mt-1 ${receipts - payments >= 0 ? 'text-gray-900' : 'text-red-600'}`}>{formatCurrency(receipts - payments)}</p>
+          <p className="text-[11px] text-gray-500">{periodRes.items.length} bank entries</p>
+        </div>
+        <div className="bg-white p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><Landmark className="w-3.5 h-3.5" /> Book balance at {formatDate(to)}</p>
+          <p className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(bookBankBalance)}</p>
+          <p className="text-[11px] text-gray-500">{unreconciledCount} still unmatched</p>
+        </div>
+      </div>
+
+      {carried.length > 0 && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-2">
+          <Info className="w-4 h-4 shrink-0" />
+          {carried.length} entr{carried.length === 1 ? 'y' : 'ies'} from before {formatDate(from)} {carried.length === 1 ? 'is' : 'are'} still unmatched and {carried.length === 1 ? 'has' : 'have'} been carried into this period (marked <b>b/f</b>).
         </p>
       )}
 
-      {/* ── Period view: bank entries for a day or a month ── */}
-      <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
-          <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-            <CalendarDays className="w-4 h-4" /> Bank Transactions - {label}
-          </h3>
-          <form method="GET" className="flex items-end gap-2">
-            <div className="space-y-1">
-              <label htmlFor="mode" className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Filter by</label>
-              <select
-                id="mode"
-                name="mode"
-                defaultValue={mode}
-                className="block rounded-md border border-gray-200 px-3 py-1.5 text-sm bg-white"
-              >
-                <option value="day">Day</option>
-                <option value="month">Month</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="day" className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Day</label>
-              <input id="day" name="day" type="date" defaultValue={day} className="block rounded-md border border-gray-200 px-3 py-1.5 text-sm" />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="month" className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Month</label>
-              <input id="month" name="month" type="month" defaultValue={month} className="block rounded-md border border-gray-200 px-3 py-1.5 text-sm" />
-            </div>
-            <button type="submit" className="rounded-md bg-primary hover:bg-primary-light text-white text-sm font-medium px-4 py-1.5">
-              View
-            </button>
-          </form>
-        </div>
-
-        {/* Period totals (bank only) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-gray-100">
-          <div className="bg-white p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><ArrowUpCircle className="w-3.5 h-3.5 text-green-600" /> Bank receipts</p>
-            <p className="text-lg font-bold text-green-700 mt-1">{formatCurrency(bankReceiptTotal)}</p>
-            <p className="text-[11px] text-gray-500">{bankReceipts.length} in</p>
-          </div>
-          <div className="bg-white p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><ArrowDownCircle className="w-3.5 h-3.5 text-red-600" /> Bank payments</p>
-            <p className="text-lg font-bold text-red-600 mt-1">{formatCurrency(bankPaymentTotal)}</p>
-            <p className="text-[11px] text-gray-500">{bankPayments.length} out</p>
-          </div>
-          <div className="bg-white p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1"><Scale className="w-3.5 h-3.5" /> Bank net - {label}</p>
-            <p className={`text-lg font-bold mt-1 ${bankReceiptTotal - bankPaymentTotal >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
-              {formatCurrency(bankReceiptTotal - bankPaymentTotal)}
-            </p>
-            <p className="text-[11px] text-gray-500">{bankEntries.length} bank entries</p>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto border-t border-gray-100">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
-                <th className="px-4 py-3 font-medium">Entry #</th>
-                <th className="px-4 py-3 font-medium">Particulars</th>
-                <th className="px-4 py-3 font-medium">Ref</th>
-                <th className="px-4 py-3 font-medium">Method</th>
-                <th className="px-4 py-3 font-medium text-right">Receipt</th>
-                <th className="px-4 py-3 font-medium text-right">Payment</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {bankEntries.map((e) => (
-                <tr key={e.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="px-4 py-2.5 text-xs font-mono text-gray-500">{e.entryNumber}</td>
-                  <td className="px-4 py-2.5">
-                    <p className="text-gray-900 max-w-[280px] truncate" title={e.description}>{e.description}</p>
-                    <p className="text-[11px] text-gray-500">
-                      {e.internal ? 'internal transfer - bank side' : e.source.replace(/_/g, ' ').toLowerCase()}
-                    </p>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-gray-600">{e.reference ?? '-'}</td>
-                  <td className="px-4 py-2.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-blue-50 text-blue-700">
-                      {e.paymentMethod.replace(/_/g, ' ').toLowerCase()}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-green-700">
-                    {e.type === 'RECEIPT' ? formatCurrency(e.amount, { currency: e.currency }) : ''}
-                  </td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-red-600">
-                    {e.type === 'PAYMENT' ? formatCurrency(e.amount, { currency: e.currency }) : ''}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${e.reconciled ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {e.reconciled ? 'Reconciled' : 'Unmatched'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {bankEntries.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">
-                    No bank transactions in {label}.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Cash / petty-cash entries stay in their own ledgers */}
-        {excludedEntries.length > 0 && (
-          <div className="m-4 rounded-lg border border-blue-200 bg-blue-50/60 p-4">
-            <p className="text-xs font-bold text-blue-900 flex items-center gap-1.5 mb-2">
-              <Info className="w-3.5 h-3.5" /> Excluded from this screen ({excludedEntries.length})
-            </p>
-            <ul className="space-y-1">
-              {excludedEntries.map((e) => (
-                <li key={e.id} className="text-xs text-blue-800">
-                  • {formatCurrency(e.amount)} - {e.description}{' '}
-                  <span className="uppercase text-[10px] font-bold">({e.paymentMethod.replace(/_/g, ' ')})</span>
-                </li>
-              ))}
-            </ul>
-            <p className="text-[11px] text-blue-700 mt-2">
-              These are cash / petty-cash movements. They remain in their own ledgers and do not enter bank reconciliation.
-            </p>
-          </div>
-        )}
-      </section>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: unreconciled entries */}
-        <section className="lg:col-span-2 bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-              <Landmark className="w-4 h-4" /> Unreconciled Bank Entries
-            </h3>
-            <span className="text-xs text-gray-500">{unreconciled.length} pending</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3 font-medium">Date</th>
-                  <th className="px-4 py-3 font-medium">Particulars</th>
-                  <th className="px-4 py-3 font-medium">Ref</th>
-                  <th className="px-4 py-3 font-medium text-right">Amount</th>
-                  <th className="px-4 py-3 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {unreconciled.map((e) => (
-                  <ReconcileRow key={e.id} entry={e} mode="reconcile" />
+        <div className="lg:col-span-2 space-y-6">
+          <ReconcileRegister rows={rows} />
+
+          {excluded.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-4">
+              <p className="text-xs font-bold text-blue-900 flex items-center gap-1.5 mb-2">
+                <Info className="w-3.5 h-3.5" /> Not part of bank reconciliation ({excluded.length})
+              </p>
+              <ul className="space-y-1">
+                {excluded.slice(0, 8).map((e) => (
+                  <li key={e.id} className="text-xs text-blue-800">
+                    • {formatCurrency(e.amount)} - {e.description}{' '}
+                    <span className="uppercase text-[10px] font-bold">({e.paymentMethod.replace(/_/g, ' ')})</span>
+                  </li>
                 ))}
-                {unreconciled.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center py-10 text-gray-500">
-                      <CheckCircle2 className="w-5 h-5 inline-block mr-1.5 text-green-500" />
-                      All bank entries are reconciled.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {reconciled.length > 0 && (
-            <>
-              <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Recently reconciled</h4>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <tbody className="divide-y divide-gray-100">
-                    {reconciled.slice(0, 10).map((e) => (
-                      <ReconcileRow key={e.id} entry={e} mode="unreconcile" />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+              </ul>
+              <p className="text-[11px] text-blue-700 mt-2">
+                Cash and petty-cash movements stay in their own ledgers. A petty-cash top-up shows here as the
+                petty-cash side only - its bank side is the single bank payment in the register above.
+              </p>
+            </div>
           )}
-        </section>
+        </div>
 
-        {/* Right: statement comparison + history */}
         <div className="space-y-6">
           <section className="bg-white rounded-xl shadow-card border border-gray-100 p-5 space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-              <Scale className="w-4 h-4" /> Reconcile Against Statement
-            </h3>
-            <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Book bank balance</span>
-                <span className="font-bold text-gray-900">{formatCurrency(bookBankBalance)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Unreconciled entries</span>
-                <span className="font-bold text-gray-900">{unreconciled.length}</span>
-              </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <Scale className="w-4 h-4" /> Close off {label}
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Enter the closing balance from the statement. It is compared against the book balance at{' '}
+                {formatDate(to)}.
+              </p>
             </div>
-            <NewReconciliationForm bookBankBalance={bookBankBalance} unreconciledCount={unreconciled.length} />
+            <NewReconciliationForm
+              bookBankBalance={bookBankBalance}
+              unreconciledCount={unreconciledCount}
+              statementDateDefault={to}
+            />
           </section>
 
           <section className="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
             <div className="p-5 border-b border-gray-100">
               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                <History className="w-4 h-4" /> Past Reconciliations
+                <History className="w-4 h-4" /> Past reconciliations
               </h3>
             </div>
-            {sessions.length === 0 ? (
-              <p className="text-sm text-gray-500 px-5 py-8 text-center">None yet.</p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {sessions.map((r) => (
-                  <li key={r.id} className="px-5 py-3.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{r.recNumber}</p>
-                        <p className="text-[11px] text-gray-500">
-                          Statement {formatDate(r.statementDate)} · by {r.preparedByName}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-sm font-bold ${Math.abs(r.difference) < 1 ? 'text-green-700' : 'text-red-600'}`}>
-                          {Math.abs(r.difference) < 1 ? 'Balanced' : `Diff ${formatCurrency(r.difference)}`}
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Stmt {formatCurrency(r.statementBalance, { compact: true })} vs book {formatCurrency(r.bookBankBalance, { compact: true })}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="divide-y divide-gray-100">
+              {sessions.slice(0, 8).map((r) => (
+                <li key={r.id} className="px-5 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-gray-900">{formatDate(r.statementDate)}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${Math.abs(r.difference) < 0.005 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {Math.abs(r.difference) < 0.005 ? 'Balanced' : `Diff ${formatCurrency(r.difference)}`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 font-mono">{r.recNumber}</p>
+                  <p className="text-[11px] text-gray-500">
+                    Statement {formatCurrency(r.statementBalance)} · book {formatCurrency(r.bookBankBalance)} · by {r.preparedByName}
+                  </p>
+                </li>
+              ))}
+              {sessions.length === 0 && (
+                <li className="px-5 py-8 text-center text-sm text-gray-500">No reconciliation snapshots yet.</li>
+              )}
+            </ul>
           </section>
         </div>
       </div>

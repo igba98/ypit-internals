@@ -91,3 +91,26 @@ export async function createBankReconciliation(
   revalidate();
   return { success: true, message: 'Bank reconciliation saved.' };
 }
+
+/** Tick or untick several bank entries in one go (month-end batch). */
+export async function reconcileManyEntries(
+  ids: string[],
+  reconciled: boolean,
+  bankStatementRef?: string,
+): Promise<ActionResult & { updated?: number }> {
+  const res = await backendFetch('/finance/cashbook/reconcile-many', {
+    method: 'POST',
+    body: JSON.stringify({ ids, reconciled, bankStatementRef }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  const body = (await res.json()) as { updated: number };
+  revalidatePath('/finance/reconciliation');
+  revalidatePath('/finance/cash-book');
+  return {
+    success: true,
+    updated: body.updated,
+    message: body.updated === 0
+      ? 'Nothing to change.'
+      : `${body.updated} entr${body.updated === 1 ? 'y' : 'ies'} ${reconciled ? 'reconciled' : 'returned to unmatched'}.`,
+  };
+}

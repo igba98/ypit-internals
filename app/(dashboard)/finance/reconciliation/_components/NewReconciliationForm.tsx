@@ -15,13 +15,16 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 export function NewReconciliationForm({
   bookBankBalance,
   unreconciledCount,
+  statementDateDefault,
 }: {
   bookBankBalance: number;
   unreconciledCount: number;
+  /** End of the period being reconciled - so a past month can be closed. */
+  statementDateDefault?: string;
 }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
-  const [statementDate, setStatementDate] = useState(todayISO());
+  const [statementDate, setStatementDate] = useState(statementDateDefault ?? todayISO());
   const [statementRaw, setStatementRaw] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -115,8 +118,8 @@ export function NewReconciliationForm({
         {busy ? 'Saving...' : 'Save Reconciliation'}
       </Button>
       <p className="text-[11px] text-gray-500">
-        Enabled only when Difference = 0. Saves a snapshot comparing the
-        statement balance against the book bank balance.
+        Enabled only when Difference = 0. Saves a locked snapshot of this period:
+        statement balance, book balance, what was reconciled and what was left.
       </p>
     </div>
   );

@@ -144,3 +144,25 @@ Other decisions:
   receipt number → 422; non-Finance → 403. Fee-only edits need no receipt.
 - UI: `PaymentSheet` replaces `RecordPaymentForm`; reachable from "Record Payment" and from a
   per-row "Fees & payments" action (the row passes its record in, so no extra round-trip).
+
+---
+
+## Bank reconciliation rework — finance feedback, 2026-09-29
+
+The backend was already right (the snapshot computes the book balance **up to the statement date**);
+the screen was the problem.
+
+| Spec item | What was wrong | Fix |
+|---|---|---|
+| Date filtering | A confusing Day/Month mode with two inputs; the period table was read-only | **From / To range** + "This month" / "Last month" presets; View re-queries |
+| Fetch the period's bank entries | Period rows were fetched unfiltered and filtered in the browser | Server-side `column=bank&from&to`; cash pulled separately for the excluded box |
+| Carry over prior months | Unmatched entries sat in a separate all-time list | A second query (`column=bank&reconciled=false&to=<day before From>`) merges them into the register, marked **b/f** |
+| Tick off against the statement | Only one-at-a-time buttons, and not on the period table | Checkboxes on every register row, select-all, **bulk** reconcile/undo via `POST /finance/cashbook/reconcile-many`, optional statement ref stored on each line |
+| Snapshot the month | The save gate compared the statement against the **all-time** bank balance, so a past month could never reach difference = 0 | Gate now uses the balance **as at the To date** (`summary?to=`), and the statement date defaults to the period end |
+| Bank-only | Held, but enforced client-side | Enforced by the query |
+| Internal transfers | — | Verified: a petty-cash top-up shows as **one** bank payment in the register (marked "internal transfer (bank side)"); its petty-cash leg appears only in the excluded list |
+
+Verified with June/July/August entries plus a July petty-cash top-up: July filter returned only July
+bank rows; the unmatched June receipt carried over; the cash sale stayed out; book balance at 31 July
+was 739,950 against an all-time 714,950 (the old comparison), and closing July with 739,950 produced
+`difference = 0`; bulk tick-off set and cleared 6-7 rows with the statement ref recorded.
