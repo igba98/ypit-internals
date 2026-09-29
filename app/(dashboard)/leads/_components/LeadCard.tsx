@@ -5,7 +5,6 @@ import { Lead } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
 import { Phone, Mail, MoreVertical, Calendar, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ActionDropdown } from '@/components/shared/ActionDropdown';
 
 interface LeadCardProps {
   lead: Lead;
@@ -37,7 +36,7 @@ export function LeadCard({ lead, onClick, isDragging }: LeadCardProps) {
         <h3 className="font-urbanist font-bold text-gray-900 text-lg leading-tight truncate pr-2">
           {lead.fullName}
         </h3>
-        <ActionDropdown basePath="/leads" record={lead} />
+        
       </div>
 
       <div className="flex flex-col gap-1.5 mb-3">

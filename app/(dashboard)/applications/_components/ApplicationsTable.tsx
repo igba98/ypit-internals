@@ -92,7 +92,7 @@ export function ApplicationsTable({ data }: ApplicationsTableProps) {
     },
     {
       id: 'actions',
-      cell: ({ row }) => <ActionDropdown basePath="/applications" record={row.original} />,
+      cell: ({ row }) => <ActionDropdown viewHref={`/applications/${row.original.id}`} />,
     },
   ];
 

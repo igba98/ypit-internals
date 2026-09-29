@@ -42,7 +42,7 @@ export function EditStaffButton({ staff }: Props) {
   );
 }
 
-function EditStaffPanel({ staff, onClose }: { staff: User; onClose: () => void }) {
+export function EditStaffPanel({ staff, onClose }: { staff: User; onClose: () => void }) {
   return (
     <div className="space-y-6">
       <EditStaffForm staff={staff} onSuccess={onClose} />

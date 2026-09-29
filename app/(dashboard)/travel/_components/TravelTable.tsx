@@ -118,7 +118,7 @@ export function TravelTable({ data }: TravelTableProps) {
     },
     {
       id: 'actions',
-      cell: ({ row }) => <ActionDropdown basePath="/travel" record={row.original} />,
+      cell: ({ row }) => <ActionDropdown viewHref={`/travel/${row.original.id}`} />,
     },
   ];
 

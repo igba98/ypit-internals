@@ -96,7 +96,7 @@ export function AuditLogTable({ data }: AuditLogTableProps) {
       cell: ({ row }) => {
         return (
           <div className="flex justify-end pr-2">
-            <ActionDropdown basePath="/audit-logs" record={row.original} hideEdit hideDelete />
+            <span className="text-xs text-gray-400">-</span>
           </div>
         );
       },

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { User } from '@/types';
 import { DataTable } from '@/components/shared/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -7,12 +9,15 @@ import { RoleBadge } from '@/components/shared/RoleBadge';
 import { Avatar } from '@/components/shared/Avatar';
 import { Phone, Mail } from 'lucide-react';
 import { ActionDropdown } from '@/components/shared/ActionDropdown';
+import { SlideInPanel } from '@/components/shared/SlideInPanel';
+import { EditStaffPanel } from './EditStaffButton';
 
 interface StaffTableProps {
   data: User[];
 }
 
 export function StaffTable({ data }: StaffTableProps) {
+  const [editing, setEditing] = useState<User | null>(null);
   const columns: ColumnDef<User>[] = [
     {
       accessorKey: 'fullName',
@@ -72,15 +77,29 @@ export function StaffTable({ data }: StaffTableProps) {
     },
     {
       id: 'actions',
-      cell: ({ row }) => <ActionDropdown basePath="/staff" record={row.original} />,
+      cell: ({ row }) => <ActionDropdown
+          viewHref={`/staff/${row.original.id}`}
+          onEdit={() => setEditing(row.original)}
+        />,
     },
   ];
 
   return (
+    <>
     <DataTable 
       columns={columns} 
       data={data} 
       searchKey="fullName" 
     />
+
+      <SlideInPanel
+        isOpen={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `Edit Staff · ${editing.fullName}` : 'Edit staff'}
+        description="Update profile, salary, role and account status."
+      >
+        {editing && <EditStaffPanel staff={editing} onClose={() => setEditing(null)} />}
+      </SlideInPanel>
+    </>
   );
 }

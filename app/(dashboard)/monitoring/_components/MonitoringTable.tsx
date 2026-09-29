@@ -104,7 +104,7 @@ export function MonitoringTable({ data }: MonitoringTableProps) {
     },
     {
       id: 'actions',
-      cell: ({ row }) => <ActionDropdown basePath="/monitoring" record={row.original} />,
+      cell: ({ row }) => <ActionDropdown viewHref={`/monitoring/${row.original.id}`} />,
     },
   ];
 

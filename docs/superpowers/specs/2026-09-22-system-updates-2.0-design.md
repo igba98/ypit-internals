@@ -166,3 +166,30 @@ Verified with June/July/August entries plus a July petty-cash top-up: July filte
 bank rows; the unmatched June receipt carried over; the cash sale stayed out; book balance at 31 July
 was 739,950 against an all-time 714,950 (the old comparison), and closing July with 739,950 produced
 `difference = 0`; bulk tick-off set and cleared 6-7 rows with the statement ref recorded.
+
+---
+
+## "Record not found" when editing a payment — the *other* edit path, 2026-09-29
+
+The 27 Sept fix addressed the fee-edit endpoint. Finance was hitting a different button: the row
+menu ("⋯ → Edit Record") on the payments table, which was wired to `lib/actions/genericActions.ts` —
+a leftover **in-memory demo CRUD**. It searched `mockPayments`, so on a live record it always
+answered "Record not found.", and where a demo id did match it wrote to a server-memory array that
+never reached the database. `/payments/[id]` ("View details") read the same demo array.
+
+The same trap sat on the staff, monitoring, travel, applications, leads and audit-log tables —
+which is also what the "can't edit/update names at Staff" report was about.
+
+Fixed:
+- `genericActions.ts` and `GenericEditPanel.tsx` **deleted**, so nothing can silently fake a save again.
+- `ActionDropdown` now takes real handlers (`viewHref`, `onEdit`, `onDelete`) and renders nothing when
+  none are supplied.
+- Payments row → View opens the rewritten `/payments/[studentId]` (real record: fee breakdown,
+  totals, receipts, notes) and Edit opens the PaymentSheet with its totals computed for you.
+- Staff row → View opens `/staff/[id]`; Edit opens the real `EditStaffPanel` (exported for reuse).
+- Monitoring / travel / applications rows → View only (their detail pages are real).
+- Audit log and lead card → dropdown removed; those detail pages are still demo data.
+
+Verified: `/payments/<studentId>` renders the live record (1,350,000 fee/paid, receipt RCP-EDIT-1),
+and saving more fees through the sheet updated totals to fees 5,350,000 / paid 2,350,000 /
+due 3,000,000 / PARTIAL.

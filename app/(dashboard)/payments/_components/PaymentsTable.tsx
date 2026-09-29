@@ -185,7 +185,10 @@ export function PaymentsTable({ data, students = [] }: PaymentsTableProps) {
             <Wallet className="w-3.5 h-3.5" /> Fees &amp; payments
           </button>
           <TuitionReminderButton record={row.original} />
-          <ActionDropdown basePath="/payments" record={row.original} />
+          <ActionDropdown
+            viewHref={`/payments/${row.original.studentId}`}
+            onEdit={() => setEditing(row.original)}
+          />
         </div>
       ),
     },
