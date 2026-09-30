@@ -3,14 +3,20 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2, Receipt, Wallet } from 'lucide-react';
+import { Eraser, Loader2, Receipt, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { PaymentRecord } from '@/types';
-import { getPaymentRecord, PaymentLineInput, recordPayments } from '@/lib/actions/paymentActions';
+import {
+  correctPayments,
+  getPaymentRecord,
+  PaymentCorrectionLine,
+  PaymentLineInput,
+  recordPayments,
+} from '@/lib/actions/paymentActions';
 
 export interface StudentOption {
   id: string;
@@ -41,15 +47,22 @@ const num = (v: string) => {
   const n = Number(v.replace(/[,\s]/g, ''));
   return Number.isFinite(n) && n > 0 ? n : 0;
 };
+/** Same, but 0 is a real value when correcting (it clears the entry). */
+const numOrZero = (v: string) => {
+  const n = Number(v.replace(/[,\s]/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
 /** Module-level so render stays pure. */
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-type Row = { fee: string; pay: string };
+/** `pay` is money coming in now; `paid` is the corrected total in fix mode. */
+type Row = { fee: string; pay: string; paid: string };
+const blank: Row = { fee: '', pay: '', paid: '' };
 const emptyRows = (): Record<Bucket, Row> => ({
-  APPLICATION: { fee: '', pay: '' },
-  TUITION: { fee: '', pay: '' },
-  AGENCY: { fee: '', pay: '' },
-  HOSTEL: { fee: '', pay: '' },
+  APPLICATION: { ...blank },
+  TUITION: { ...blank },
+  AGENCY: { ...blank },
+  HOSTEL: { ...blank },
 });
 
 /**
@@ -57,12 +70,17 @@ const emptyRows = (): Record<Bucket, Row> => ({
  * and what came in today. Totals, balance and status are computed here for
  * display and recomputed server-side on save.
  */
-/** Pre-fill the fee column from a record we already have. */
+/** Pre-fill the fee column - and, for fixing, what is recorded as paid. */
 function rowsFrom(record: PaymentRecord | null): Record<Bucket, Row> {
   const next = emptyRows();
   for (const b of BUCKETS) {
     const fee = record ? Number(record[b.feeField] ?? 0) : 0;
-    next[b.key] = { fee: fee > 0 ? String(fee) : '', pay: '' };
+    const paid = record ? Number(record[b.paidField] ?? 0) : 0;
+    next[b.key] = {
+      fee: fee > 0 ? String(fee) : '',
+      pay: '',
+      paid: paid > 0 ? String(paid) : '',
+    };
   }
   return next;
 }
@@ -89,6 +107,11 @@ export function PaymentSheet({
   const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
   const [paymentDate, setPaymentDate] = useState(todayISO);
   const [notes, setNotes] = useState('');
+  // Finance asked for a way to undo a mis-typed amount (1,350,000 for 135,000):
+  // in "fix" mode the numbers are what should stand, not what to add.
+  const [mode, setMode] = useState<'record' | 'fix'>('record');
+  const [reason, setReason] = useState('');
+  const fixing = mode === 'fix';
 
   /**
    * Picking a student loads their current fees, so "paid so far" and the
@@ -98,6 +121,7 @@ export function PaymentSheet({
     setStudentId(id);
     setRecord(null);
     setRows(emptyRows());
+    setReason('');
     if (!id) return;
     setLoading(true);
     startTransition(async () => {
@@ -108,30 +132,95 @@ export function PaymentSheet({
     });
   };
 
+  /** Switching mode starts from the saved figures again. */
+  const switchMode = (next: 'record' | 'fix') => {
+    setMode(next);
+    setRows(rowsFrom(record));
+    setReason('');
+  };
+
+  /** Wipe every recorded payment for this student (fees are left alone). */
+  const clearAll = () =>
+    setRows((r) => {
+      const next = { ...r };
+      for (const b of BUCKETS) next[b.key] = { ...next[b.key], paid: '0' };
+      return next;
+    });
+
   const totals = useMemo(() => {
     let fees = 0;
     let paidBefore = 0;
     let paying = 0;
+    let corrected = 0;
     for (const b of BUCKETS) {
       const already = record ? Number(record[b.paidField] ?? 0) : 0;
       const typedFee = num(rows[b.key].fee);
       const pay = num(rows[b.key].pay);
+      const nowPaid = fixing ? numOrZero(rows[b.key].paid) : already;
       // A fee left blank falls back to what is already paid plus what is being
       // paid now, so the balance never goes negative.
-      fees += Math.max(typedFee, already + pay);
+      fees += Math.max(typedFee, nowPaid + pay);
       paidBefore += already;
       paying += pay;
+      corrected += nowPaid;
     }
-    const paid = paidBefore + paying;
-    return { fees, paidBefore, paying, paid, balance: fees - paid };
-  }, [rows, record]);
+    const paid = (fixing ? corrected : paidBefore) + paying;
+    return { fees, paidBefore, paying, corrected, paid, balance: fees - paid };
+  }, [rows, record, fixing]);
 
   const set = (b: Bucket, field: keyof Row) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setRows((r) => ({ ...r, [b]: { ...r[b], [field]: e.target.value } }));
 
+  const submitCorrection = () => {
+    if (!record) {
+      toast.error('This student has no payment record to correct yet.');
+      return;
+    }
+    const lines: PaymentCorrectionLine[] = [];
+    for (const b of BUCKETS) {
+      const wasPaid = Number(record[b.paidField] ?? 0);
+      const wasFee = Number(record[b.feeField] ?? 0);
+      const nowPaid = numOrZero(rows[b.key].paid);
+      const nowFee = numOrZero(rows[b.key].fee);
+      const line: PaymentCorrectionLine = { bucket: b.key };
+      if (nowPaid !== wasPaid) line.paid = nowPaid;
+      if (nowFee !== wasFee) line.fee = nowFee;
+      if (line.paid === undefined && line.fee === undefined) continue;
+      lines.push(line);
+    }
+    if (lines.length === 0) {
+      toast.error('Nothing to correct - change an amount first.');
+      return;
+    }
+    if (reason.trim().length < 4) {
+      toast.error('Say why it is being corrected - it goes on the cash book entry.');
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await correctPayments(studentId, {
+        lines,
+        reason: reason.trim(),
+        paymentMethod,
+        date: paymentDate,
+      });
+      if (!res.success) {
+        toast.error(res.message);
+        return;
+      }
+      toast.success(res.message);
+      onDone();
+      router.refresh();
+    });
+  };
+
   const submit = () => {
     if (!studentId) {
       toast.error('Choose the student first.');
+      return;
+    }
+    if (fixing) {
+      submitCorrection();
       return;
     }
     const lines: PaymentLineInput[] = [];
@@ -204,14 +293,49 @@ export function PaymentSheet({
 
       {studentId && (
         <>
+          {/* Nothing to correct until the student has a saved record. */}
+          <div className={`flex flex-wrap items-center gap-2 ${record ? '' : 'hidden'}`}>
+            {([
+              { key: 'record' as const, label: 'Record payment' },
+              { key: 'fix' as const, label: 'Correct / clear' },
+            ]).map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => switchMode(t.key)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                  mode === t.key
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-primary'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+            {fixing && (
+              <Button type="button" variant="ghost" onClick={clearAll} className="gap-1.5 text-red-700 h-8">
+                <Eraser className="w-3.5 h-3.5" />
+                Clear all payments
+              </Button>
+            )}
+          </div>
+
+          {fixing && (
+            <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Type what the figures <b>should be</b> - they replace what is saved,
+              they are not added to it. Set an amount to 0 to remove it. The
+              difference is posted to the cash book as a correction.
+            </p>
+          )}
+
           <div className="rounded-lg border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
                   <th className="px-3 py-2 text-left font-medium">Fee type</th>
                   <th className="px-3 py-2 text-right font-medium">Fee (TSh)</th>
-                  <th className="px-3 py-2 text-right font-medium">Paid so far</th>
-                  <th className="px-3 py-2 text-right font-medium">Paying now</th>
+                  <th className="px-3 py-2 text-right font-medium">{fixing ? 'Recorded' : 'Paid so far'}</th>
+                  <th className="px-3 py-2 text-right font-medium">{fixing ? 'Should be' : 'Paying now'}</th>
                   <th className="px-3 py-2 text-right font-medium">Balance</th>
                 </tr>
               </thead>
@@ -219,8 +343,9 @@ export function PaymentSheet({
                 {BUCKETS.map((b) => {
                   const already = record ? Number(record[b.paidField] ?? 0) : 0;
                   const pay = num(rows[b.key].pay);
-                  const fee = Math.max(num(rows[b.key].fee), already + pay);
-                  const left = fee - already - pay;
+                  const standing = fixing ? numOrZero(rows[b.key].paid) : already;
+                  const fee = Math.max(num(rows[b.key].fee), standing + pay);
+                  const left = fee - standing - pay;
                   return (
                     <tr key={b.key}>
                       <td className="px-3 py-2 font-medium text-gray-900">{b.label}</td>
@@ -242,11 +367,17 @@ export function PaymentSheet({
                         <Input
                           type="number"
                           min={0}
-                          value={rows[b.key].pay}
-                          onChange={set(b.key, 'pay')}
+                          value={fixing ? rows[b.key].paid : rows[b.key].pay}
+                          onChange={set(b.key, fixing ? 'paid' : 'pay')}
                           placeholder="0"
-                          className="h-8 text-right tabular-nums"
-                          aria-label={`${b.label} amount paid now`}
+                          className={`h-8 text-right tabular-nums ${
+                            fixing && standing !== already ? 'border-amber-400 bg-amber-50' : ''
+                          }`}
+                          aria-label={
+                            fixing
+                              ? `${b.label} corrected amount paid`
+                              : `${b.label} amount paid now`
+                          }
                         />
                       </td>
                       <td className={`px-3 py-2 text-right tabular-nums ${left > 0 ? 'text-amber-700' : 'text-green-700'}`}>
@@ -261,7 +392,9 @@ export function PaymentSheet({
                   <td className="px-3 py-2">Totals</td>
                   <td className="px-3 py-2 text-right tabular-nums">{totals.fees.toLocaleString('en-US')}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-gray-500">{totals.paidBefore.toLocaleString('en-US')}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-primary">{totals.paying.toLocaleString('en-US')}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-primary">
+                    {(fixing ? totals.corrected : totals.paying).toLocaleString('en-US')}
+                  </td>
                   <td className={`px-3 py-2 text-right tabular-nums ${totals.balance > 0 ? 'text-amber-700' : 'text-green-700'}`}>
                     {Math.max(0, totals.balance).toLocaleString('en-US')}
                   </td>
@@ -272,7 +405,7 @@ export function PaymentSheet({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 rounded-lg bg-gray-50 border border-gray-100 p-3">
             <Stat label="Total fees" value={money(totals.fees)} />
-            <Stat label="Total paid" value={money(totals.paid)} accent="text-green-700" />
+            <Stat label={fixing ? 'Total paid after fix' : 'Total paid'} value={money(totals.paid)} accent="text-green-700" />
             <Stat label="Amount due" value={money(Math.max(0, totals.balance))} accent={totals.balance > 0 ? 'text-amber-700' : 'text-green-700'} />
             <Stat
               label="Status after save"
@@ -280,7 +413,25 @@ export function PaymentSheet({
             />
           </div>
 
-          {totals.paying > 0 && (
+          {fixing && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="ps-reason">Why is it being corrected? *</Label>
+                <Input
+                  id="ps-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g. Typed 1,350,000 instead of 135,000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ps-fix-date">Correction date</Label>
+                <Input id="ps-fix-date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {!fixing && totals.paying > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="ps-receipt">Receipt number *</Label>
@@ -299,14 +450,15 @@ export function PaymentSheet({
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className={`space-y-2 ${fixing ? 'hidden' : ''}`}>
             <Label htmlFor="ps-notes">Notes</Label>
             <Textarea id="ps-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth recording about this payment…" />
           </div>
 
           <p className="text-[11px] text-gray-500">
-            Fill in as many fee types as you need and save once. The totals and the amount due are
-            worked out for you; money received is posted to the cash book as a single receipt.
+            {fixing
+              ? 'The corrected figures replace what is saved. Totals and the amount due are recalculated, and the difference is written to the cash book with your reason so the books still balance.'
+              : 'Fill in as many fee types as you need and save once. The totals and the amount due are worked out for you; money received is posted to the cash book as a single receipt.'}
           </p>
         </>
       )}
@@ -314,8 +466,16 @@ export function PaymentSheet({
       <div className="pt-4 flex items-center justify-between border-t border-gray-100">
         <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
         <Button onClick={submit} disabled={busy || !studentId} className="gap-2">
-          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : totals.paying > 0 ? <Receipt className="w-4 h-4" /> : <Wallet className="w-4 h-4" />}
-          {totals.paying > 0 ? 'Record payment' : 'Save fees'}
+          {busy ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : fixing ? (
+            <Eraser className="w-4 h-4" />
+          ) : totals.paying > 0 ? (
+            <Receipt className="w-4 h-4" />
+          ) : (
+            <Wallet className="w-4 h-4" />
+          )}
+          {fixing ? 'Save correction' : totals.paying > 0 ? 'Record payment' : 'Save fees'}
         </Button>
       </div>
     </div>

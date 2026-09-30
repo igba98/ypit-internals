@@ -11,7 +11,7 @@ const ALLOWED = ['OPERATIONS', 'MANAGING_DIRECTOR'];
 
 async function staffOptions(): Promise<Pick<User, 'id' | 'fullName' | 'role'>[]> {
   try {
-    const res = await backendFetch('/staff?limit=500');
+    const res = await backendFetch('/staff?limit=500&status=ACTIVE');
     if (!res.ok) return [];
     const body = (await res.json()) as { items: User[] };
     return (body.items ?? []).filter((u) => u.role !== 'SUB_AGENT').map((u) => ({ id: u.id, fullName: u.fullName, role: u.role }));

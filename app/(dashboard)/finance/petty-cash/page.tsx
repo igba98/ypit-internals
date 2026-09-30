@@ -12,7 +12,10 @@ import {
   AlertTriangle,
   Paperclip,
 } from 'lucide-react';
+import Link from 'next/link';
+import { Printer } from 'lucide-react';
 import { PettyCashActions } from './_components/PettyCashActions';
+import { PrintRangeForm } from '../_components/PrintRangeForm';
 import { PettyCashTransaction, PettyCashTxType, PettyCashCategory } from '@/types';
 import { backendFetch } from '@/lib/backend';
 
@@ -109,7 +112,12 @@ export default async function PettyCashPage() {
       <PageHeader
         title="Petty Cash"
         description="Log office vouchers, track the float, and replenish from the bank."
-        actions={<PettyCashActions balance={balance} />}
+        actions={
+          <div className="flex flex-wrap items-end gap-3">
+            <PrintRangeForm action="/print/petty-cash" label="Print report" />
+            <PettyCashActions balance={balance} />
+          </div>
+        }
       />
 
       {error && (
@@ -214,6 +222,14 @@ export default async function PettyCashPage() {
                         <div>
                           <p className="font-semibold text-gray-900">{tx.voucherNumber ?? tx.txNumber ?? tx.id}</p>
                           <p className="text-[11px] text-gray-500">{meta.label}</p>
+                          <Link
+                            href={`/print/petty-cash/${tx.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline mt-0.5"
+                          >
+                            <Printer className="w-2.5 h-2.5" /> Print voucher
+                          </Link>
                         </div>
                       </div>
                     </td>

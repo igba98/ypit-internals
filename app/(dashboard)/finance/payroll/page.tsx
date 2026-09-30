@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { formatDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/format';
-import { Users, Banknote, Calendar, Wallet } from 'lucide-react';
+import { Users, Banknote, Calendar, Wallet, Printer } from 'lucide-react';
 import { PayrollHeaderActions, PayrollRowStatus } from './_components/PayrollActions';
 import { EditPayrollDialog } from './_components/EditPayrollDialog';
 import { PayrollEntry } from '@/types';
@@ -74,14 +75,25 @@ export default async function PayrollPage() {
         title="Payroll"
         description="Generate, approve and pay staff salaries."
         actions={
-          <PayrollHeaderActions
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/print/payslip?period=${encodeURIComponent(currentPeriod)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-3.5 py-2"
+              title="Summary sheet plus every payslip for this period"
+            >
+              <Printer className="w-3.5 h-3.5" /> Print all slips
+            </Link>
+            <PayrollHeaderActions
             currentPeriod={currentPeriod}
             currentPeriodStart={periodStart.toISOString()}
             hasDraft={hasDraft}
             hasApproved={hasApproved}
             missingStaffCount={missingStaffCount}
             hasAnyEntries={periodEntries.length > 0}
-          />
+            />
+          </div>
         }
       />
 
@@ -121,7 +133,17 @@ export default async function PayrollPage() {
             <Users className="w-4 h-4 text-primary" />
             {currentPeriod} Payroll Run
           </h3>
-          <span className="text-xs text-gray-500">{periodEntries.length} entries</span>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/print/payslip?period=${encodeURIComponent(currentPeriod)}&slips=0`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              <Printer className="w-3 h-3" /> Summary only
+            </Link>
+            <span className="text-xs text-gray-500">{periodEntries.length} entries</span>
+          </div>
         </div>
 
         {periodEntries.length === 0 ? (
@@ -161,6 +183,14 @@ export default async function PayrollPage() {
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${allPaid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                       {allPaid ? 'All paid' : 'Open'}
                     </span>
+                    <Link
+                      href={`/print/payslip?period=${encodeURIComponent(period)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      <Printer className="w-3 h-3" /> Print
+                    </Link>
                   </div>
                 </summary>
                 <PayrollTable entries={entries} />
@@ -189,6 +219,7 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
             <th className="px-5 py-3 font-medium text-right">PAYE</th>
             <th className="px-5 py-3 font-medium text-right">Net Pay</th>
             <th className="px-5 py-3 font-medium">Status</th>
+            <th className="px-5 py-3 font-medium text-right">Slip</th>
             <th className="px-5 py-3 font-medium text-right">Edit</th>
           </tr>
         </thead>
@@ -224,6 +255,17 @@ function PayrollTable({ entries }: { entries: PayrollEntry[] }) {
                     <span className="text-[11px] text-gray-500">paid {formatDate(e.paidDate)}</span>
                   )}
                 </div>
+              </td>
+              <td className="px-5 py-3.5 text-right">
+                <Link
+                  href={`/print/payslip/${e.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                  title={`Print ${e.staffName}'s salary slip`}
+                >
+                  <Printer className="w-3 h-3" /> Print
+                </Link>
               </td>
               <td className="px-5 py-3.5 text-right">
                 {e.status === 'DRAFT' ? (

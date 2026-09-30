@@ -158,3 +158,43 @@ export async function recordPayments(
         : 'Fees updated.',
   };
 }
+
+export interface PaymentCorrectionLine {
+  bucket: 'APPLICATION' | 'TUITION' | 'AGENCY' | 'HOSTEL';
+  /** What should stand as paid for this fee type. 0 clears it. */
+  paid?: number;
+  /** The fee itself, when that is what was mis-typed. */
+  fee?: number;
+}
+
+/**
+ * Fix a mis-keyed payment - the amounts are absolute, not additions, so
+ * 1,350,000 typed instead of 135,000 can simply be retyped (or cleared to 0).
+ * The difference is posted to the cash book as a correction, which is why a
+ * reason is required.
+ */
+export async function correctPayments(
+  studentId: string,
+  input: {
+    lines: PaymentCorrectionLine[];
+    reason: string;
+    paymentMethod?: string;
+    date?: string;
+  },
+): Promise<ActionResult & { record?: PaymentRecord }> {
+  const res = await backendFetch(`/finance/payments/${studentId}/correct`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  const record = (await res.json()) as PaymentRecord;
+  revalidatePath('/payments');
+  revalidatePath(`/payments/${studentId}`);
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath('/finance/cash-book');
+  return {
+    success: true,
+    record,
+    message: `Corrected. Total paid is now TSh ${record.totalPaid.toLocaleString('en-US')}, amount due TSh ${record.balance.toLocaleString('en-US')}.`,
+  };
+}

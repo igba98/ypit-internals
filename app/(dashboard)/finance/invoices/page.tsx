@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
 import { Building2, GraduationCap, FileText, ArrowDownCircle, AlertCircle, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
 import { NewInvoiceButton } from './_components/NewInvoiceButton';
+import { PrintRangeForm } from '../_components/PrintRangeForm';
 import { InvoiceStatusCell } from './_components/InvoiceStatusCell';
 import { Invoice, InvoiceRecipientType } from '@/types';
 import { backendFetch } from '@/lib/backend';
@@ -46,7 +47,12 @@ export default async function InvoicesPage() {
       <PageHeader
         title="Invoices"
         description="Issue and track bills for students and vendors."
-        actions={<NewInvoiceButton />}
+        actions={
+          <div className="flex flex-wrap items-end gap-3">
+            <PrintRangeForm action="/print/invoices" label="Print report" />
+            <NewInvoiceButton />
+          </div>
+        }
       />
 
       {error && (

@@ -533,7 +533,9 @@ export interface AllowanceItem {
 }
 
 export interface PayrollEntry {
-  id: string;                       // PR-2026-MAR-001
+  id: string;                       // cuid
+  /** Human-readable serial PR-YYYY-MON-NNN. */
+  payrollNumber?: string;
   staffId: string;
   staffName: string;
   staffRole: Role;

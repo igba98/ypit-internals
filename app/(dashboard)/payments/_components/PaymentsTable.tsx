@@ -206,7 +206,7 @@ export function PaymentsTable({ data, students = [] }: PaymentsTableProps) {
         isOpen={editing !== null}
         onClose={() => setEditing(null)}
         title={editing ? `Fees & payments · ${editing.studentName}` : 'Fees & payments'}
-        description="Set each fee and record what has been paid - all fee types in one save."
+        description="Set each fee and record what has been paid. Use Correct / clear to fix an amount typed wrongly."
       >
         {editing && (
           <PaymentSheet

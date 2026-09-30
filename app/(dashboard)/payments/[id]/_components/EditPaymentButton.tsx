@@ -18,7 +18,7 @@ export function EditPaymentButton({ record }: { record: PaymentRecord }) {
         isOpen={open}
         onClose={() => setOpen(false)}
         title={`Fees & payments · ${record.studentName}`}
-        description="Set each fee and record what has been paid - all fee types in one save."
+        description="Set each fee and record what has been paid. Use Correct / clear to fix an amount typed wrongly."
       >
         <PaymentSheet
           students={[]}

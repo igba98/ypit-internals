@@ -11,6 +11,9 @@ import { AddStudentLeadButton } from './_components/AddStudentLeadButton';
 import { LeadsTable, Officer } from './_components/LeadsTable';
 import { QuickAddLead } from './_components/QuickAddLead';
 
+/** Who may be handed a lead: every Relations Officer variant, plus sub-agents. */
+const RECIPIENT_ROLES: string[] = ['MARKETING_STAFF', 'TRAVEL', 'MARKETING_MANAGER', 'SUB_AGENT'];
+
 const ALLOWED = [
   'SUB_AGENT',
   'MARKETING_MANAGER',
@@ -25,17 +28,20 @@ interface LeadsResponse {
 }
 
 /** Relations Officers + sub-agents who can receive leads. */
-async function loadOfficers(): Promise<Officer[]> {
+async function loadOfficers(): Promise<{ officers: Officer[]; error: string | null }> {
   try {
     const res = await backendFetch('/staff?limit=500&status=ACTIVE');
-    if (!res.ok) return [];
+    if (!res.ok) {
+      return { officers: [], error: `Could not load the Relations Officers (HTTP ${res.status}).` };
+    }
     const body = (await res.json()) as { items: User[] };
-    return (body.items ?? [])
-      .filter((u) => ['MARKETING_STAFF', 'TRAVEL', 'SUB_AGENT'].includes(u.role))
+    const officers = (body.items ?? [])
+      .filter((u) => RECIPIENT_ROLES.includes(u.role))
       .sort((a, b) => (a.role === 'SUB_AGENT' ? 1 : 0) - (b.role === 'SUB_AGENT' ? 1 : 0) || a.fullName.localeCompare(b.fullName))
       .map((u) => ({ id: u.id, fullName: u.fullName, role: u.role }));
+    return { officers, error: null };
   } catch {
-    return [];
+    return { officers: [], error: 'Unable to reach the backend for the officer list.' };
   }
 }
 
@@ -82,9 +88,11 @@ export default async function StudentLeadsPage({
 
   const { status = 'all' } = await searchParams;
   const canDistribute = LEAD_DISTRIBUTOR_ROLES.includes(session.role);
-  const [{ items, error }, officers] = await Promise.all([
+  const [{ items, error }, { officers, error: officerError }] = await Promise.all([
     load(status),
-    canDistribute ? loadOfficers() : Promise.resolve([] as Officer[]),
+    canDistribute
+      ? loadOfficers()
+      : Promise.resolve({ officers: [] as Officer[], error: null }),
   ]);
   const ro = isRO(session.role);
 
@@ -143,6 +151,12 @@ export default async function StudentLeadsPage({
         </div>
 
       </div>
+
+      {officerError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+          {officerError} Leads can still be captured, but they cannot be assigned until this is fixed.
+        </p>
+      )}
 
       {canDistribute && <QuickAddLead officers={officers} />}
 

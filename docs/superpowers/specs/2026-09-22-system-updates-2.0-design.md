@@ -193,3 +193,67 @@ Fixed:
 Verified: `/payments/<studentId>` renders the live record (1,350,000 fee/paid, receipt RCP-EDIT-1),
 and saving more fees through the sheet updated totals to fees 5,350,000 / paid 2,350,000 /
 due 3,000,000 / PARTIAL.
+
+## Correcting mis-keyed payments + printable finance reports, 2026-09-30
+
+Three items came in: clear/fix wrongly-entered student payments, print invoice / petty cash /
+salary slip "kwa kimoja kimoja na kiujumla" (individually and in aggregate), and RO lead
+assignment refusing to see newly added officers.
+
+### 1. Correcting payments
+
+The record endpoints only ever *add* money, so a payment typed as 1,350,000 instead of 135,000
+could not be walked back — editing the fee left the paid figure standing.
+
+`POST /finance/payments/:studentId/correct` takes **absolute** figures per fee type:
+
+```jsonc
+{ "lines": [{ "bucket": "AGENCY", "paid": 135000, "fee": 135000 }],
+  "reason": "Typed 1,350,000 instead of 135,000" }
+```
+
+- `paid` and `fee` are each optional, but a line needs one of them; `paid: 0` clears the entry
+  (and its payment date), `fee` is clamped up to whatever is paid so the balance can't go negative.
+- Totals, balance, status and `lastPaymentDate` are recomputed, never typed.
+- The **difference** is posted to the cash book as a contra entry (`RECEIPT` when money was
+  under-recorded, `PAYMENT` when it was over-recorded) carrying the reason, so the bank
+  reconciliation and the audit trail still reconcile. That is why `reason` is required.
+- A correction that changes nothing is a 400 with that wording, not a silent no-op.
+
+Front of house: the payment sheet gained a **Correct / clear** tab (hidden until the student has a
+saved record) with a "Clear all payments" button, an amber "these figures replace what is saved"
+note, a required reason, and live totals. Reachable from the payments row menu and from
+`/payments/[id]`.
+
+### 2. Printing
+
+Everything prints through the same letterhead (`app/print/_components/Letterhead.tsx`), with
+signature rules where finance signs:
+
+| Document | Single | Aggregate |
+|---|---|---|
+| Invoice | `/print/invoice/[id]` (existing) | `/print/invoices?from&to` |
+| Petty cash | `/print/petty-cash/[id]` (voucher) | `/print/petty-cash?from&to` |
+| Salary slip | `/print/payslip/[id]` | `/print/payslip?period=September%202026` (summary + a slip per staff; `&slips=0` for the summary alone) |
+
+Buttons: a period picker in the page header for petty cash and invoices, "Print all slips" /
+"Summary only" on payroll, and per-row "Print voucher" / "Print" links.
+
+Dates default to the local month start — `toISOString()` slips a day back in East Africa.
+
+Verified with seeded data: payroll summary totalled 1,880,000 gross / 188,000 NSSF / 215,000 PAYE /
+1,477,000 net across two staff with the individual slips behind it; petty cash report walked the
+float 676,000 → 1,051,000 with a category breakdown; invoice report showed 600,000 invoiced and
+outstanding. Test data removed afterwards.
+
+### 3. RO lead assignment
+
+"Nime add wengine wawili mmoja hajaonekana … inasema RO's hawapo active while status yao ni active":
+the distribute panel asks for `/staff?limit=500`, but that endpoint capped `limit` at 100, so the
+request 422'd and the officer list came back **empty** — the panel then said "No active Relations
+Officers yet" while Staff showed them ACTIVE. The filter also omitted `MARKETING_MANAGER`, which is
+now an RO, so one of the two new officers would have been missing even on a good response.
+
+Fixed: staff list cap 100 → 500; recipients include every RO role; a failed officer load now shows a
+red banner instead of an empty list; and the backend explains per recipient why an assignment was
+refused (`"<name>: account is suspended"`, `"<name>: role X cannot receive leads"`).
