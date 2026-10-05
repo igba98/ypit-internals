@@ -40,6 +40,9 @@ export const MODULES: ModuleDef[] = [
   { key: 'commissions', label: 'University Commissions', description: 'Commissions owed and received from universities', hrefs: [{ label: 'Commissions', href: '/commissions' }], sensitive: true },
   { key: 'assets', label: 'Company Assets', description: 'Company-wide asset register', hrefs: [{ label: 'Company Assets', href: '/assets' }] },
   { key: 'records', label: 'Company Records', description: 'Company documents and personnel files (employees, interns, field)', hrefs: [{ label: 'Company Records', href: '/records' }], sensitive: true },
+  // System update Oct 2026: HR activities are kept apart from administration.
+  { key: 'hr', label: 'HR Activities', description: 'Training & orientations, food schedule, monthly food budget', hrefs: [{ label: 'HR Activities', href: '/hr' }] },
+  { key: 'administration', label: 'Administration Activities', description: 'Appointment calendar and office administration', hrefs: [{ label: 'Administration', href: '/administration' }] },
 ];
 
 /**
@@ -55,7 +58,7 @@ export const ROLE_MODULES: Partial<Record<Role, string[]>> = {
   FINANCE: ['students', 'finance', 'catalog', 'mous', 'partners', 'commissions', 'tasks', 'reports'],
   ADMISSIONS: ['students', 'applications', 'documents', 'letters', 'catalog', 'travel', 'monitoring', 'tasks', 'reports'],
   // Administrator (formerly Operations).
-  OPERATIONS: ['assets', 'records', 'equipment', 'staff', 'monitoring', 'tasks', 'reports'],
+  OPERATIONS: ['hr', 'administration', 'assets', 'records', 'equipment', 'staff', 'monitoring', 'tasks', 'reports'],
   BUSINESS_DEVELOPMENT: ['business-dev', 'subagents', 'partners', 'catalog', 'mous', 'commissions', 'tasks', 'reports'],
 };
 

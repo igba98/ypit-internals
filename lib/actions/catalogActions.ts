@@ -58,6 +58,7 @@ export async function createUniversity(
     contactEmail: formStr(formData, 'contactEmail'),
     contactPhone: formStr(formData, 'contactPhone'),
     scope: formStr(formData, 'scope') ?? 'INTERNATIONAL',
+    priority: formStr(formData, 'priority') ?? 'STANDARD',
     website: formStr(formData, 'website'),
     programsSummary: formStr(formData, 'programsSummary'),
     scholarshipNotes: formStr(formData, 'scholarshipNotes'),
@@ -80,7 +81,7 @@ export async function updateUniversity(
   formData: FormData,
 ): Promise<ActionResult> {
   const body: Record<string, unknown> = {};
-  for (const f of ['name', 'country', 'city', 'contactName', 'contactEmail', 'contactPhone', 'scope']) {
+  for (const f of ['name', 'country', 'city', 'contactName', 'contactEmail', 'contactPhone', 'scope', 'priority']) {
     const v = formStr(formData, f);
     if (v !== undefined) body[f] = v;
   }
@@ -236,4 +237,29 @@ export async function reassignPackageToStudent(
   newPackageId: string,
 ): Promise<ActionResult> {
   return assignPackageToStudent(studentId, newPackageId);
+}
+
+
+/**
+ * Star / unstar a university. Business Development reorders countries by
+ * priority constantly, so this is one click rather than a form.
+ */
+export async function setUniversityPriority(
+  id: string,
+  priority: 'PRIORITY' | 'STANDARD',
+): Promise<ActionResult> {
+  const res = await backendFetch(`/finance/universities/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ priority }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/universities');
+  revalidatePath('/finance/catalog');
+  return {
+    success: true,
+    message:
+      priority === 'PRIORITY'
+        ? 'Marked as a priority university.'
+        : 'Moved to other universities.',
+  };
 }

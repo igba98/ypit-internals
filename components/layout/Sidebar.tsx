@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { RoleBadge } from '@/components/shared/RoleBadge';
 import { Avatar } from '@/components/shared/Avatar';
@@ -38,10 +38,38 @@ import {
   FolderLock,
   HandCoins,
   FileCheck2,
+  UtensilsCrossed,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MODULES, isAssistant } from '@/lib/permissions';
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
+
+/**
+ * Highlight the entry that matches the current page. Several entries share a
+ * path and differ only by `?tab=`, so the tab is part of the comparison.
+ */
+function isActiveHref(
+  href: string,
+  pathname: string,
+  currentTab: string | null,
+  /** The tab the page falls back to when the URL carries none. */
+  defaultTabForPath: (path: string) => string | null,
+): boolean {
+  const [path, query] = href.split('?');
+  if (!pathname.startsWith(path)) return false;
+  const wanted = query ? new URLSearchParams(query).get('tab') : null;
+  if (!wanted) return true;
+  // Landing on the bare path shows that page's first tab, so highlight it.
+  return currentTab === wanted || (currentTab === null && defaultTabForPath(path) === wanted);
+}
+
+/** Pages whose first tab is shown when the URL has none - keep in step with
+ *  the page components, which read `?tab=`. */
+const PAGE_DEFAULT_TAB: Record<string, string> = {
+  '/hr': 'TRAINING',
+  '/records': 'COMPANY',
+};
 
 const MODULE_ICONS: Record<string, typeof LayoutDashboard> = {
   students: Users,
@@ -69,11 +97,14 @@ const MODULE_ICONS: Record<string, typeof LayoutDashboard> = {
   commissions: HandCoins,
   assets: Boxes,
   records: FolderLock,
+  hr: GraduationCap,
+  administration: CalendarClock,
 };
 
 export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
   const { session } = useSession();
   const pathname = usePathname();
+  const currentTab = useSearchParams().get('tab');
   const [collapsed, setCollapsed] = useState(initialCollapsed);
 
   const toggleCollapse = () => {
@@ -84,12 +115,22 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
   if (!session) return null;
 
-  const getNavItems = () => {
+  // A nav item may name the section it belongs to; the Administrator's menu
+  // must show HR activities and Administration activities as separate
+  // categories, never one combined list (IT change request, Oct 2026).
+  type NavItem = {
+    label: string;
+    href: string;
+    icon: typeof LayoutDashboard;
+    section?: string;
+  };
+
+  const getNavItems = (): NavItem[] => {
     // Assistants / interns: the menu IS their permission matrix — a module
     // appears only when their manager granted at least View.
     if (isAssistant(session.role)) {
       const granted = session.permissions ?? {};
-      const items: { label: string; href: string; icon: typeof LayoutDashboard }[] = [
+      const items: NavItem[] = [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       ];
       for (const m of MODULES) {
@@ -127,17 +168,27 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       ];
     }
 
-    // Administrator (formerly Operations) - company assets and records.
+    // Administrator / HR. The two activity sets are listed separately on
+    // purpose - see the IT change request of Oct 2026.
     if (session.role === 'OPERATIONS') {
       return [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { label: 'Company Assets', href: '/assets', icon: Boxes },
-        { label: 'Company Records', href: '/records', icon: FolderLock },
-        { label: 'IT Equipment', href: '/equipment', icon: Laptop },
-        { label: 'Monitoring', href: '/monitoring', icon: Activity },
-        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
-        { label: 'Reports', href: '/reports', icon: BarChart3 },
-        { label: 'My Assistants', href: '/staff', icon: UserPlus },
+
+        { section: 'HR Activities', label: 'Training & Orientations', href: '/hr?tab=TRAINING', icon: GraduationCap },
+        { section: 'HR Activities', label: 'Food Schedule', href: '/hr?tab=FOOD_SCHEDULE', icon: UtensilsCrossed },
+        { section: 'HR Activities', label: 'Monthly Food Budget', href: '/hr?tab=FOOD_BUDGET', icon: Wallet },
+        { section: 'HR Activities', label: 'Staff Documentation', href: '/records?tab=EMPLOYEE', icon: Users },
+        { section: 'HR Activities', label: 'Interns & Field Documentation', href: '/records?tab=INTERN', icon: FolderLock },
+
+        { section: 'Administration', label: 'Appointment Calendar', href: '/administration', icon: CalendarClock },
+        { section: 'Administration', label: 'Office Documentation', href: '/records?tab=COMPANY', icon: FolderLock },
+        { section: 'Administration', label: 'Office Assets', href: '/assets', icon: Boxes },
+
+        { section: 'Other', label: 'IT Equipment', href: '/equipment', icon: Laptop },
+        { section: 'Other', label: 'Monitoring', href: '/monitoring', icon: Activity },
+        { section: 'Other', label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { section: 'Other', label: 'Reports', href: '/reports', icon: BarChart3 },
+        { section: 'Other', label: 'My Assistants', href: '/staff', icon: UserPlus },
       ];
     }
 
@@ -213,6 +264,10 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
 
   const navItems = getNavItems();
 
+  /** What each tabbed page shows when the URL carries no tab. */
+  const defaultTabForPath = (path: string): string | null =>
+    PAGE_DEFAULT_TAB[path] ?? null;
+
   return (
     <div className={cn(
       "hidden lg:flex flex-col h-full overflow-hidden bg-brand-black text-white transition-all duration-300 shrink-0",
@@ -246,24 +301,38 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto py-4">
-        {!collapsed && <div className="px-4 text-[10px] uppercase tracking-widest text-gray-500 mb-2">Main Menu</div>}
+        {!collapsed && !navItems.some((i) => i.section) && (
+          <div className="px-4 text-[10px] uppercase tracking-widest text-gray-500 mb-2">Main Menu</div>
+        )}
         <nav className="px-2 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+          {navItems.map((item, i) => {
+            // Items are grouped by `section`; print the heading when it changes
+            // so HR and Administration read as separate categories.
+            const newSection =
+              item.section !== undefined && item.section !== navItems[i - 1]?.section;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                  isActive ? "bg-primary text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                  collapsed ? "justify-center" : ""
+              <Fragment key={item.href}>
+                {newSection && !collapsed && (
+                  <div className="px-2 pt-3 pb-1 text-[10px] uppercase tracking-widest text-gray-500">
+                    {item.section}
+                  </div>
                 )}
-                title={collapsed ? item.label : undefined}
-              >
-                <item.icon className="w-[18px] h-[18px] shrink-0" />
-                {!collapsed && <span className="text-sm font-urbanist">{item.label}</span>}
-              </Link>
+                {newSection && collapsed && <div className="my-2 border-t border-gray-800 mx-2" />}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                    isActiveHref(item.href, pathname, currentTab, defaultTabForPath)
+                      ? "bg-primary text-white"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                    collapsed ? "justify-center" : ""
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <item.icon className="w-[18px] h-[18px] shrink-0" />
+                  {!collapsed && <span className="text-sm font-urbanist">{item.label}</span>}
+                </Link>
+              </Fragment>
             );
           })}
         </nav>

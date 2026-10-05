@@ -21,12 +21,28 @@ export interface TransitionDef {
 
 const $ = (v: unknown) => (v == null ? '' : String(v));
 
+/**
+ * Every Relations Officer, whichever desk they sit at - Travel was folded into
+ * the RO role, so one officer carries a student from counseling to departure.
+ * Mirrors RO_ROLES in the backend's pipeline/core/permissions.ts.
+ */
+const RO: Role[] = [
+  ROLES.MARKETING_STAFF,
+  ROLES.TRAVEL,
+  ROLES.MARKETING_MANAGER,
+  // "The assistant role is just like the main role" - their permission matrix
+  // still has to grant Edit on students, which the backend enforces.
+  ROLES.MARKETING_STAFF_ASSISTANT,
+  ROLES.TRAVEL_ASSISTANT,
+  ROLES.MARKETING_ASSISTANT,
+];
+
 export const TRANSITIONS: TransitionDef[] = [
   {
     from: 'LEAD',
     to: 'COUNSELING',
     label: 'Send to Counseling',
-    allowedRoles: [ROLES.MARKETING_STAFF, ROLES.SUB_AGENT, ROLES.MARKETING_MANAGER],
+    allowedRoles: [...RO, ROLES.SUB_AGENT],
     newOwnerRole: ROLES.MARKETING_STAFF,
     requiredFields: [
       { key: 'counselorAssigneeId', label: 'Assign counselor', kind: 'userSelect', roles: [ROLES.MARKETING_STAFF, ROLES.MARKETING_MANAGER], required: true },
@@ -40,7 +56,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'COUNSELING',
     to: 'PAYMENT_PENDING',
     label: 'Mark Counseling Complete',
-    allowedRoles: [ROLES.MARKETING_STAFF, ROLES.MARKETING_MANAGER],
+    allowedRoles: [...RO],
     newOwnerRole: ROLES.FINANCE,
     requiredFields: [
       { key: 'programConfirmed', label: 'Program & university confirmed with student?', kind: 'boolean', required: true, defaultValue: true },
@@ -56,7 +72,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'PAYMENT_PENDING',
     to: 'PAYMENT_CONFIRMED',
     label: 'Record Payment & Confirm',
-    allowedRoles: [ROLES.FINANCE],
+    allowedRoles: [ROLES.FINANCE, ROLES.FINANCE_ASSISTANT],
     newOwnerRole: ROLES.ADMISSIONS,
     requiredFields: [
       { key: 'amountReceived', label: 'Amount received (TZS)', kind: 'number', currency: 'TZS', min: 0, required: true },
@@ -73,7 +89,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'PAYMENT_CONFIRMED',
     to: 'APPLICATION_SUBMITTED',
     label: 'Mark Application Submitted',
-    allowedRoles: [ROLES.ADMISSIONS],
+    allowedRoles: [ROLES.ADMISSIONS, ROLES.ADMISSIONS_ASSISTANT],
     newOwnerRole: ROLES.ADMISSIONS,
     requiredFields: [
       { key: 'submissionDate', label: 'Submission date', kind: 'date', required: true },
@@ -87,7 +103,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'APPLICATION_SUBMITTED',
     to: 'UNIVERSITY_ACCEPTED',
     label: 'Record Offer & Acceptance',
-    allowedRoles: [ROLES.ADMISSIONS],
+    allowedRoles: [ROLES.ADMISSIONS, ROLES.ADMISSIONS_ASSISTANT],
     newOwnerRole: ROLES.TRAVEL,
     requiredFields: [
       { key: 'offerLetterUrl', label: 'Offer letter URL', kind: 'url', required: true },
@@ -103,7 +119,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'UNIVERSITY_ACCEPTED',
     to: 'TRAVEL_PLANNING',
     label: 'Begin Travel Planning',
-    allowedRoles: [ROLES.TRAVEL, ROLES.ADMISSIONS],
+    allowedRoles: [...RO, ROLES.ADMISSIONS, ROLES.ADMISSIONS_ASSISTANT],
     newOwnerRole: ROLES.TRAVEL,
     requiredFields: [
       { key: 'travelRecordCreated', label: 'Create / link travel record', kind: 'boolean', required: true, defaultValue: true },
@@ -116,7 +132,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'TRAVEL_PLANNING',
     to: 'TRAVELLED',
     label: 'Mark as Travelled',
-    allowedRoles: [ROLES.TRAVEL],
+    allowedRoles: [...RO],
     newOwnerRole: ROLES.OPERATIONS,
     requiredFields: [],
     notify: ['STUDENT', 'ALL_PARENTS', 'NEW_OWNER'],
@@ -128,7 +144,7 @@ export const TRANSITIONS: TransitionDef[] = [
     from: 'TRAVELLED',
     to: 'MONITORING',
     label: 'Confirm Arrival & Hand to Operations',
-    allowedRoles: [ROLES.OPERATIONS, ROLES.TRAVEL],
+    allowedRoles: [...RO, ROLES.OPERATIONS, ROLES.OPERATIONS_ASSISTANT],
     newOwnerRole: ROLES.OPERATIONS,
     requiredFields: [
       { key: 'arrivalConfirmedDate', label: 'Arrival confirmed date', kind: 'date', required: true },

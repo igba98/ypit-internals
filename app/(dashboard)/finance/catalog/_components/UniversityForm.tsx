@@ -62,8 +62,17 @@ export function UniversityForm({ mode, university, onClose }: Props) {
                 <option value="LOCAL">Local (Tanzania)</option>
               </Select>
             </div>
-            <Field name="website" label="Website" defaultValue={university?.website ?? undefined} errors={state?.errors?.website} />
+            {/* Business Development lists priority universities first within
+                each country (system update Oct 2026). */}
+            <div className="space-y-1.5">
+              <Label htmlFor="priority">Priority level</Label>
+              <Select id="priority" name="priority" defaultValue={university?.priority ?? 'STANDARD'}>
+                <option value="PRIORITY">Priority university</option>
+                <option value="STANDARD">Other university</option>
+              </Select>
+            </div>
           </div>
+          <Field name="website" label="Website" defaultValue={university?.website ?? undefined} errors={state?.errors?.website} />
           <div className="space-y-1.5">
             <Label htmlFor="programsSummary">Programmes / courses available</Label>
             <Textarea id="programsSummary" name="programsSummary" rows={3} defaultValue={university?.programsSummary ?? ''} placeholder="e.g. BSc Computer Science, MBA, Nursing… (priced packages are managed in the Finance catalog)" />

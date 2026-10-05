@@ -654,9 +654,13 @@ export type StudyLevel = 'FOUNDATION' | 'BACHELOR' | 'MASTERS' | 'PHD' | 'DIPLOM
 
 export type CatalogStatus = 'ACTIVE' | 'ARCHIVED';
 
+export type UniversityPriority = 'PRIORITY' | 'STANDARD';
+
 export interface University {
   /** Local (Tanzania) vs international - University Management. */
   scope?: 'LOCAL' | 'INTERNATIONAL';
+  /** Business Development works country by country, priority first. */
+  priority?: UniversityPriority;
   partnership?: { status: PartnershipStatus; lastContactAt?: string | null } | null;
   _count?: { packages: number; mous: number };
   website?: string | null;
@@ -1475,4 +1479,126 @@ export interface AdminDocument {
   uploadedByName?: string | null;
   createdByName: string;
   createdAt: string;
+}
+
+
+// ─────────────────────────────────────────────────────────────────
+//  System update (Oct 2026): CSCA exams, HR activities, appointments
+// ─────────────────────────────────────────────────────────────────
+
+export type CscaExamStatus =
+  | 'SCHEDULED'
+  | 'SAT'
+  | 'PASSED'
+  | 'FAILED'
+  | 'RESCHEDULED'
+  | 'CANCELLED';
+
+export interface CscaFollowUp {
+  id: string;
+  examId: string;
+  notes: string;
+  statusAtNote?: CscaExamStatus | null;
+  createdByName?: string | null;
+  createdAt: string;
+}
+
+/** One CSCA sitting for a student; a retake is a new record. */
+export interface CscaExamRecord {
+  id: string;
+  studentId: string;
+  student: {
+    id: string;
+    fullName: string;
+    registrationNumber: string;
+    phone?: string | null;
+    targetCountry?: string | null;
+    targetUniversity?: string | null;
+  };
+  examDate?: string | null;
+  venue?: string | null;
+  registrationNo?: string | null;
+  status: CscaExamStatus;
+  result?: string | null;
+  resultDate?: string | null;
+  notes?: string | null;
+  nextFollowUp?: string | null;
+  createdByName?: string | null;
+  createdAt: string;
+  followUps: CscaFollowUp[];
+}
+
+export type TrainingKind = 'TRAINING' | 'ORIENTATION';
+export type TrainingStatus = 'PLANNED' | 'COMPLETED' | 'CANCELLED';
+
+export interface TrainingAttendee {
+  staffId?: string;
+  name: string;
+}
+
+export interface TrainingSession {
+  id: string;
+  title: string;
+  kind: TrainingKind;
+  status: TrainingStatus;
+  scheduledFor: string;
+  durationMins?: number | null;
+  facilitator?: string | null;
+  location?: string | null;
+  attendees?: TrainingAttendee[] | null;
+  objectives?: string | null;
+  notes?: string | null;
+  recordedByName?: string | null;
+  createdAt: string;
+}
+
+export type MealSlot = 'BREAKFAST' | 'LUNCH' | 'DINNER';
+
+/** Ratiba ya chakula - one menu per meal per day. */
+export interface FoodScheduleEntry {
+  id: string;
+  date: string;
+  meal: MealSlot;
+  menu: string;
+  providedBy?: string | null;
+  headcount?: number | null;
+  estimatedCost?: number | null;
+  notes?: string | null;
+  recordedByName?: string | null;
+}
+
+/** Bajeti ya chakula ya mwezi. */
+export interface FoodBudget {
+  id: string;
+  month: string;
+  budgetAmount: number;
+  actualSpent: number;
+  headcount?: number | null;
+  currency: string;
+  notes?: string | null;
+  recordedByName?: string | null;
+}
+
+export type AppointmentStatus =
+  | 'SCHEDULED'
+  | 'CONFIRMED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'NO_SHOW';
+
+export interface Appointment {
+  id: string;
+  title: string;
+  withName: string;
+  withOrg?: string | null;
+  withPhone?: string | null;
+  hostId?: string | null;
+  hostName?: string | null;
+  startsAt: string;
+  endsAt?: string | null;
+  location?: string | null;
+  purpose?: string | null;
+  status: AppointmentStatus;
+  notes?: string | null;
+  recordedByName?: string | null;
 }

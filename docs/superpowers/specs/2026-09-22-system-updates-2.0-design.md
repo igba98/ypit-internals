@@ -257,3 +257,91 @@ now an RO, so one of the two new officers would have been missing even on a good
 Fixed: staff list cap 100 → 500; recipients include every RO role; a failed officer load now shows a
 red banner instead of an empty list; and the backend explains per recipient why an assignment was
 refused (`"<name>: account is suspended"`, `"<name>: role X cannot receive leads"`).
+
+## IT change request, 2 Oct 2026 — four items
+
+### 1. "Counseling Complete" button not active
+
+The gate is `ADVANCE_ROLES` in `src/pipeline/core/permissions.ts`, which let only
+`MARKETING_STAFF` and `MARKETING_MANAGER` leave COUNSELING. Of the four Relations Officers in
+production, **three could not press it**: Faraja and Yuda are `TRAVEL`, and Elida was created as
+`MARKETING_STAFF_ASSISTANT`. Only Lilian (`MARKETING_MANAGER`) could.
+
+Since Travel was folded into the RO role, one officer now carries a student from counseling to
+departure. So every RO-owned edge takes all RO roles, and each department's assistant joins its
+own stage ("the assistant role is just like the main role" — the permission matrix still has to
+grant them Edit, which `RolesGuard` checks):
+
+| edge | before | now |
+|---|---|---|
+| LEAD → COUNSELING | MARKETING_STAFF, SUB_AGENT, MARKETING_MANAGER | all ROs + assistants + SUB_AGENT |
+| COUNSELING → PAYMENT_PENDING | MARKETING_STAFF, MARKETING_MANAGER | all ROs + assistants |
+| PAYMENT_PENDING → PAYMENT_CONFIRMED | FINANCE | + FINANCE_ASSISTANT |
+| PAYMENT_CONFIRMED → … → UNIVERSITY_ACCEPTED | ADMISSIONS | + ADMISSIONS_ASSISTANT |
+| UNIVERSITY_ACCEPTED → TRAVEL_PLANNING | TRAVEL, ADMISSIONS | all ROs + Admissions |
+| TRAVEL_PLANNING → TRAVELLED | TRAVEL | all ROs |
+| TRAVELLED → MONITORING | OPERATIONS, TRAVEL | all ROs + OPERATIONS + assistant |
+
+`STAGE_OWNERS` (MyQueue routing, new-owner notifications) follows, and the frontend mirrors —
+`lib/pipeline/transitions.ts`, `lib/pipeline/stageOwnership.ts`. The table's `allowedRoles` is
+documentation only; `canAdvance` is the real gate, and both now share one `RO_ROLES` list.
+
+Verified: as the Travel RO, advance returned 200 and the student moved to PAYMENT_PENDING (403
+before); as an RO assistant granted `students: EDIT`, likewise; and the button renders as the live
+primary variant with no `disabled` attribute on the student page.
+
+### 2. HR activities separated from Administration
+
+Four of the eight listed items did not exist, so this was a build, not only a regrouping:
+
+| HR Activities | |
+|---|---|
+| Training & Orientations | new — `TrainingSession` (kind, status, facilitator, attendees JSON, objectives) |
+| Food Schedule | new — `FoodScheduleEntry`, unique on (date, meal) so re-posting a slot replaces it |
+| Monthly Food Budget | new — `FoodBudget`, one row per month, budget vs actual vs variance |
+| Staff Documentation | existing — Company Records → Employee |
+| Interns & Field Documentation | existing — Company Records → Intern / Field |
+
+| Administration Activities | |
+|---|---|
+| Appointment Calendar | new — `Appointment` (who is coming, host, window, status), grouped by day |
+| Office Documentation | existing — Company Records → Company |
+| Office Assets | existing — `/assets` |
+
+Two backend modules (`src/hr`, `src/administration`) and two module keys (`hr`, `administration`)
+so assistants can be granted either. Two pages: `/hr` with the three new tabs and links to the
+documentation registers, `/administration` with the calendar.
+
+The separation the request is really about is the menu: the sidebar now supports `section` headings
+and the Administrator's menu reads **HR Activities** / **Administration** / **Other** instead of one
+flat list. Entries that differ only by `?tab=` needed tab-aware highlighting, with each tabbed
+page's default tab declared in `PAGE_DEFAULT_TAB`.
+
+A time typed into a form is local: appending `Z` labelled 11:00 EAT as 11:00 UTC and every
+appointment displayed three hours late. Both date+time forms now parse the pair in the browser's
+zone (`toInstant`) and read it back with `localDate` / `localTime`.
+
+### 3. Universities by country, priority first
+
+`University.priority` (`PRIORITY` | `STANDARD`, default STANDARD). The list orders by
+`[country, priority, name]` — the enum is declared PRIORITY-first so `asc` does the right thing —
+and the board groups rows under a country header with a star toggle per row and a "Priority · n"
+filter. Reads exactly like the request:
+
+```
+CHINA      ★ Zhejiang · Other: Hebei Medical
+INDIA      ★ Chandigarh · ★ Parul · Other: Amity
+```
+
+Note `createUniversity` had to be taught the field as well — the DTO alone silently dropped it.
+
+### 4. CSCA examination follow-up
+
+`CscaExamRecord` (one row per sitting, so a retake is a new row) + `CscaFollowUp` for the dated
+notes, under `/business-dev/csca-exams`. A second open sitting for the same student is refused with
+a message naming them. A follow-up note can move the status in the same action and records the
+status it was logged at. Surfaced as a third tab on the Business Development page with register /
+edit / log-follow-up / expandable history.
+
+Migration `20261005072124_system_update_oct_2026` is additive only — six new tables, one new column
+with a default, six new enums.

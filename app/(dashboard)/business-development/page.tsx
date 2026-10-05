@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { backendFetch } from '@/lib/backend';
-import { BdEvent, PartnershipRow, Session } from '@/types';
+import { BdEvent, CscaExamRecord, PartnershipRow, Session, Student } from '@/types';
 import {
   CalendarDays,
   Handshake,
@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { EventsSection } from './_components/EventsSection';
 import { PartnershipsSection } from './_components/PartnershipsSection';
+import { CscaSection, StudentOption } from './_components/CscaSection';
+import { listCscaExams } from '@/lib/actions/cscaActions';
 
 const ALLOWED = ['MANAGING_DIRECTOR', 'MARKETING_STAFF', 'BUSINESS_DEVELOPMENT'];
 const CAN_EDIT = ['MANAGING_DIRECTOR', 'BUSINESS_DEVELOPMENT'];
@@ -47,6 +49,21 @@ async function load(): Promise<{
   }
 }
 
+async function studentOptions(): Promise<StudentOption[]> {
+  try {
+    const res = await backendFetch('/students?limit=500');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: Student[] };
+    return (body.items ?? []).map((s) => ({
+      id: s.id,
+      fullName: s.fullName,
+      registrationNumber: s.registrationNumber,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function BusinessDevelopmentPage({
   searchParams,
 }: {
@@ -61,6 +78,11 @@ export default async function BusinessDevelopmentPage({
 
   const { tab = 'events' } = await searchParams;
   const { events, partnerships, error } = await load();
+  // Only the CSCA tab needs the exam list and the student picker.
+  const [cscaExams, students] = await Promise.all([
+    tab === 'csca' ? listCscaExams() : Promise.resolve<CscaExamRecord[]>([]),
+    tab === 'csca' ? studentOptions() : Promise.resolve<StudentOption[]>([]),
+  ]);
 
   const upcoming = events.filter(
     (e) => e.status === 'PLANNED' || e.status === 'ONGOING',
@@ -100,6 +122,7 @@ export default async function BusinessDevelopmentPage({
         {[
           { key: 'events', label: 'Events' },
           { key: 'partnerships', label: 'University Partnerships' },
+          { key: 'csca', label: 'CSCA Examinations' },
         ].map((t) => (
           <Link
             key={t.key}
@@ -115,7 +138,15 @@ export default async function BusinessDevelopmentPage({
         ))}
       </div>
 
-      {tab === 'partnerships' ? (
+      {tab === 'csca' ? (
+        cscaExams === null ? (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+            Unable to load the CSCA register.
+          </p>
+        ) : (
+          <CscaSection exams={cscaExams} students={students} canEdit={canEdit} />
+        )
+      ) : tab === 'partnerships' ? (
         <PartnershipsSection rows={partnerships} canEdit={canEdit} />
       ) : (
         <EventsSection events={events} canEdit={canEdit} />
