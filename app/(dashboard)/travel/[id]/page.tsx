@@ -4,6 +4,8 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Session, Student, TravelRecord } from '@/types';
 import { backendFetch } from '@/lib/backend';
+import { getTravelFinanceStatus } from '@/lib/actions/travelActions';
+import { FinanceClearanceCard } from './_components/FinanceClearanceCard';
 
 async function loadTravel(id: string): Promise<TravelRecord | null> {
   try {
@@ -35,10 +37,22 @@ export default async function TravelDetailPage({ params }: { params: Promise<{ i
   const record = await loadTravel(id);
   if (!record) notFound();
 
-  const student = await loadStudent(record.studentId);
+  const [student, financeStatus] = await Promise.all([
+    loadStudent(record.studentId),
+    getTravelFinanceStatus(id),
+  ]);
+  const isFinance = session.role === 'FINANCE' || session.role === 'FINANCE_ASSISTANT';
 
   return (
     <div className="space-y-6">
+      {financeStatus && (
+        <FinanceClearanceCard
+          travelId={id}
+          studentName={record.studentName}
+          status={financeStatus}
+          isFinance={isFinance}
+        />
+      )}
       {student && (
         <TravelChecklistCard
           studentId={student.id}

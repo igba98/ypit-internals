@@ -288,6 +288,21 @@ export interface TravelRecord {
   travelStatus: TravelStatus;
   updatedAt: string;
   travelStepStatus?: TravelStepStatusMap;
+  /** Finance payment verification - a student is cleared for travel only
+   *  once this is stamped (IT change request, Oct 2026 §1.2). */
+  financeVerifiedAt?: string | null;
+  financeVerifiedByName?: string | null;
+  financeVerificationNote?: string | null;
+}
+
+/** What the travel desk and Finance see about a student's clearance. */
+export interface TravelFinanceStatus {
+  verified: boolean;
+  verifiedAt?: string | null;
+  verifiedByName?: string | null;
+  note?: string | null;
+  /** Null when the student has no payment record at all. */
+  outstanding: number | null;
 }
 
 export interface OperationsRecord {

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Student, Session, TravelRecord } from '@/types';
 import { getTransition } from '@/lib/pipeline/transitions';
 import { canAdvance } from '@/lib/pipeline/permissions';
 import { allTravelStepsDone } from '@/lib/pipeline/travelSteps';
 import { AdvanceStageModal } from './AdvanceStageModal';
+import { listActiveStaff, StaffOption } from '@/lib/actions/staffActions';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Lock } from 'lucide-react';
 
@@ -19,7 +20,20 @@ interface Props {
 
 export function AdvanceStageButton({ student, session, travel, size = 'default' }: Props) {
   const [open, setOpen] = useState(false);
+  const [staff, setStaff] = useState<StaffOption[]>([]);
+  const [loading, startTransition] = useTransition();
   const transition = getTransition(student.pipelineStage);
+
+  /**
+   * Load the real staff list before opening, so "assign next owner" offers the
+   * officers who actually exist. Done in the handler rather than an effect.
+   */
+  const openModal = () => {
+    startTransition(async () => {
+      setStaff(await listActiveStaff());
+      setOpen(true);
+    });
+  };
 
   if (!transition) {
     return <span className="text-xs text-gray-400">No further stage</span>;
@@ -49,7 +63,7 @@ export function AdvanceStageButton({ student, session, travel, size = 'default' 
 
   return (
     <>
-      <Button size={size} onClick={() => setOpen(true)}>
+      <Button size={size} onClick={openModal} disabled={loading}>
         {transition.label}
         <ChevronRight size={14} className="ml-1" />
       </Button>
@@ -58,6 +72,7 @@ export function AdvanceStageButton({ student, session, travel, size = 'default' 
           student={student}
           session={session}
           transition={transition}
+          staff={staff}
           open={open}
           onClose={() => setOpen(false)}
         />

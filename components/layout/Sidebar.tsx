@@ -216,6 +216,8 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
         { label: 'Students', href: '/students', icon: Users },
         { label: 'Finance Hub', href: '/finance', icon: Wallet },
         { label: 'Student Payments', href: '/payments', icon: CreditCard },
+        // Finance clears students for travel once their payments are in.
+        { label: 'Travel Clearance', href: '/travel', icon: Plane },
         { label: 'Commissions', href: '/commissions', icon: HandCoins },
         { label: 'MOUs', href: '/mous', icon: ScrollText },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare },

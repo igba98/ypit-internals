@@ -345,3 +345,69 @@ edit / log-follow-up / expandable history.
 
 Migration `20261005072124_system_update_oct_2026` is additive only — six new tables, one new column
 with a default, six new enums.
+
+## IT change request, 7 Oct 2026 — travel, finance gate, fee wording, RO assignment
+
+### 1.1 / 1.4 — Passport & Visa scoped to each officer
+
+`TravelService.roScope()` read `if (!actor || actor.role === Role.TRAVEL) return null` — the old
+travel desk was deliberately exempt from own-book scoping. Since Travel was folded into the RO
+role that exemption showed every officer the whole school. Reproduced before touching it: Wisdom
+(TRAVEL) saw all 3 local records, two of which belong to nobody; after, 1.
+
+`getOne(id)` had no scoping at all, so any record was reachable by id — now 403 for a record that
+isn't the officer's. `update()` already checked and now shares the same read.
+
+Travel substeps were `ALLOWED_ROLES = [TRAVEL, MANAGING_DIRECTOR]`, so the other three officers
+could not work their own students' passport/visa (§1.1). Now every RO role plus their assistants,
+with an ownership check so an officer only touches their own.
+
+### 1.2 — Finance verification before travel approval
+
+> Admission → Travel Planning → **Finance Payment Verification** → Travel Approval → Ticket Issued
+
+`TravelRecord` gained `financeVerifiedAt / ById / ByName / financeVerificationNote`
+(migration `20261009…_travel_finance_verification`, additive).
+
+- `POST /travel/:id/finance-verify` (Finance) refuses while a balance stands, naming the amount:
+  *"E2E Travel Flow still owes 3,000,000 - clear the balance before verifying."*
+- `POST /travel/:id/finance-revoke` needs a reason; the audit trail records it.
+- `GET /travel/:id/finance-status` gives the officer the state and what is outstanding.
+
+Three gates hang off it, so there is no way round:
+1. travel substep `flight` → DONE (the ticket) and `arrival` → DONE,
+2. the pipeline's TRAVEL_PLANNING → TRAVELLED advance,
+3. Finance itself cannot verify while money is owed.
+
+Verified the whole chain, including revoking clearance mid-flight: the advance was refused again
+until Finance re-verified.
+
+Finance joins the travel desk (read access, a *Travel Clearance* sidebar entry, `travel` in its
+module list) because it has to see the records it clears. The detail page carries a clearance card
+— the amount owed, the workflow line, and Verify / Withdraw for Finance only; the Verify button is
+disabled while a balance stands. The list has a Cleared / Awaiting column.
+
+### 1.3 — The counselling fee is the application fee
+
+The payload field, the payment bucket it opens and the in-app message all said *agency fee* while
+the SMS body already said *application*. Now `expectedApplicationFee` end to end, opening the
+`applicationFee` bucket so Finance and the student see the same figure. `expectedAgencyFee` is
+still accepted and mapped across, so a backoffice tab opened before the deploy doesn't 422.
+
+### 2.1 / 2.2 — Offer & Acceptance and Begin Travel Plans land on the respective RO
+
+Two causes, both fixed:
+
+- **The dropdown was demo data.** `AdvanceStageModal` filtered `mockUsers`, a hard-coded list from
+  launch, so only "Wisdom Mwaipape" appeared for the travel role — exactly the client's screenshot
+  — and officers added since could never be picked. The button now loads real active staff
+  (`listActiveStaff`) in its click handler and the modal filters by the *stage's* owner roles, so
+  these two steps list all Relations Officers and default to the student's own officer. The
+  counselor picker at LEAD → COUNSELING was equally narrow and now lists all ROs.
+- **The backend never defaulted.** With no assignee chosen the student was dropped into a role-wide
+  queue (`stageOwnerId: null`). For stages an RO owns it now falls back to the student's own
+  officer, and choosing an RO here also sets `marketingStaffId` — which is what Passport & Visa
+  scopes on, so the student appears in that officer's list straight away.
+
+Verified: Admissions recorded an offer with no assignee → owner became the student's RO; Begin
+Travel Plans kept them there; the record then showed up in that officer's Passport & Visa list.

@@ -45,7 +45,7 @@ export const TRANSITIONS: TransitionDef[] = [
     allowedRoles: [...RO, ROLES.SUB_AGENT],
     newOwnerRole: ROLES.MARKETING_STAFF,
     requiredFields: [
-      { key: 'counselorAssigneeId', label: 'Assign counselor', kind: 'userSelect', roles: [ROLES.MARKETING_STAFF, ROLES.MARKETING_MANAGER], required: true },
+      { key: 'counselorAssigneeId', label: 'Assign Relations Officer', kind: 'userSelect', roles: RO, required: true },
       { key: 'counselingNotes', label: 'Notes for counselor', kind: 'textarea', required: false },
     ],
     notify: ['STUDENT', 'PARENT_PRIMARY', 'NEW_OWNER'],
@@ -61,12 +61,14 @@ export const TRANSITIONS: TransitionDef[] = [
     requiredFields: [
       { key: 'programConfirmed', label: 'Program & university confirmed with student?', kind: 'boolean', required: true, defaultValue: true },
       { key: 'counselingOutcome', label: 'Counseling outcome / summary', kind: 'textarea', required: true },
-      { key: 'expectedAgencyFee', label: 'Expected agency fee (TZS)', kind: 'number', currency: 'TZS', min: 0, required: true },
+      // The fee quoted at counselling is the application fee (IT change
+      // request, Oct 2026 §1.3).
+      { key: 'expectedApplicationFee', label: 'Expected application fee (TZS)', kind: 'number', currency: 'TZS', min: 0, required: true },
     ],
     notify: ['STUDENT', 'PARENT_PRIMARY', 'NEW_OWNER'],
     notifyTeams: [ROLES.FINANCE],
     messageTemplate: (ctx) =>
-      `Hi ${ctx.studentName}, counseling is complete. Please make the agency fee payment of TZS ${$(ctx.capturedData.expectedAgencyFee)} to proceed with your application.`,
+      `Hi ${ctx.studentName}, counseling is complete. Please make the application fee payment of TZS ${$(ctx.capturedData.expectedApplicationFee)} to proceed with your application.`,
   },
   {
     from: 'PAYMENT_PENDING',

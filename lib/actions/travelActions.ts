@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import {
   ActionResult,
   PassportStatus,
+  TravelFinanceStatus,
   TravelStatus,
   VisaStatus,
 } from '@/types';
@@ -178,4 +179,51 @@ export async function advanceTravelStep(
   if (!res.ok) return { success: false, ...(await readError(res)) };
   revalidate(studentId);
   return { success: true, message: `${step} step advanced.` };
+}
+
+// ── Finance payment verification (IT change request, Oct 2026 §1.2) ──
+//  Admission → Travel Planning → Finance verification → Travel approval →
+//  ticket issued. The RO cannot issue a ticket until Finance has signed off.
+
+/** Where a student stands with Finance, and what is still owed. */
+export async function getTravelFinanceStatus(
+  travelId: string,
+): Promise<TravelFinanceStatus | null> {
+  try {
+    const res = await backendFetch(`/travel/${travelId}/finance-status`);
+    if (!res.ok) return null;
+    return (await res.json()) as TravelFinanceStatus;
+  } catch {
+    return null;
+  }
+}
+
+/** Finance confirms every required payment is in. Refused while a balance stands. */
+export async function verifyTravelPayments(
+  travelId: string,
+  note?: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(`/travel/${travelId}/finance-verify`, {
+    method: 'POST',
+    body: JSON.stringify({ note: note?.trim() || undefined }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/travel');
+  revalidatePath(`/travel/${travelId}`);
+  return { success: true, message: 'Payments verified - the student is cleared for travel.' };
+}
+
+/** Withdraw clearance (payment reversed, wrong student). Reason required. */
+export async function revokeTravelVerification(
+  travelId: string,
+  reason: string,
+): Promise<ActionResult> {
+  const res = await backendFetch(`/travel/${travelId}/finance-revoke`, {
+    method: 'POST',
+    body: JSON.stringify({ reason: reason.trim() }),
+  });
+  if (!res.ok) return { success: false, ...(await readError(res)) };
+  revalidatePath('/travel');
+  revalidatePath(`/travel/${travelId}`);
+  return { success: true, message: 'Verification withdrawn.' };
 }

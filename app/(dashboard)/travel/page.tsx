@@ -50,7 +50,8 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
   const session = JSON.parse(sessionCookie.value) as Session;
 
   // Every Relations Officer follows up passport + visa for their own students.
-  const allowedRoles = ['TRAVEL', 'MARKETING_STAFF', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS', 'OPERATIONS'];
+  // Finance joins the travel desk to verify payments before travel approval.
+  const allowedRoles = ['TRAVEL', 'MARKETING_STAFF', 'MARKETING_MANAGER', 'MANAGING_DIRECTOR', 'ADMISSIONS', 'OPERATIONS', 'FINANCE', 'FINANCE_ASSISTANT'];
   if (!pageAllowed(session, 'travel', allowedRoles)) redirect('/dashboard');
 
   const { items: records, error } = await loadTravel();

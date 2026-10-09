@@ -165,3 +165,29 @@ export async function resetStaffPassword(staffId: string): Promise<ResetPassword
     emailDelivered: body.email.delivered,
   };
 }
+
+/** A staff member as the pipeline modals need them: who they are and what they do. */
+export interface StaffOption {
+  id: string;
+  fullName: string;
+  role: User['role'];
+}
+
+/**
+ * Active staff, for the "assign next owner" and counselor pickers. These used
+ * to read a hard-coded demo list, so officers added after launch - the four
+ * Relations Officers among them - could never be picked (IT change request,
+ * Oct 2026 §2).
+ */
+export async function listActiveStaff(): Promise<StaffOption[]> {
+  try {
+    const res = await backendFetch('/staff?limit=500&status=ACTIVE');
+    if (!res.ok) return [];
+    const body = (await res.json()) as { items: User[] };
+    return (body.items ?? [])
+      .filter((u) => u.status === 'ACTIVE' && u.role !== 'SUB_AGENT')
+      .map((u) => ({ id: u.id, fullName: u.fullName, role: u.role }));
+  } catch {
+    return [];
+  }
+}

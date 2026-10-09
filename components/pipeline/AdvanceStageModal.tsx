@@ -2,11 +2,12 @@
 
 import { useState, useTransition, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Student, Session, StageTransitionPayload } from '@/types';
+import { Role, Student, Session, StageTransitionPayload } from '@/types';
 import { TransitionDef } from '@/lib/pipeline/transitions';
 import { FieldSpec } from '@/lib/pipeline/fields';
 import { resolveRecipients } from '@/lib/pipeline/notify';
-import { mockUsers } from '@/lib/mock/mockUsers';
+import { StaffOption } from '@/lib/actions/staffActions';
+import { getStageOwners } from '@/lib/pipeline/stageOwnership';
 import { getGuardiansForStudent } from '@/lib/mock/mockGuardians';
 import { advanceStudent } from '@/lib/actions/pipelineActions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -20,17 +21,29 @@ interface Props {
   student: Student;
   session: Session;
   transition: TransitionDef;
+  /** Real active staff, loaded by the button before it opens this. */
+  staff: StaffOption[];
   open: boolean;
   onClose: () => void;
 }
 
-export function AdvanceStageModal({ student, session, transition, open, onClose }: Props) {
+export function AdvanceStageModal({ student, session, transition, staff, open, onClose }: Props) {
   const [values, setValues] = useState<StageTransitionPayload>(() => initialValues(transition.requiredFields));
-  const [assigneeId, setAssigneeId] = useState<string>('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [isPending, startTransition] = useTransition();
 
-  const eligibleAssignees = mockUsers.filter(u => u.role === transition.newOwnerRole && u.status === 'ACTIVE');
+  // Who may own the next stage. Offer & Acceptance and Begin Travel Plans hand
+  // the student to a Relations Officer, so the list is the officers - not the
+  // single "travel" desk it used to be (IT change request, Oct 2026 §2).
+  const ownerRoles = getStageOwners(transition.to);
+  const eligibleAssignees = staff.filter(u =>
+    ownerRoles.length > 0 ? ownerRoles.includes(u.role) : u.role === transition.newOwnerRole,
+  );
+  const ownsStage = eligibleAssignees.some(u => u.id === student.marketingStaffId);
+  // Default to the student's own officer; that is the whole point of §2.
+  const [assigneeId, setAssigneeId] = useState<string>(
+    ownsStage && student.marketingStaffId ? student.marketingStaffId : '',
+  );
 
   const previewMessage = useMemo(() => {
     return transition.messageTemplate({
@@ -90,6 +103,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
             <FieldInput
               key={field.key}
               field={field}
+              staff={staff}
               value={values[field.key]}
               error={fieldErrors[field.key]?.[0]}
               onChange={(v) => setValues({ ...values, [field.key]: v })}
@@ -97,7 +111,7 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
           ))}
 
           <div>
-            <Label htmlFor="assignee">Assign next owner ({transition.newOwnerRole.replace(/_/g, ' ').toLowerCase()})</Label>
+            <Label htmlFor="assignee">{assigneeLabel(ownerRoles, transition.newOwnerRole)}</Label>
             <select
               id="assignee"
               className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -106,7 +120,9 @@ export function AdvanceStageModal({ student, session, transition, open, onClose 
             >
               <option value="">Assign later (role-wide queue)</option>
               {eligibleAssignees.map(u => (
-                <option key={u.id} value={u.id}>{u.fullName}</option>
+                <option key={u.id} value={u.id}>
+                  {u.fullName}{u.id === student.marketingStaffId ? ' - this student\u2019s officer' : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -148,14 +164,26 @@ function initialValues(fields: FieldSpec[]): StageTransitionPayload {
   return init;
 }
 
+/** "Assign to Relations Officer" reads better than the raw role name. */
+function assigneeLabel(ownerRoles: Role[], fallback: Role): string {
+  const roles = ownerRoles.length > 0 ? ownerRoles : [fallback];
+  const allRo = roles.every(r => RO_ROLE_SET.has(r));
+  if (allRo) return 'Assign to Relations Officer';
+  return `Assign next owner (${roles[0].replace(/_/g, ' ').toLowerCase()})`;
+}
+
+const RO_ROLE_SET = new Set<Role>(['MARKETING_STAFF', 'TRAVEL', 'MARKETING_MANAGER']);
+
 interface FieldInputProps {
   field: FieldSpec;
+  /** Real staff, for the `userSelect` kind. */
+  staff: StaffOption[];
   value: string | number | boolean | null | undefined;
   error?: string;
   onChange: (v: string | number | boolean | null) => void;
 }
 
-function FieldInput({ field, value, error, onChange }: FieldInputProps) {
+function FieldInput({ field, staff, value, error, onChange }: FieldInputProps) {
   const errorEl = error ? <p className="text-xs text-red-600 mt-1">{error}</p> : null;
   const labelEl = (
     <Label htmlFor={field.key}>
@@ -198,7 +226,7 @@ function FieldInput({ field, value, error, onChange }: FieldInputProps) {
         </div>
       );
     case 'userSelect': {
-      const candidates = mockUsers.filter(u => field.roles.includes(u.role));
+      const candidates = staff.filter(u => field.roles.includes(u.role));
       return (
         <div>
           <span>{labelEl}</span>

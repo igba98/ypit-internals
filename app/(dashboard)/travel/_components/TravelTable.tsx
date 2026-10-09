@@ -117,6 +117,28 @@ export function TravelTable({ data }: TravelTableProps) {
       },
     },
     {
+      id: 'financeCleared',
+      header: 'Finance',
+      cell: ({ row }) => {
+        // The ticket can only be issued once Finance has verified payments.
+        const cleared = Boolean(row.original.financeVerifiedAt);
+        return (
+          <span
+            className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              cleared ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-800'
+            }`}
+            title={
+              cleared
+                ? `Verified by ${row.original.financeVerifiedByName ?? 'Finance'}`
+                : 'Awaiting Finance verification'
+            }
+          >
+            {cleared ? 'Cleared' : 'Awaiting'}
+          </span>
+        );
+      },
+    },
+    {
       id: 'actions',
       cell: ({ row }) => <ActionDropdown viewHref={`/travel/${row.original.id}`} />,
     },

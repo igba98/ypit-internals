@@ -55,7 +55,7 @@ export const ROLE_MODULES: Partial<Record<Role, string[]>> = {
   // Relations Officers (renamed from Marketing Staff) - travel folded in.
   MARKETING_STAFF: ['students', 'leads', 'enquiries', 'communication', 'travel', 'tasks', 'reports'],
   TRAVEL: ['students', 'leads', 'travel', 'applications', 'letters', 'tasks', 'reports'],
-  FINANCE: ['students', 'finance', 'catalog', 'mous', 'partners', 'commissions', 'tasks', 'reports'],
+  FINANCE: ['students', 'finance', 'catalog', 'mous', 'partners', 'commissions', 'travel', 'tasks', 'reports'],
   ADMISSIONS: ['students', 'applications', 'documents', 'letters', 'catalog', 'travel', 'monitoring', 'tasks', 'reports'],
   // Administrator (formerly Operations).
   OPERATIONS: ['hr', 'administration', 'assets', 'records', 'equipment', 'staff', 'monitoring', 'tasks', 'reports'],
