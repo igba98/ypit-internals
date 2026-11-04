@@ -411,3 +411,59 @@ Two causes, both fixed:
 
 Verified: Admissions recorded an offer with no assignee → owner became the student's RO; Begin
 Travel Plans kept them there; the record then showed up in that officer's Passport & Visa list.
+
+## ypit-issues.pdf, 4 Nov 2026 — Finance checkpoints + the missing legacy students
+
+### 2. Missing legacy student data (diagnosed first — it was urgent)
+
+57 of 63 production students had **no officer on file**, so own-book scoping hid them from the
+very people who entered them. The client's description was exact: manually-entered students were
+missing, website ones were fine.
+
+| | created | officer |
+|---|---|---|
+| invisible (57) | 30 Jun – 30 Jul 2026 | none |
+| visible (6) | 1 – 12 Oct 2026 | set |
+
+Cause: `createStudent` sets `marketingStaffId` from `roOwnerId(actor)`. Lilian is
+`MARKETING_MANAGER`, which only became an RO role in the September update — so everything she
+entered in June and July was saved with no officer. Lead conversion sets the officer explicitly,
+which is why website students were unaffected.
+
+Two fixes:
+
+- **Data**: all 57 assigned to Lilian in production (she created every one). Production now has
+  zero students without an officer. This alone restored them — the live code scopes on
+  `marketingStaffId`, so no deploy was needed for the data half.
+- **Code**: `ownBookWhere()` / `ownsStudent()` in `common/scope.ts` — an officer also sees
+  unassigned students they created, so a gap like this can never hide a student from its author
+  again. Applied to the students list, student detail, follow-ups, travel list, travel detail and
+  the travel substeps. Verified: the entering officer sees the record, another officer gets 403.
+
+### 1. Finance approval checkpoints
+
+"Finance is prompted to approve funds after every section" → four checkpoints, each blocking the
+stage that follows it. `FinanceApproval` (one row per student per checkpoint, unique together) is
+raised as the student enters the stage and decided from a queue.
+
+| checkpoint | raised entering | blocks | rule |
+|---|---|---|---|
+| Initial payment | PAYMENT_PENDING | — | auto-approved when Finance records the first payment |
+| Admission funds | PAYMENT_CONFIRMED | submitting the application | note required if a balance stands |
+| Travel clearance | TRAVEL_PLANNING | the ticket and travel | strict: balance must be zero |
+| Final settlement | TRAVELLED | closing into monitoring | strict: balance must be zero |
+
+The travel checkpoint and the existing `financeVerifiedAt` stamp stay in step in both directions:
+verifying on the travel record closes the checkpoint, approving the checkpoint stamps the record.
+So the gates that already shipped keep working unchanged.
+
+Raising is idempotent — re-entering a stage never undoes a sign-off.
+
+Surfaces: a Finance **Approvals** queue (`/finance/approvals`, sub-nav and sidebar) with the
+outstanding balance per row and approve / hold-back; and a **Finance sign-off** strip on the
+student page so the officer sees what they are waiting on before trying to advance.
+
+Verified across a full journey: counselling → first payment (auto-approved) → application blocked
+until Admission approved (and refused without a note while 2.6M was owed) → travel clearance
+refused while money was owed, then approved and mirrored onto the travel record → travelled →
+monitoring blocked until the final settlement was confirmed.

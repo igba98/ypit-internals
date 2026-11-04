@@ -1617,3 +1617,36 @@ export interface Appointment {
   notes?: string | null;
   recordedByName?: string | null;
 }
+
+
+// ── Finance approval checkpoints (client request, Nov 2026) ──
+
+export type FinanceCheckpoint =
+  | 'INITIAL_PAYMENT'
+  | 'ADMISSION'
+  | 'TRAVEL_CLEARANCE'
+  | 'FINAL_SETTLEMENT';
+
+export type FinanceApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface FinanceApproval {
+  id: string;
+  studentId: string;
+  checkpoint: FinanceCheckpoint;
+  status: FinanceApprovalStatus;
+  outstandingAtDecision?: number | null;
+  notes?: string | null;
+  raisedAt: string;
+  decidedAt?: string | null;
+  decidedByName?: string | null;
+  /** What the student owes right now - the queue computes it per row. */
+  outstanding?: number | null;
+  student?: {
+    id: string;
+    fullName: string;
+    registrationNumber: string;
+    pipelineStage: PipelineStage;
+    targetUniversity?: string | null;
+    marketingStaff?: { fullName: string } | null;
+  };
+}

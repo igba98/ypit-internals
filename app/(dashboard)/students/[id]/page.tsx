@@ -31,6 +31,8 @@ import { backendFetch } from '@/lib/backend';
 import { listStudentDocuments } from '@/lib/actions/documentActions';
 import { listStudentFollowUps, listAssignableStaff } from '@/lib/actions/studentFollowUpActions';
 import { FollowUpSection } from './_components/FollowUpSection';
+import { FinanceCheckpoints } from './_components/FinanceCheckpoints';
+import { getStudentApprovals } from '@/lib/actions/financeApprovalActions';
 
 interface DetailResponse extends Student {
   guardians: Guardian[];
@@ -54,11 +56,12 @@ export default async function StudentDetailPage({
 
   const { id } = await params;
 
-  const [res, documents, followUps, staff] = await Promise.all([
+  const [res, documents, followUps, staff, approvals] = await Promise.all([
     backendFetch(`/students/${id}/detail`),
     listStudentDocuments(id),
     listStudentFollowUps(id),
     listAssignableStaff(),
+    getStudentApprovals(id),
   ]);
   if (res.status === 404) notFound();
   if (!res.ok) {
@@ -242,6 +245,13 @@ export default async function StudentDetailPage({
           studentName={student.fullName}
           travel={travel}
           session={session}
+        />
+      )}
+
+      {approvals && (
+        <FinanceCheckpoints
+          approvals={approvals.items}
+          outstanding={approvals.outstanding}
         />
       )}
 
