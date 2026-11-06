@@ -467,3 +467,46 @@ Verified across a full journey: counselling → first payment (auto-approved) �
 until Admission approved (and refused without a note while 2.6M was owed) → travel clearance
 refused while money was owed, then approved and mirrored onto the travel record → travelled →
 monitoring blocked until the final settlement was confirmed.
+
+## Client report, 6 Nov 2026 — the checkpoint deadlock and allocating students
+
+### "Finance approved admission but it still blocks"
+
+Finance had never approved anything: zero `FINANCE_APPROVALS` audit entries in production. They
+could not have, because **44 students were deadlocked**. Checkpoints were only raised when a
+student *entered* a stage, so everyone already sitting in a gated stage when the feature shipped
+had no row at all — the pipeline refused to advance them while Finance's queue showed nothing to
+approve.
+
+| stage | students | had a row | deadlocked |
+|---|---|---|---|
+| PAYMENT_CONFIRMED | 43 | 3 | **40** |
+| TRAVEL_PLANNING | 3 | 0 | **3** |
+| TRAVELLED | 1 | 0 | **1** |
+
+Two fixes:
+
+- **Self-healing gates.** When a gate finds no row it now raises one before refusing, and says so:
+  *"…yet - it is now waiting in the Finance approvals queue."* A missing row can never deadlock a
+  student again, whatever order things ship in. The travel gate does the same, so the queue shows
+  what is blocking even though that gate reads `financeVerifiedAt`.
+- **Backfill.** 30 students whose balance was already zero were marked approved with a note saying
+  it was a one-off at introduction; the 14 who still owe money went to the queue for a real
+  decision. The 3 travel-clearance rows also had to stamp `financeVerifiedAt`, since that is what
+  the ticket and travelled gates read — writing the table alone would have left them blocked.
+
+PALMER MARK, the student in the report, already had a row, so the backfill correctly left him
+pending: his balance is zero, so Finance clears him with one click. The underlying gap is that
+Finance had not yet used the Approvals queue at all.
+
+### Allocating earlier students to officers
+
+The leads board only ever covered **leads**, so the students entered before the officers existed
+could not be allocated from anywhere — and IT cannot see the Students page at all (`IT_ADMIN` has
+no `students` module). That is why only recently-added people appeared.
+
+Added `POST /students/allocate` (IT, MD, Administrator) — a batch assign that refuses anyone who is
+not an active Relations Officer — and an **Allocate students to Relations Officers** panel on the
+student-leads board, where IT already works: unassigned-only filter, search, multi-select, and the
+officer picker. `GET /students` now admits `IT_ADMIN` so the panel can list them; IT gets no other
+student access.

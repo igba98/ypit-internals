@@ -10,6 +10,10 @@ import { GraduationCap, UserPlus, CheckCircle2 } from 'lucide-react';
 import { AddStudentLeadButton } from './_components/AddStudentLeadButton';
 import { LeadsTable, Officer } from './_components/LeadsTable';
 import { QuickAddLead } from './_components/QuickAddLead';
+import {
+  AllocateStudents,
+  AllocatableStudent,
+} from './_components/AllocateStudents';
 
 /** Who may be handed a lead: every Relations Officer variant, plus sub-agents. */
 const RECIPIENT_ROLES: string[] = ['MARKETING_STAFF', 'TRAVEL', 'MARKETING_MANAGER', 'SUB_AGENT'];
@@ -28,6 +32,34 @@ interface LeadsResponse {
 }
 
 /** Relations Officers + sub-agents who can receive leads. */
+/** Students in the pipeline, so IT can hand them to an officer. */
+async function loadStudents(): Promise<AllocatableStudent[]> {
+  try {
+    const res = await backendFetch('/students?limit=500');
+    if (!res.ok) return [];
+    const body = (await res.json()) as {
+      items: {
+        id: string;
+        fullName: string;
+        registrationNumber: string;
+        pipelineStage: string;
+        marketingStaffId?: string | null;
+        marketingStaffName?: string | null;
+      }[];
+    };
+    return (body.items ?? []).map((s) => ({
+      id: s.id,
+      fullName: s.fullName,
+      registrationNumber: s.registrationNumber,
+      pipelineStage: s.pipelineStage,
+      marketingStaffId: s.marketingStaffId ?? null,
+      officerName: s.marketingStaffName ?? null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 async function loadOfficers(): Promise<{ officers: Officer[]; error: string | null }> {
   try {
     const res = await backendFetch('/staff?limit=500&status=ACTIVE');
@@ -88,12 +120,14 @@ export default async function StudentLeadsPage({
 
   const { status = 'all' } = await searchParams;
   const canDistribute = LEAD_DISTRIBUTOR_ROLES.includes(session.role);
-  const [{ items, error }, { officers, error: officerError }] = await Promise.all([
-    load(status),
-    canDistribute
-      ? loadOfficers()
-      : Promise.resolve({ officers: [] as Officer[], error: null }),
-  ]);
+  const [{ items, error }, { officers, error: officerError }, students] =
+    await Promise.all([
+      load(status),
+      canDistribute
+        ? loadOfficers()
+        : Promise.resolve({ officers: [] as Officer[], error: null }),
+      canDistribute ? loadStudents() : Promise.resolve([] as AllocatableStudent[]),
+    ]);
   const ro = isRO(session.role);
 
   // Sub-agents only see the leads they own.
@@ -159,6 +193,13 @@ export default async function StudentLeadsPage({
       )}
 
       {canDistribute && <QuickAddLead officers={officers} />}
+
+      {canDistribute && (
+        <AllocateStudents
+          students={students}
+          officers={officers.filter((o) => o.role !== 'SUB_AGENT')}
+        />
+      )}
 
       <LeadsTable
         leads={visible}
