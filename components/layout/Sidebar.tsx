@@ -41,6 +41,7 @@ import {
   UtensilsCrossed,
   CalendarClock,
   ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MODULES, isAssistant } from '@/lib/permissions';
@@ -232,6 +233,8 @@ export function Sidebar({ initialCollapsed = false }: { initialCollapsed?: boole
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ALL'] },
       { label: 'Students', href: '/students', icon: Users, roles: ['MANAGING_DIRECTOR', 'ADMISSIONS'] },
       { label: 'Student Leads', href: '/student-leads', icon: GraduationCap, roles: ['SUB_AGENT', 'MANAGING_DIRECTOR', 'IT_ADMIN'] },
+      // IT hands students to officers here - the leads board only covers leads.
+      { label: 'Student Allocation', href: '/student-allocation', icon: UserCheck, roles: ['IT_ADMIN', 'MANAGING_DIRECTOR', 'OPERATIONS'] },
       { label: 'RO Performance', href: '/leads', icon: Gauge, roles: ['SUB_AGENT', 'IT_ADMIN', 'MANAGING_DIRECTOR'] },
       { label: 'Enquiries', href: '/enquiries', icon: Inbox, roles: ['IT_ADMIN'] },
       { label: 'Communication', href: '/communication', icon: MessageSquare, roles: ['MANAGING_DIRECTOR'] },

@@ -510,3 +510,48 @@ not an active Relations Officer — and an **Allocate students to Relations Offi
 student-leads board, where IT already works: unassigned-only filter, search, multi-select, and the
 officer picker. `GET /students` now admits `IT_ADMIN` so the panel can list them; IT gets no other
 student access.
+
+## Client follow-up, 16 Nov 2026 — "both issues still not fixed"
+
+Both fixes were live (backend `2ef2c21`, frontend `5512f73`, deployed 6 Nov; the screenshots are
+from 9 Nov). The data says the pipeline is no longer blocked, so the gap was elsewhere.
+
+### Finance approvals — working; the blocker is who is clicking
+
+Finance has used the queue: PALMER MARK approved 6 Nov 09:58, JUSTICE LUCAS 10:14. Production
+state for both:
+
+- PALMER MARK — admission approved, balance 0, sitting at PAYMENT_CONFIRMED waiting for Admissions
+  to press *Mark Application Submitted*.
+- JUSTICE LUCAS — every checkpoint approved, travel verified, all four substeps done, balance 0.
+
+Replicating JUSTICE LUCAS's exact state locally and pressing *Mark as Travelled* as each role:
+
+| role | result |
+|---|---|
+| RO (Travel) | advances |
+| RO (Marketing, the owner) | advances |
+| Managing Director | advances |
+| **IT_ADMIN** | **403 — cannot advance students from TRAVEL_PLANNING** |
+| Administrator / Admissions | 403 (not their stage) |
+
+IT does not get the button at all on the student page, which is correct — but the client is
+testing as IT (their dashboard is the first screenshot), so nothing moves for them. Nothing is
+broken in the workflow; it needs an RO or the MD to press it.
+
+Worth noting separately: `/students/[id]` has no `pageAllowed` check, so any signed-in user can
+open a student by URL even when the role has no students module. Left as-is for now, flagged.
+
+### Student allocation — the panel was there but looked empty
+
+Two reasons the client saw nothing:
+
+1. It lived inside the student-leads board, and **IT has no Students entry anywhere**, so there
+   was no obvious route to it.
+2. It defaulted to *unassigned only* — and after the 6 Nov backfill every student has an officer,
+   so the table was legitimately empty.
+
+Fixed: the panel now defaults to **all students**, and allocation gets its own page,
+`/student-allocation`, in IT's sidebar (also MD and Administrator). It shows the totals, the
+current split per officer, and the full list with each student's officer, so the 57 sitting with
+Lilian can be moved to the right officers.

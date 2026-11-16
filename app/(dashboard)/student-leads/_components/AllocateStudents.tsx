@@ -38,7 +38,7 @@ export function AllocateStudents({
 }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
-  const [onlyUnassigned, setOnlyUnassigned] = useState(true);
+  const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [q, setQ] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [officerId, setOfficerId] = useState('');
@@ -90,8 +90,9 @@ export function AllocateStudents({
         <div>
           <h3 className="font-semibold text-gray-900">Allocate students to Relations Officers</h3>
           <p className="text-[11px] text-gray-500">
-            Students already in the pipeline - including the ones entered before the officers
-            were set up. {unassignedCount} not yet allocated.
+            Every student in the pipeline, including the ones entered before the officers were set
+            up. Tick the ones to move, choose the officer, then Allocate.
+            {unassignedCount > 0 ? ` ${unassignedCount} not yet allocated.` : ''}
           </p>
         </div>
       </div>
