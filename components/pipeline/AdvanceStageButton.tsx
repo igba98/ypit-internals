@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Student, Session, TravelRecord } from '@/types';
+import { FinanceApproval, Student, Session, TravelRecord } from '@/types';
 import { getTransition } from '@/lib/pipeline/transitions';
 import { canAdvance } from '@/lib/pipeline/permissions';
 import { allTravelStepsDone } from '@/lib/pipeline/travelSteps';
+import {
+  CHECKPOINT_LABEL,
+  pendingFinanceGate,
+} from '@/lib/pipeline/financeGates';
 import { AdvanceStageModal } from './AdvanceStageModal';
 import { listActiveStaff, StaffOption } from '@/lib/actions/staffActions';
 import { Button } from '@/components/ui/button';
@@ -15,10 +19,12 @@ interface Props {
   session: Session;
   /** Travel record for this student, used to check the TRAVEL_PLANNING → TRAVELLED gate. */
   travel?: TravelRecord | null;
+  /** Finance checkpoints, so the officer sees a pending sign-off before clicking. */
+  approvals?: FinanceApproval[] | null;
   size?: 'sm' | 'default';
 }
 
-export function AdvanceStageButton({ student, session, travel, size = 'default' }: Props) {
+export function AdvanceStageButton({ student, session, travel, approvals, size = 'default' }: Props) {
   const [open, setOpen] = useState(false);
   const [staff, setStaff] = useState<StaffOption[]>([]);
   const [loading, startTransition] = useTransition();
@@ -46,6 +52,12 @@ export function AdvanceStageButton({ student, session, travel, size = 'default' 
     if (!travel || !travel.travelStepStatus || !allTravelStepsDone(travel.travelStepStatus)) {
       gatedReason = 'Complete all 4 travel sub-steps first';
     }
+  }
+  // A Finance sign-off can hold the student in this stage - say so on the
+  // button rather than letting the click fail.
+  const financeGate = pendingFinanceGate(student.pipelineStage, approvals);
+  if (!gatedReason && financeGate) {
+    gatedReason = `Waiting on Finance: ${CHECKPOINT_LABEL[financeGate]} (Finance → Approvals)`;
   }
 
   const tooltip = !allowed

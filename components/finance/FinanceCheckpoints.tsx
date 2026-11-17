@@ -1,14 +1,26 @@
 import { ShieldCheck, ShieldAlert, ShieldX, Circle } from 'lucide-react';
-import { FinanceApproval, FinanceCheckpoint } from '@/types';
+import { FinanceApproval, FinanceCheckpoint, PipelineStage } from '@/types';
 import { formatCurrency } from '@/lib/format';
 import { formatDate } from '@/lib/utils';
 
-/** The four sign-offs, in the order the student meets them. */
-const ORDER: { key: FinanceCheckpoint; label: string }[] = [
-  { key: 'INITIAL_PAYMENT', label: 'Initial payment' },
-  { key: 'ADMISSION', label: 'Admission funds' },
-  { key: 'TRAVEL_CLEARANCE', label: 'Travel clearance' },
-  { key: 'FINAL_SETTLEMENT', label: 'Final settlement' },
+/** The four sign-offs, in the order the student meets them, and where each is raised. */
+const ORDER: { key: FinanceCheckpoint; label: string; raisedAt: PipelineStage }[] = [
+  { key: 'INITIAL_PAYMENT', label: 'Initial payment', raisedAt: 'PAYMENT_PENDING' },
+  { key: 'ADMISSION', label: 'Admission funds', raisedAt: 'PAYMENT_CONFIRMED' },
+  { key: 'TRAVEL_CLEARANCE', label: 'Travel clearance', raisedAt: 'TRAVEL_PLANNING' },
+  { key: 'FINAL_SETTLEMENT', label: 'Final settlement', raisedAt: 'TRAVELLED' },
+];
+
+const STAGE_ORDER: PipelineStage[] = [
+  'LEAD',
+  'COUNSELING',
+  'PAYMENT_PENDING',
+  'PAYMENT_CONFIRMED',
+  'APPLICATION_SUBMITTED',
+  'UNIVERSITY_ACCEPTED',
+  'TRAVEL_PLANNING',
+  'TRAVELLED',
+  'MONITORING',
 ];
 
 /**
@@ -18,9 +30,12 @@ const ORDER: { key: FinanceCheckpoint; label: string }[] = [
 export function FinanceCheckpoints({
   approvals,
   outstanding,
+  pipelineStage,
 }: {
   approvals: FinanceApproval[];
   outstanding: number | null;
+  /** Lets a checkpoint the student already passed read correctly. */
+  pipelineStage?: PipelineStage;
 }) {
   if (approvals.length === 0) return null;
   const byKey = new Map(approvals.map((a) => [a.checkpoint, a]));
@@ -42,7 +57,13 @@ export function FinanceCheckpoints({
       <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {ORDER.map((step) => {
           const row = byKey.get(step.key);
-          const status = row?.status ?? 'NOT_REACHED';
+          // Students who were already past a stage when checkpoints shipped
+          // have no row there - "not reached" would read as wrong.
+          const alreadyPast =
+            !row &&
+            pipelineStage !== undefined &&
+            STAGE_ORDER.indexOf(pipelineStage) > STAGE_ORDER.indexOf(step.raisedAt);
+          const status = row?.status ?? (alreadyPast ? 'PASSED_EARLIER' : 'NOT_REACHED');
           const tone =
             status === 'APPROVED'
               ? 'border-green-200 bg-green-50/60'
@@ -80,7 +101,9 @@ export function FinanceCheckpoints({
                     ? 'Waiting on Finance'
                     : status === 'REJECTED'
                       ? 'Held back by Finance'
-                      : 'Not reached yet'}
+                      : status === 'PASSED_EARLIER'
+                        ? 'Passed before this check existed'
+                        : 'Not reached yet'}
               </p>
               {row?.notes && <p className="text-[11px] text-gray-500 mt-1">{row.notes}</p>}
             </li>

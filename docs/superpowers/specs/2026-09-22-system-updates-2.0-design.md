@@ -555,3 +555,28 @@ Fixed: the panel now defaults to **all students**, and allocation gets its own p
 `/student-allocation`, in IT's sidebar (also MD and Administrator). It shows the totals, the
 current split per officer, and the full list with each student's officer, so the 57 sitting with
 Lilian can be moved to the right officers.
+
+## Client report, 17 Nov 2026 — "finance says cleared, finalise still blocks"
+
+NOEL GODSON, at TRAVELLED: `TRAVEL_CLEARANCE` approved 6 Nov, `FINAL_SETTLEMENT` pending (raised
+that morning by the self-heal), balance 0. The gate was right — final settlement is a separate
+sign-off — but every screen the officer could see said *"Cleared for travel"*, so the block looked
+like a bug.
+
+Fixed the blindness rather than the gate:
+
+- **The advance button now locks with the reason** instead of failing on click:
+  *"Waiting on Finance: final settlement (Finance → Approvals)"*, the same pattern the travel
+  substeps already used. `lib/pipeline/financeGates.ts` mirrors `CHECKPOINT_GATES`; the button
+  falls back to its old behaviour when approvals aren't loaded, so nothing locks on missing data.
+- **The travel page shows all four checkpoints**, not just travel clearance — that single green
+  card was what read as "Finance is done".
+- Checkpoints a student passed before the feature existed now read **"Passed before this check
+  existed"** rather than "Not reached yet", which was plainly wrong for someone who had travelled.
+- The refusal message names where to go and what is not enough: *"Finance can clear it under
+  Finance → Approvals; travel clearance alone is not enough."*
+
+`FinanceCheckpoints` moved to `components/finance/` so both pages share it.
+
+Verified on a clone of NOEL GODSON's exact state: button locked with the tooltip, strip showing
+the pending settlement, Finance approved, officer retried → MONITORING.

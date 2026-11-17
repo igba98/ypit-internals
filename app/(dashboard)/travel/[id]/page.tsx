@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 import { Session, Student, TravelRecord } from '@/types';
 import { backendFetch } from '@/lib/backend';
 import { getTravelFinanceStatus } from '@/lib/actions/travelActions';
+import { getStudentApprovals } from '@/lib/actions/financeApprovalActions';
+import { FinanceCheckpoints } from '@/components/finance/FinanceCheckpoints';
 import { FinanceClearanceCard } from './_components/FinanceClearanceCard';
 
 async function loadTravel(id: string): Promise<TravelRecord | null> {
@@ -37,9 +39,12 @@ export default async function TravelDetailPage({ params }: { params: Promise<{ i
   const record = await loadTravel(id);
   if (!record) notFound();
 
-  const [student, financeStatus] = await Promise.all([
+  const [student, financeStatus, approvals] = await Promise.all([
     loadStudent(record.studentId),
     getTravelFinanceStatus(id),
+    // Travel clearance is only one of four sign-offs; showing just that one
+    // read as "Finance is done" when the final settlement was still pending.
+    getStudentApprovals(record.studentId),
   ]);
   const isFinance = session.role === 'FINANCE' || session.role === 'FINANCE_ASSISTANT';
 
@@ -53,6 +58,14 @@ export default async function TravelDetailPage({ params }: { params: Promise<{ i
           isFinance={isFinance}
         />
       )}
+      {approvals && approvals.items.length > 0 && (
+        <FinanceCheckpoints
+          approvals={approvals.items}
+          outstanding={approvals.outstanding}
+          pipelineStage={student?.pipelineStage}
+        />
+      )}
+
       {student && (
         <TravelChecklistCard
           studentId={student.id}

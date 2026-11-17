@@ -31,7 +31,7 @@ import { backendFetch } from '@/lib/backend';
 import { listStudentDocuments } from '@/lib/actions/documentActions';
 import { listStudentFollowUps, listAssignableStaff } from '@/lib/actions/studentFollowUpActions';
 import { FollowUpSection } from './_components/FollowUpSection';
-import { FinanceCheckpoints } from './_components/FinanceCheckpoints';
+import { FinanceCheckpoints } from '@/components/finance/FinanceCheckpoints';
 import { getStudentApprovals } from '@/lib/actions/financeApprovalActions';
 
 interface DetailResponse extends Student {
@@ -157,7 +157,13 @@ export default async function StudentDetailPage({
                 </div>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <AdvanceStageButton student={student} session={session} travel={travel} size="sm" />
+                  <AdvanceStageButton
+                    student={student}
+                    session={session}
+                    travel={travel}
+                    approvals={approvals?.items ?? null}
+                    size="sm"
+                  />
                   <RevertStageButton student={student} session={session} />
                 </div>
 
@@ -252,6 +258,7 @@ export default async function StudentDetailPage({
         <FinanceCheckpoints
           approvals={approvals.items}
           outstanding={approvals.outstanding}
+          pipelineStage={student.pipelineStage}
         />
       )}
 
