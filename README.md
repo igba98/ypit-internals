@@ -20,4 +20,4 @@ View your app in AI Studio: https://ai.studio/apps/5b676a5c-c7a9-48e4-a061-47bd2
    `npm run dev`
 # ypit-internals
 
-<!-- Deploy sync: 2026-11-17 -->
+<!-- Deploy sync: 2026-11-17 17:06 -->
